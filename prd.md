@@ -206,7 +206,7 @@ The MVP includes the following features:
 - Configurable absence timeout.
 - Configurable warning delay.
 - Timer creation and cancellation.
-- MQTT communication between backend and ESP32 CAM.
+- MQTT communication between backend and Raspberry Pi 4 CAM.
 - Event logging.
 - Basic camera stream display.
 - Role-based permissions.

@@ -1,0 +1,10 @@
+# MQTT communication (implemented now)
+paho-mqtt>=2.1.0
+python-dotenv>=1.0.1
+
+# --- Future feature dependencies (uncomment as you implement) ---
+# picamera2        # Pi Camera capture (Raspberry Pi OS)
+# opencv-python    # presence detection / image processing
+# numpy            # array ops for vision
+# gpiozero         # buzzer + relay GPIO control
+# RPi.GPIO         # low-level GPIO backend for gpiozero
