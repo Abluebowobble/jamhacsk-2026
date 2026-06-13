@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Vision model weights (downloaded per firmware/models/README.md)
+models/*.caffemodel
+models/*.prototxt
+models/*.tflite
