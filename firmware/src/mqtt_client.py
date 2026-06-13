@@ -22,21 +22,22 @@ class MqttClient:
     def __init__(self, config, *, on_command=None, on_settings=None, on_timer=None):
         self.cfg = config
         self.device_id = config.device_id
+        self.household_id = config.household_id
         self._on_command = on_command
         self._on_settings = on_settings
         self._on_timer = on_timer
 
         # A short random suffix keeps the client_id unique. Two clients with the
         # SAME id make the broker kick one off repeatedly (connect/disconnect
-        # loop) — easy to hit now that device-ID verification is off and every
-        # instance defaults to the same DEVICE_ID.
+        # loop).
         self._client = mqtt.Client(
             mqtt.CallbackAPIVersion.VERSION2,
             client_id=f"hestia-device-{self.device_id}-{uuid4().hex[:6]}",
         )
 
-        if config.username:
-            self._client.username_pw_set(config.username, config.password)
+        # The device authenticates as username = DEVICE_ID. The broker ACL grants
+        # that user ONLY its own household/device subtree, so families are isolated.
+        self._client.username_pw_set(self.device_id, config.password)
 
         # Auto-reconnect with backoff, so a dropped broker recovers on its own.
         self._client.reconnect_delay_set(min_delay=1, max_delay=30)
@@ -44,7 +45,7 @@ class MqttClient:
         # Last Will: if this Pi disconnects unexpectedly, the broker publishes
         # an offline status on our behalf -> backend marks the device offline.
         self._client.will_set(
-            m.topic_status(self.device_id),
+            m.topic_status(self.household_id, self.device_id),
             json.dumps(m.offline_will(self.device_id)),
             qos=1,
             retain=True,
@@ -86,9 +87,9 @@ class MqttClient:
             return
         log.info("MQTT connected as device %s", self.device_id)
         for topic in (
-            m.topic_commands(self.device_id),
-            m.topic_settings(self.device_id),
-            m.topic_timers(self.device_id),
+            m.topic_commands(self.household_id, self.device_id),
+            m.topic_settings(self.household_id, self.device_id),
+            m.topic_timers(self.household_id, self.device_id),
         ):
             client.subscribe(topic, qos=1)
             log.info("Subscribed: %s", topic)
@@ -143,10 +144,16 @@ class MqttClient:
             active_timer_seconds_remaining=active_timer_seconds_remaining,
         )
         # retained so the dashboard sees current state immediately on subscribe.
-        self._publish(m.topic_status(self.device_id), payload, qos=1, retain=True)
+        self._publish(m.topic_status(self.household_id, self.device_id), payload, qos=1, retain=True)
 
     def publish_presence(self, detected):
-        self._publish(m.topic_presence(self.device_id), m.presence_payload(detected))
+        self._publish(
+            m.topic_presence(self.household_id, self.device_id),
+            m.presence_payload(detected),
+        )
 
     def publish_event(self, event_type, metadata=None):
-        self._publish(m.topic_events(self.device_id), m.event_payload(event_type, metadata))
+        self._publish(
+            m.topic_events(self.household_id, self.device_id),
+            m.event_payload(event_type, metadata),
+        )

@@ -8,32 +8,38 @@ Mirrors PRD section 20 and what backend/src/services/mqtt.js actually parses:
 """
 from datetime import datetime, timezone
 
-TOPIC_BASE = "hestia/devices"
+TOPIC_BASE = "hestia/households"
 
 
 # --- Topic builders ---------------------------------------------------------
-def topic_status(device_id):
-    return f"{TOPIC_BASE}/{device_id}/status"
+# Topics are keyed by household so the broker ACL can isolate families:
+#   hestia/households/{householdId}/devices/{deviceId}/{kind}
+def _topic(household_id, device_id, kind):
+    return f"{TOPIC_BASE}/{household_id}/devices/{device_id}/{kind}"
 
 
-def topic_presence(device_id):
-    return f"{TOPIC_BASE}/{device_id}/presence"
+def topic_status(household_id, device_id):
+    return _topic(household_id, device_id, "status")
 
 
-def topic_events(device_id):
-    return f"{TOPIC_BASE}/{device_id}/events"
+def topic_presence(household_id, device_id):
+    return _topic(household_id, device_id, "presence")
 
 
-def topic_commands(device_id):
-    return f"{TOPIC_BASE}/{device_id}/commands"
+def topic_events(household_id, device_id):
+    return _topic(household_id, device_id, "events")
 
 
-def topic_settings(device_id):
-    return f"{TOPIC_BASE}/{device_id}/settings"
+def topic_commands(household_id, device_id):
+    return _topic(household_id, device_id, "commands")
 
 
-def topic_timers(device_id):
-    return f"{TOPIC_BASE}/{device_id}/timers"
+def topic_settings(household_id, device_id):
+    return _topic(household_id, device_id, "settings")
+
+
+def topic_timers(household_id, device_id):
+    return _topic(household_id, device_id, "timers")
 
 
 def now_iso():
