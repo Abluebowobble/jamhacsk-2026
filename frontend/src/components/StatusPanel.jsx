@@ -26,16 +26,19 @@ const TONE = {
 
 const SIZE = {
   lg: {
-    box: 'min-h-[116px] rounded-xl p-4 sm:min-h-[132px] sm:p-5',
-    label: 'text-[0.625rem] tracking-[0.12em] sm:text-xs sm:tracking-[0.14em]',
+    // Mobile boxes can be as narrow as ~85px (3-up at 320px). Keep the padding,
+    // label tracking, and glance value scaled so nothing collides or clips;
+    // everything opens back up at ≥640px where there's room.
+    box: 'min-h-[108px] rounded-xl p-3 sm:min-h-[132px] sm:p-5',
+    label: 'text-[0.625rem] tracking-[0.06em] sm:text-xs sm:tracking-[0.14em]',
     icon: 'size-5 sm:size-6',
-    value: 'text-[1.75rem] leading-none sm:text-3xl',
+    value: 'text-2xl leading-none sm:text-3xl',
     hint: 'text-[0.6875rem]',
     foot: 'gap-1',
   },
   sm: {
     box: 'min-h-[88px] rounded-lg p-3',
-    label: 'text-[0.625rem] tracking-[0.12em]',
+    label: 'text-[0.625rem] tracking-[0.06em]',
     icon: 'size-5',
     value: 'text-xl leading-none',
     hint: 'text-[0.625rem]',
@@ -74,13 +77,13 @@ export function StatusPanel({
         pulse && 'hestia-pulse-warn',
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className={cx('font-semibold uppercase', s.label, t.label)}>{label}</span>
+      <div className="flex items-center justify-between gap-1.5">
+        <span className={cx('min-w-0 truncate font-semibold uppercase', s.label, t.label)}>{label}</span>
         <Icon className={cx('shrink-0', s.icon)} strokeWidth={1.75} aria-hidden="true" />
       </div>
 
       <div className={cx('mt-auto flex min-w-0 flex-col', s.foot)}>
-        <span className={cx('font-bold tracking-[-0.02em]', s.value)}>{value}</span>
+        <span className={cx('truncate font-bold tracking-[-0.02em]', s.value)}>{value}</span>
         {hint && size === 'lg' && (
           <span className={cx('truncate font-medium', s.hint, t.sub)}>{hint}</span>
         )}

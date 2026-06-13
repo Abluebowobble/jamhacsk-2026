@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { SettingsNav } from '../components/SettingsNav'
 
 // Settings shell: a sticky section rail beside the active section. Sits inside
@@ -7,6 +8,14 @@ import { SettingsNav } from '../components/SettingsNav'
 export function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
+      <Link
+        to="/"
+        className="inline-flex w-fit items-center gap-1.5 rounded-md text-sm text-ink-muted transition-colors hover:text-ink"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        All devices
+      </Link>
+
       <div>
         <h1 className="text-2xl font-semibold text-ink sm:text-3xl">Settings</h1>
         <p className="mt-1 text-sm text-ink-body">
@@ -15,7 +24,7 @@ export function SettingsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[12rem_1fr] lg:gap-10">
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           <SettingsNav />
         </div>
         <div className="min-w-0">

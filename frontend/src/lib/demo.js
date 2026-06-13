@@ -8,7 +8,7 @@
 // toggling the stove / starting a timer / editing settings persists for the
 // session.
 
-export const DEMO = false
+export const DEMO = true
 
 const iso = (msFromNow) => new Date(Date.now() + msFromNow).toISOString()
 

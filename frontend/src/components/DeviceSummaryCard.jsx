@@ -13,8 +13,10 @@ import { cx } from '../lib/cx'
 // The device hero. Three big solid panels answer the glance — stove (which is
 // also the on/off control), presence, and camera (opens the stream). A phase
 // line states the synthesized consequence + live countdown. When the stove is
-// unattended (or worse) the ENTIRE card washes a different color so it can't be
-// missed: amber for warning states, red for danger.
+// unattended (or worse) the PHASE LINE washes a different color so it can't be
+// missed: amber for warning states, red for danger. The tint stays on the
+// header banner only — the panel grid keeps its full width in every state, so
+// switching between calm and alerted devices never reflows the icons.
 
 const HEAD = {
   success: 'text-success-fg',
@@ -25,8 +27,8 @@ const HEAD = {
 }
 
 const TINT = {
-  warn: 'rounded-2xl border border-warn/40 bg-warn-subtle p-4 sm:p-5',
-  danger: 'rounded-2xl border border-danger/30 bg-danger-subtle p-4 sm:p-5',
+  warn: 'rounded-xl border border-warn/40 bg-warn-subtle px-3 py-2.5',
+  danger: 'rounded-xl border border-danger/30 bg-danger-subtle px-3 py-2.5',
 }
 
 export function DeviceSummaryCard({
@@ -48,8 +50,8 @@ export function DeviceSummaryCard({
   const canOpenCam = device.online && canViewCamera && Boolean(onOpenCamera)
 
   return (
-    <section className={cx('flex flex-col gap-4', tinted && TINT[meta.tone])}>
-      <div className="flex items-center gap-3">
+    <section className="flex flex-col gap-4">
+      <div className={cx('flex items-center gap-3', tinted && TINT[meta.tone])}>
         <PhaseIcon className={cx('size-5 shrink-0', HEAD[meta.tone])} aria-hidden="true" />
         <div className="min-w-0">
           <p
