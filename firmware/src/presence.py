@@ -20,7 +20,6 @@ Design
 Public surface
 --------------
 - ``PresenceMonitor`` — capture + detect + debounce; call ``poll()`` in a loop.
-- ``detect_presence()`` — one-shot convenience used by older callers / tests.
 
 Self-test (no MQTT broker, no Pi needed)
 ----------------------------------------
@@ -28,12 +27,17 @@ Self-test (no MQTT broker, no Pi needed)
 - ``python -m src.presence --image X``  run on a still image (person vs pet)
 - ``python -m src.presence --video X``  run on a video file
 """
+
+# NOTE IF CAMERA BREAKS THE ENTIRE SYSTEM GETS STUCK. RECTIFY OUT OF MVP.
+
 import argparse
 import logging
 import os
 import time
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Tuple
+
+from .util import env_float as _env_float, env_int as _env_int
 
 log = logging.getLogger("hestia.presence")
 
@@ -43,20 +47,6 @@ class PresenceUnavailable(RuntimeError):
 
 
 # --- configuration ----------------------------------------------------------
-def _env_float(name, default):
-    try:
-        return float(os.environ.get(name, "").strip() or default)
-    except ValueError:
-        return default
-
-
-def _env_int(name, default):
-    try:
-        return int(os.environ.get(name, "").strip() or default)
-    except ValueError:
-        return default
-
-
 def _parse_roi(raw):
     """Parse 'x0,y0,x1,y1' fractional ROI; default to the full frame."""
     if not raw:
@@ -415,29 +405,6 @@ class PresenceMonitor:
         if self._camera:
             self._camera.close()
             self._camera = None
-
-
-# --- one-shot convenience ---------------------------------------------------
-_singleton: Optional[PresenceMonitor] = None
-
-
-def detect_presence() -> Optional[bool]:
-    """Return True if a person is near the stove, False if not, None on error.
-
-    Convenience wrapper that lazily builds a shared monitor. Prefer
-    ``PresenceMonitor`` for the main loop (it adds debounce + on_change).
-    """
-    global _singleton
-    if _singleton is None:
-        try:
-            _singleton = PresenceMonitor()
-            _singleton.start()
-        except PresenceUnavailable as exc:
-            log.warning("Presence detection unavailable: %s", exc)
-            _singleton = None
-            return None
-    result = _singleton.detect_once()
-    return None if result is None else result.detected
 
 
 # --- self-test (broker-free verification) -----------------------------------

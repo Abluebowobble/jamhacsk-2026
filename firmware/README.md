@@ -8,9 +8,10 @@ Per the PRD, **critical safety logic runs locally** — the Pi decides on shutof
 even when the cloud is unreachable. The cloud backend is only for remote
 visibility, configuration, notifications, and history.
 
-> Status: **MQTT communication and camera presence detection are implemented.**
-> The safety state machine, the buzzer, and stove control are **stubs** — ready
-> to implement, not done yet.
+> Status: **Implemented** — MQTT, camera presence detection, the local safety
+> state machine (absence → warning → auto-shutoff), the buzzer, stove control,
+> and the firmware logic loop that ties them together. Buzzer + stove fall back
+> to a simulated backend off-Pi, so the whole thing runs on a dev machine.
 
 ## Layout
 
@@ -21,24 +22,52 @@ firmware/
 ├── requirements.txt
 ├── .env.example       # copy to .env
 └── src/
-    ├── mqtt_client.py # MQTT client (COMPLETE)
+    ├── loop.py        # firmware logic loop: sync MQTT → run safety → publish
+    ├── mqtt_client.py # MQTT client
     ├── messages.py    # topic + payload contract (shared shape w/ backend)
-    ├── presence.py    # camera presence detection (COMPLETE)
-    ├── safety.py      # absence/warning/shutoff state machine (STUB)
-    ├── buzzer.py      # warning buzzer GPIO (STUB)
-    └── stove.py       # stove relay / ESP32 control (STUB)
+    ├── presence.py    # camera presence detection
+    ├── safety.py      # absence/warning/shutoff state machine (local, tick-driven)
+    ├── buzzer.py      # warning buzzer GPIO (real or simulated)
+    └── stove.py       # stove relay / ESP32 control (real or simulated)
 ```
+
+## Logic loop
+
+`main.py` builds the device and runs `src/loop.py`, whose every tick does three
+things **in order**:
+
+1. **Sync** — drain inbound MQTT requests (`commands` / `settings` / `timers`)
+   that arrived since the last tick and apply them.
+2. **Logic** — run the firmware's own evaluation: read the camera, advance the
+   absence → warning → auto-shutoff state machine, tick the cooking timer. This
+   drives the buzzer + stove **locally**, with no cloud round-trip.
+3. **Publish** — send results *back* to MQTT, best-effort: **action logs** (each
+   tagged with this `deviceId` — "which device did what") plus **sensor data**
+   (presence on change + a periodic status heartbeat).
+
+The loop **never breaks without MQTT**: the broker connects asynchronously, and
+publishing is best-effort, so a broker outage just means the device keeps
+running its safety logic locally and reports nothing until the broker is back.
 
 ## Setup
 
+Target hardware is a **Raspberry Pi 4B** running Raspberry Pi OS (Bookworm),
+with the Pi Camera, a buzzer on a GPIO pin, and a relay/ESP32 for stove power.
+
 ```bash
 cd firmware
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python3 -m venv .venv --system-site-packages   # so the apt-installed picamera2 is visible
+source .venv/bin/activate                       # Windows dev: .venv\Scripts\activate
+sudo apt install -y python3-picamera2 python3-lgpio   # Pi camera + GPIO backend
 pip install -r requirements.txt
-cp .env.example .env             # then fill in DEVICE_ID + MQTT_BROKER_URL
+cp .env.example .env                            # then fill in DEVICE_ID + MQTT_BROKER_URL
 python main.py
 ```
+
+On the Pi 4B, gpiozero auto-selects the **lgpio** pin factory (installed above),
+so the buzzer + stove GPIO work with no extra configuration. On a dev machine
+(no GPIO/camera) the firmware logs and uses simulated backends, so the same
+`python main.py` runs anywhere.
 
 `DEVICE_ID` must match a row in the Supabase `devices` table. `MQTT_BROKER_URL`
 must point at the **same broker the backend uses**.
@@ -113,9 +142,11 @@ python -m src.presence --image cat.jpg # person vs pet check (deterministic)
 ## TODO (feature implementation)
 
 - [x] `presence.py` — camera person detection (OpenCV DNN MobileNet-SSD / HOG)
-- [ ] `safety.py` — absence-timeout → warning-delay → auto-shutoff state machine
-      (hook ready: `safety.on_presence()`)
-- [ ] `buzzer.py` — buzzer GPIO on/off
-- [ ] `stove.py` — relay / ESP32 stove power control
+- [x] `safety.py` — absence-timeout → warning-delay → auto-shutoff state machine
+      (tick-driven `SafetyController`)
+- [x] `buzzer.py` — buzzer GPIO on/off (real or simulated)
+- [x] `stove.py` — relay / ESP32 stove power control (real or simulated)
+- [x] `loop.py` — firmware logic loop (sync → safety → publish)
 - [x] Periodic `publish_status` heartbeat from the main loop
 - [ ] Camera stream endpoint (PRD section 13)
+- [ ] Swap stove's `_GpioRelay` for the real ESP32 transport (PRD open Q#4)
