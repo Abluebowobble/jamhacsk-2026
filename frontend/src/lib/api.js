@@ -6,7 +6,7 @@
 import { supabase } from './supabase'
 import { DEMO, demoApi } from './demo'
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 /** Error carrying the HTTP status so callers can branch (404 vs 409 vs 401). */
 export class ApiError extends Error {

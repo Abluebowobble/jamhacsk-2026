@@ -21,13 +21,20 @@ services:
     build: ./backend
     container_name: hestia-backend
     restart: unless-stopped
-    # All config (Supabase, VAPID, and MQTT_BROKER_URL → the Vultr server) comes
-    # from backend/.env, so the backend connects to the same server broker as the
-    # firmware and frontend — no local-vs-server split.
+    # Most config (Supabase, VAPID, CORS, MQTT_BROKER_URL) comes from backend/.env.
     env_file:
       - ./backend/.env
     environment:
       PORT: "3000"
+      # Broker creds come from the SAME compose-level env that seeds the broker
+      # (root .env / shell), so a single MQTT_PASSWORD drives both ends and they
+      # can't drift. This overrides MQTT_USERNAME/MQTT_PASSWORD from backend/.env
+      # for the docker run. Default stays `backend`/`hestiadev` for zero-config dev.
+      MQTT_USERNAME: ${MQTT_USERNAME:-backend}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-hestiadev}
+    # Published on host loopback only. The Cloudflare quick tunnel (run on the
+    # host) reaches it at localhost:3000 and gives it a temporary public HTTPS
+    # URL — so 3000 is NOT exposed to the internet and needs no firewall rule.
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:

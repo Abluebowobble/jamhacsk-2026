@@ -1,1 +1,4 @@
 CLAUDE.md
+
+# Root compose secrets (optional — overrides the broker MQTT creds).
+.env
