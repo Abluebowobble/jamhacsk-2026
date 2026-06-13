@@ -1,18 +1,13 @@
 {
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\package.json": {
-    "mtime": 1781330594.993474,
-    "ast_hash": "1efa3d841f7cec48ed22dc7a8ad32039",
-    "semantic_hash": "1efa3d841f7cec48ed22dc7a8ad32039"
+    "mtime": 1781358253.56018,
+    "ast_hash": "5300106288fa0466a5ec74c2493bbd2a",
+    "semantic_hash": "5300106288fa0466a5ec74c2493bbd2a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\.claude\\settings.local.json": {
     "mtime": 1781335789.3360639,
     "ast_hash": "e895eb4e707da15a172f59e1c927f555",
     "semantic_hash": "e895eb4e707da15a172f59e1c927f555"
-  },
-  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\index.js": {
-    "mtime": 1781330594.993972,
-    "ast_hash": "6ce072a900cd7414aff389e4b171e897",
-    "semantic_hash": "6ce072a900cd7414aff389e4b171e897"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\lib\\deviceAccess.js": {
     "mtime": 1781330594.9944727,
@@ -55,9 +50,9 @@
     "semantic_hash": "dd0b1286941d04f726a13c88dc97de9a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\routes\\households.js": {
-    "mtime": 1781330594.9974718,
-    "ast_hash": "d4a77af872dd5ce2a3e3baa54af04991",
-    "semantic_hash": "d4a77af872dd5ce2a3e3baa54af04991"
+    "mtime": 1781360092.7700946,
+    "ast_hash": "e1291798e552adf508656e076ba8e3a8",
+    "semantic_hash": "e1291798e552adf508656e076ba8e3a8"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\routes\\joinRequests.js": {
     "mtime": 1781330594.9979722,
@@ -65,14 +60,14 @@
     "semantic_hash": "b039040c7ba4f418b67e35a2df578733"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\routes\\members.js": {
-    "mtime": 1781330594.9979722,
-    "ast_hash": "2ae98940c2ebccc807081554815f0a7b",
-    "semantic_hash": "2ae98940c2ebccc807081554815f0a7b"
+    "mtime": 1781361583.904173,
+    "ast_hash": "48e544541cb91a5040dfa41773a42d60",
+    "semantic_hash": "48e544541cb91a5040dfa41773a42d60"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\routes\\push.js": {
-    "mtime": 1781330594.9984717,
-    "ast_hash": "3f6f8a1b65ea0b2834243cce4edb3d9b",
-    "semantic_hash": "3f6f8a1b65ea0b2834243cce4edb3d9b"
+    "mtime": 1781361593.6646962,
+    "ast_hash": "cb8c5807ff9d1e399f413b475d4633bf",
+    "semantic_hash": "cb8c5807ff9d1e399f413b475d4633bf"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\routes\\safetySettings.js": {
     "mtime": 1781330594.9984717,
@@ -90,14 +85,14 @@
     "semantic_hash": "c67d204019a66a0e17e148910bba7615"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\services\\mqtt.js": {
-    "mtime": 1781330594.9999707,
-    "ast_hash": "42ff74efd0018b374fb899b3a01fac0d",
-    "semantic_hash": "42ff74efd0018b374fb899b3a01fac0d"
+    "mtime": 1781358253.5621798,
+    "ast_hash": "daece504b4146be9b4ef0d4e358bf33e",
+    "semantic_hash": "daece504b4146be9b4ef0d4e358bf33e"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\services\\push.js": {
-    "mtime": 1781330594.9999707,
-    "ast_hash": "85982690c362124cc3d69c5c41be9f7e",
-    "semantic_hash": "85982690c362124cc3d69c5c41be9f7e"
+    "mtime": 1781358253.56268,
+    "ast_hash": "e425a940c17cca848546207894497f5f",
+    "semantic_hash": "e425a940c17cca848546207894497f5f"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\services\\timerPoller.js": {
     "mtime": 1781330595.0004723,
@@ -115,254 +110,254 @@
     "semantic_hash": "fa91453358b56681481f75f81d1bfccd"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\package.json": {
-    "mtime": 1781331096.8799224,
+    "mtime": 1781358295.4677794,
     "ast_hash": "638747fa8152e968bdeaecc8c3aa5b13",
     "semantic_hash": "638747fa8152e968bdeaecc8c3aa5b13"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\vite.config.js": {
-    "mtime": 1781330595.006971,
-    "ast_hash": "aa17ee77cf5dd831f9678420ceace115",
-    "semantic_hash": "aa17ee77cf5dd831f9678420ceace115"
+    "mtime": 1781360224.8289106,
+    "ast_hash": "1e2312f6661e26224cfc0d04d8081f79",
+    "semantic_hash": "1e2312f6661e26224cfc0d04d8081f79"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\main.jsx": {
-    "mtime": 1781331082.6509233,
+    "mtime": 1781358295.5112813,
     "ast_hash": "8f651c2dea40418bcfef94dec80cb265",
     "semantic_hash": "8f651c2dea40418bcfef94dec80cb265"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\AppProviders.jsx": {
-    "mtime": 1781331608.0108702,
-    "ast_hash": "5d2027cf2a4f5612b63fd3051aec872f",
-    "semantic_hash": "5d2027cf2a4f5612b63fd3051aec872f"
+    "mtime": 1781358295.4687788,
+    "ast_hash": "06003e9190fb933b6a827fa2cb6ae4ed",
+    "semantic_hash": "06003e9190fb933b6a827fa2cb6ae4ed"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\AppShell.jsx": {
-    "mtime": 1781333032.4712286,
-    "ast_hash": "e6b55f706034cfbe856fc8a967e2be7a",
-    "semantic_hash": "e6b55f706034cfbe856fc8a967e2be7a"
+    "mtime": 1781358295.4692788,
+    "ast_hash": "db634ce0c348046cdfcfac349a2ce5cc",
+    "semantic_hash": "db634ce0c348046cdfcfac349a2ce5cc"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\AuthProvider.jsx": {
-    "mtime": 1781331510.7778847,
-    "ast_hash": "ea3f2e5c766cde4d4465de741730cf7b",
-    "semantic_hash": "ea3f2e5c766cde4d4465de741730cf7b"
+    "mtime": 1781361007.1407883,
+    "ast_hash": "39606e38fce8154e9790472926bee8a7",
+    "semantic_hash": "39606e38fce8154e9790472926bee8a7"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\CenteredScreen.jsx": {
-    "mtime": 1781331642.584868,
-    "ast_hash": "d8f3ccff161d5e1b4cf8fc872afdf619",
-    "semantic_hash": "d8f3ccff161d5e1b4cf8fc872afdf619"
+    "mtime": 1781358295.47628,
+    "ast_hash": "5c89ffb797d04ebcecba4d4cdb58581a",
+    "semantic_hash": "5c89ffb797d04ebcecba4d4cdb58581a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\guards.jsx": {
-    "mtime": 1781331600.796371,
-    "ast_hash": "6ef786d370fc406481861ad835f37d82",
-    "semantic_hash": "6ef786d370fc406481861ad835f37d82"
+    "mtime": 1781358295.4782803,
+    "ast_hash": "5326f63f40ad4ef80439977e340f28e4",
+    "semantic_hash": "5326f63f40ad4ef80439977e340f28e4"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\PhoneFrame.jsx": {
-    "mtime": 1781331082.6384234,
+    "mtime": 1781358295.4767818,
     "ast_hash": "b401347443d3760a69ac7f7645e4a40a",
     "semantic_hash": "b401347443d3760a69ac7f7645e4a40a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\router.jsx": {
-    "mtime": 1781335560.9140618,
-    "ast_hash": "356794c6412e06e64b64f776ccb36f10",
-    "semantic_hash": "356794c6412e06e64b64f776ccb36f10"
+    "mtime": 1781360437.686423,
+    "ast_hash": "c8d352811b8df4191dc98727f606ed1a",
+    "semantic_hash": "c8d352811b8df4191dc98727f606ed1a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\SessionProvider.jsx": {
-    "mtime": 1781331967.8083353,
-    "ast_hash": "7111671d9890a900aa264fe2d89cf30d",
-    "semantic_hash": "7111671d9890a900aa264fe2d89cf30d"
+    "mtime": 1781358295.477281,
+    "ast_hash": "c26ed74219040c1730dfa27c4b19422e",
+    "semantic_hash": "c26ed74219040c1730dfa27c4b19422e"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\app\\Splash.jsx": {
-    "mtime": 1781331549.934878,
-    "ast_hash": "bc509fdc5e86285853f96b040ac83847",
-    "semantic_hash": "bc509fdc5e86285853f96b040ac83847"
+    "mtime": 1781358295.4777808,
+    "ast_hash": "53314b03f01366b35ec415e35d6fce49",
+    "semantic_hash": "53314b03f01366b35ec415e35d6fce49"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\AccountMenu.jsx": {
-    "mtime": 1781331846.6338453,
-    "ast_hash": "0145b9d5531179f37218a12fed42996a",
-    "semantic_hash": "0145b9d5531179f37218a12fed42996a"
+    "mtime": 1781360454.710464,
+    "ast_hash": "8b1155a7f3fba5c746fc6f9c493fcac5",
+    "semantic_hash": "8b1155a7f3fba5c746fc6f9c493fcac5"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\CountdownReadout.jsx": {
-    "mtime": 1781331082.6389258,
+    "mtime": 1781358295.4797804,
     "ast_hash": "d7ad0139be5be80339fe940ea61f9e86",
     "semantic_hash": "d7ad0139be5be80339fe940ea61f9e86"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\DeviceCard.jsx": {
-    "mtime": 1781331082.6394238,
-    "ast_hash": "954414d6f12bfd4c6900796b57d6e297",
-    "semantic_hash": "954414d6f12bfd4c6900796b57d6e297"
+    "mtime": 1781358295.4897814,
+    "ast_hash": "b7dec003c04bcb4b8bdd250ad7b020f9",
+    "semantic_hash": "b7dec003c04bcb4b8bdd250ad7b020f9"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\DeviceSummaryCard.jsx": {
-    "mtime": 1781335881.1890638,
-    "ast_hash": "5c6ed9354c66ea02c4a2667a0b1534ce",
-    "semantic_hash": "5c6ed9354c66ea02c4a2667a0b1534ce"
+    "mtime": 1781358295.490281,
+    "ast_hash": "45b12c6b75dae78185f4c6cde80af5eb",
+    "semantic_hash": "45b12c6b75dae78185f4c6cde80af5eb"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\EmptyState.jsx": {
-    "mtime": 1781331082.639924,
+    "mtime": 1781358295.4907808,
     "ast_hash": "b6a20118c87cbe7229b0f0ccd8845499",
     "semantic_hash": "b6a20118c87cbe7229b0f0ccd8845499"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\EventList.jsx": {
-    "mtime": 1781331082.6404238,
+    "mtime": 1781358295.4912808,
     "ast_hash": "d7e87e397499d4d930d1a3f8776d602a",
     "semantic_hash": "d7e87e397499d4d930d1a3f8776d602a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\HouseholdSwitcher.jsx": {
-    "mtime": 1781331082.640924,
+    "mtime": 1781358295.4917817,
     "ast_hash": "549b14bba8f4875867ab949542b6d5d7",
     "semantic_hash": "549b14bba8f4875867ab949542b6d5d7"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\Logo.jsx": {
-    "mtime": 1781331082.640924,
+    "mtime": 1781358295.49228,
     "ast_hash": "19bcc81bcb81910722509d28a0d78fd1",
     "semantic_hash": "19bcc81bcb81910722509d28a0d78fd1"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\SafetySettings.jsx": {
-    "mtime": 1781331082.6414225,
+    "mtime": 1781358295.49278,
     "ast_hash": "84d76bcae0ae27bf1f7f4327feb8ca65",
     "semantic_hash": "84d76bcae0ae27bf1f7f4327feb8ca65"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\StatusBadge.jsx": {
-    "mtime": 1781331082.6424234,
+    "mtime": 1781358295.493281,
     "ast_hash": "63223cf45c91d16fd179d986a2fdd34f",
     "semantic_hash": "63223cf45c91d16fd179d986a2fdd34f"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\StatusBlock.jsx": {
-    "mtime": 1781331082.6424234,
+    "mtime": 1781358295.493281,
     "ast_hash": "398a0536d7af4dda80d97ac52b086eb9",
     "semantic_hash": "398a0536d7af4dda80d97ac52b086eb9"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\TimerControls.jsx": {
-    "mtime": 1781331082.642923,
+    "mtime": 1781358295.4942815,
     "ast_hash": "71460c8b81f513d8e980ab30801827d0",
     "semantic_hash": "71460c8b81f513d8e980ab30801827d0"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Badge.jsx": {
-    "mtime": 1781331082.6434238,
+    "mtime": 1781358295.4947805,
     "ast_hash": "d9124f191d71319116771a78cffda0ec",
     "semantic_hash": "d9124f191d71319116771a78cffda0ec"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Button.jsx": {
-    "mtime": 1781331082.6439223,
+    "mtime": 1781358295.49528,
     "ast_hash": "e085ee59055b9ca080397f9ace33a6f9",
     "semantic_hash": "e085ee59055b9ca080397f9ace33a6f9"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Card.jsx": {
-    "mtime": 1781331082.6444242,
+    "mtime": 1781358295.4957812,
     "ast_hash": "1464bed6a91e55d112b4e769c052eb43",
     "semantic_hash": "1464bed6a91e55d112b4e769c052eb43"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Field.jsx": {
-    "mtime": 1781331082.6449237,
+    "mtime": 1781358295.4962802,
     "ast_hash": "78e01a97f5a4d5f2921666325439773f",
     "semantic_hash": "78e01a97f5a4d5f2921666325439773f"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Modal.jsx": {
-    "mtime": 1781331082.6449237,
+    "mtime": 1781358295.4967797,
     "ast_hash": "4dd8e88ad214010eace3251be81142b7",
     "semantic_hash": "4dd8e88ad214010eace3251be81142b7"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Skeleton.jsx": {
-    "mtime": 1781331082.6454234,
+    "mtime": 1781358295.4972804,
     "ast_hash": "493bd761e7ea5f26be753b9f93db06b6",
     "semantic_hash": "493bd761e7ea5f26be753b9f93db06b6"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Stat.jsx": {
-    "mtime": 1781331082.6459234,
+    "mtime": 1781358295.5032816,
     "ast_hash": "65f7b1c0f2e756a68b864eeb927cc072",
     "semantic_hash": "65f7b1c0f2e756a68b864eeb927cc072"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\ui\\Toggle.jsx": {
-    "mtime": 1781331082.6469245,
+    "mtime": 1781358295.5037827,
     "ast_hash": "c1521a05f20ec04831d21c2d6cde6f3f",
     "semantic_hash": "c1521a05f20ec04831d21c2d6cde6f3f"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\api.js": {
-    "mtime": 1781332972.8537347,
-    "ast_hash": "a3a2267c9ba57fd9895b5a787cf17daf",
-    "semantic_hash": "a3a2267c9ba57fd9895b5a787cf17daf"
+    "mtime": 1781360110.0711365,
+    "ast_hash": "ba623a4b3a85fcb347c7d01dc6ac3334",
+    "semantic_hash": "ba623a4b3a85fcb347c7d01dc6ac3334"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\authContext.js": {
-    "mtime": 1781331502.9483793,
-    "ast_hash": "da439d7c013e663664997fce09777981",
-    "semantic_hash": "da439d7c013e663664997fce09777981"
+    "mtime": 1781358295.5057805,
+    "ast_hash": "b57a44938ae3b7407fd5b3844f96944b",
+    "semantic_hash": "b57a44938ae3b7407fd5b3844f96944b"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\cx.js": {
-    "mtime": 1781331082.6479232,
+    "mtime": 1781358295.5062816,
     "ast_hash": "5276d75b0c6d3ddf8054586214ae0b5f",
     "semantic_hash": "5276d75b0c6d3ddf8054586214ae0b5f"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\deviceState.js": {
-    "mtime": 1781333024.6242297,
-    "ast_hash": "c5d2557906ba74b873fe87bafe4ffbb7",
-    "semantic_hash": "c5d2557906ba74b873fe87bafe4ffbb7"
+    "mtime": 1781358295.5072806,
+    "ast_hash": "a9d5f6ff5fb7c0d5a57f884700b1f322",
+    "semantic_hash": "a9d5f6ff5fb7c0d5a57f884700b1f322"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\format.js": {
-    "mtime": 1781331082.6484227,
+    "mtime": 1781358295.5077803,
     "ast_hash": "2c5c644f00790ac0837231132ba8da96",
     "semantic_hash": "2c5c644f00790ac0837231132ba8da96"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\householdContext.js": {
-    "mtime": 1781331082.6489224,
+    "mtime": 1781358295.5082803,
     "ast_hash": "66d5ddeb0ef7e29dd71b8ed5aa9bb34f",
     "semantic_hash": "66d5ddeb0ef7e29dd71b8ed5aa9bb34f"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\mockData.js": {
-    "mtime": 1781331082.649423,
+    "mtime": 1781358295.5087798,
     "ast_hash": "db0676a580b3ae84c71f908f608e8363",
     "semantic_hash": "db0676a580b3ae84c71f908f608e8363"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\roles.js": {
-    "mtime": 1781331082.649923,
-    "ast_hash": "72e99d9275c351f595ec28730d824944",
-    "semantic_hash": "72e99d9275c351f595ec28730d824944"
+    "mtime": 1781360148.8872304,
+    "ast_hash": "b43f342a5f04f4345353e57e4984dd81",
+    "semantic_hash": "b43f342a5f04f4345353e57e4984dd81"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\sessionContext.js": {
-    "mtime": 1781331526.1138787,
-    "ast_hash": "db877ed696ff6a81a2802aea245d72a0",
-    "semantic_hash": "db877ed696ff6a81a2802aea245d72a0"
+    "mtime": 1781358295.5092802,
+    "ast_hash": "363fb0b7991f57e156dabe630eeb4ea1",
+    "semantic_hash": "363fb0b7991f57e156dabe630eeb4ea1"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\store.js": {
-    "mtime": 1781333146.6892147,
-    "ast_hash": "ca5aaedbb5d6bf7e10a670f4e49078e4",
-    "semantic_hash": "ca5aaedbb5d6bf7e10a670f4e49078e4"
+    "mtime": 1781360187.408321,
+    "ast_hash": "e49b6837d888321f878598335ef66d6d",
+    "semantic_hash": "e49b6837d888321f878598335ef66d6d"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\supabase.js": {
-    "mtime": 1781331330.2963972,
+    "mtime": 1781358295.510281,
     "ast_hash": "3ebe50b46089e6d983b7fbe3b761fd68",
     "semantic_hash": "3ebe50b46089e6d983b7fbe3b761fd68"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\AuthPage.jsx": {
-    "mtime": 1781331677.2323651,
-    "ast_hash": "0858b71583e6b73e1ad7850d0163bd50",
-    "semantic_hash": "0858b71583e6b73e1ad7850d0163bd50"
+    "mtime": 1781358295.5117812,
+    "ast_hash": "2062b9d532fe264ce6b6b8d64eebde80",
+    "semantic_hash": "2062b9d532fe264ce6b6b8d64eebde80"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\DeviceDetailPage.jsx": {
-    "mtime": 1781335361.516062,
-    "ast_hash": "eeb824189dffc7493effaea2abc8ad72",
-    "semantic_hash": "eeb824189dffc7493effaea2abc8ad72"
+    "mtime": 1781358295.5122802,
+    "ast_hash": "4d2d71fb99956d47473444d948e09a6b",
+    "semantic_hash": "4d2d71fb99956d47473444d948e09a6b"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\NotFoundPage.jsx": {
-    "mtime": 1781331082.651924,
+    "mtime": 1781358295.512781,
     "ast_hash": "f2e8812ac4500fba3687e18221f9e919",
     "semantic_hash": "f2e8812ac4500fba3687e18221f9e919"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\OnboardingPage.jsx": {
-    "mtime": 1781331761.7128558,
-    "ast_hash": "64db7894abee6fcf3063d426ea610542",
-    "semantic_hash": "64db7894abee6fcf3063d426ea610542"
+    "mtime": 1781358295.52628,
+    "ast_hash": "6ee7d2b7dde5e382eb0d396a5e743145",
+    "semantic_hash": "6ee7d2b7dde5e382eb0d396a5e743145"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\OverviewPage.jsx": {
-    "mtime": 1781333046.9717274,
-    "ast_hash": "ceb74e20d7ead273fc4f093767d7cde9",
-    "semantic_hash": "ceb74e20d7ead273fc4f093767d7cde9"
+    "mtime": 1781358295.526781,
+    "ast_hash": "d51feac184e44f4ebb41b3ef753d4b65",
+    "semantic_hash": "d51feac184e44f4ebb41b3ef753d4b65"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\PairPage.jsx": {
-    "mtime": 1781331996.2848308,
-    "ast_hash": "106cb953659ce611c4fded7c4561417c",
-    "semantic_hash": "106cb953659ce611c4fded7c4561417c"
+    "mtime": 1781358295.5272808,
+    "ast_hash": "2b5ab983df1f8548edcaf110bfc3d6b3",
+    "semantic_hash": "2b5ab983df1f8548edcaf110bfc3d6b3"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\SummaryPreview.jsx": {
-    "mtime": 1781335553.1605608,
-    "ast_hash": "a7a3204c7dcad948591734fbba354cbd",
-    "semantic_hash": "a7a3204c7dcad948591734fbba354cbd"
+    "mtime": 1781358295.5277803,
+    "ast_hash": "2f6c60e1725418a39fff62b439fabe21",
+    "semantic_hash": "2f6c60e1725418a39fff62b439fabe21"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\supabase\\migrations\\001_initial_schema.sql": {
     "mtime": 1781330595.0084705,
@@ -375,37 +370,37 @@
     "semantic_hash": "a80ce4e905277bb104a6f5f428bb0a61"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\DESIGN.md": {
-    "mtime": 1781331082.632924,
+    "mtime": 1781358295.4612806,
     "ast_hash": "5b26de3631e0f56b1a6e9b584c7e3d8d",
     "semantic_hash": "5b26de3631e0f56b1a6e9b584c7e3d8d"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\PRODUCT.md": {
-    "mtime": 1781331082.6334238,
+    "mtime": 1781358295.4617898,
     "ast_hash": "b682330284d1105703ff47ad4e42c471",
     "semantic_hash": "b682330284d1105703ff47ad4e42c471"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-26-32-223Z.yml": {
-    "mtime": 1781335592.2245612,
-    "ast_hash": "adfe84216c58cbdf9c82cf00a844d357",
-    "semantic_hash": "adfe84216c58cbdf9c82cf00a844d357"
+    "mtime": 1781358295.3552797,
+    "ast_hash": "161bc43661b4bc27486b64467c71d6cd",
+    "semantic_hash": "161bc43661b4bc27486b64467c71d6cd"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-26-50-794Z.yml": {
-    "mtime": 1781335610.7955613,
-    "ast_hash": "adfe84216c58cbdf9c82cf00a844d357",
-    "semantic_hash": "adfe84216c58cbdf9c82cf00a844d357"
+    "mtime": 1781358295.3562803,
+    "ast_hash": "161bc43661b4bc27486b64467c71d6cd",
+    "semantic_hash": "161bc43661b4bc27486b64467c71d6cd"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-31-27-332Z.yml": {
-    "mtime": 1781335887.3340633,
-    "ast_hash": "7e45be2da19f567181f5375d1f47d543",
-    "semantic_hash": "7e45be2da19f567181f5375d1f47d543"
+    "mtime": 1781358295.3777804,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\docs\\prd.md": {
-    "mtime": 1781331082.6339226,
+    "mtime": 1781358295.4637809,
     "ast_hash": "5a082ceb390506b97b23cf8ffec47f98",
     "semantic_hash": "5a082ceb390506b97b23cf8ffec47f98"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\index.html": {
-    "mtime": 1781332074.3143222,
+    "mtime": 1781358295.4657793,
     "ast_hash": "3e354616147e67c3e1b1d426ef61e514",
     "semantic_hash": "3e354616147e67c3e1b1d426ef61e514"
   },
@@ -415,17 +410,17 @@
     "semantic_hash": "abfa161e3e5434e3e85394bf03d387a4"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\ui-desktop.png": {
-    "mtime": 1781335601.9750626,
+    "mtime": 1781358295.781282,
     "ast_hash": "9c7a69242890e8271f4ff3a30d8dc389",
     "semantic_hash": "9c7a69242890e8271f4ff3a30d8dc389"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\ui-phone.png": {
-    "mtime": 1781335890.9595633,
+    "mtime": 1781358295.782282,
     "ast_hash": "8bbc63d16ceb96ed9dc46bcdda192b5a",
     "semantic_hash": "8bbc63d16ceb96ed9dc46bcdda192b5a"
   },
   "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\ui-phone2.png": {
-    "mtime": 1781335919.3550634,
+    "mtime": 1781358295.7837813,
     "ast_hash": "a57e566b1534b888e0bd0c8ef1260af1",
     "semantic_hash": "a57e566b1534b888e0bd0c8ef1260af1"
   },
@@ -453,5 +448,430 @@
     "mtime": 1781324610.596718,
     "ast_hash": "6d5180a782d64c8cf51ba01c2a2184d8",
     "semantic_hash": "6d5180a782d64c8cf51ba01c2a2184d8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\app.js": {
+    "mtime": 1781360070.2950428,
+    "ast_hash": "838e7254e36429209a53311a834cfdf0",
+    "semantic_hash": "838e7254e36429209a53311a834cfdf0"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\server.js": {
+    "mtime": 1781358253.5611796,
+    "ast_hash": "ac36433e68056148cd2717f9c0a33ac3",
+    "semantic_hash": "ac36433e68056148cd2717f9c0a33ac3"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\src\\routes\\health.js": {
+    "mtime": 1781358253.560679,
+    "ast_hash": "0c12cb4e92bc4d93e2dea0e90b4451d7",
+    "semantic_hash": "0c12cb4e92bc4d93e2dea0e90b4451d7"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\config\\flow.projects.json": {
+    "mtime": 1781358295.4623096,
+    "ast_hash": "c7a79f3e53eeddf7b9a710c6b08e11a0",
+    "semantic_hash": "c7a79f3e53eeddf7b9a710c6b08e11a0"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\config\\selectors.map.json": {
+    "mtime": 1781358295.4627805,
+    "ast_hash": "28ac8ab9dfca53bc6b07d7fd45920ccc",
+    "semantic_hash": "28ac8ab9dfca53bc6b07d7fd45920ccc"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\public\\push-sw.js": {
+    "mtime": 1781360533.1687086,
+    "ast_hash": "7c98784bb2cadc268416930bdb01d511",
+    "semantic_hash": "7c98784bb2cadc268416930bdb01d511"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\SettingsNav.jsx": {
+    "mtime": 1781360246.5224624,
+    "ast_hash": "eb94d25ca9c1b11d7516163c39944824",
+    "semantic_hash": "eb94d25ca9c1b11d7516163c39944824"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\components\\StatusPanel.jsx": {
+    "mtime": 1781358295.4937801,
+    "ast_hash": "46bbd4a87cf4bf351c648ddd65e8e514",
+    "semantic_hash": "46bbd4a87cf4bf351c648ddd65e8e514"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\demo.js": {
+    "mtime": 1781361100.1655114,
+    "ast_hash": "dbd8236920b1e9c5650e888f6a337daa",
+    "semantic_hash": "dbd8236920b1e9c5650e888f6a337daa"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\lib\\push.js": {
+    "mtime": 1781360983.2242305,
+    "ast_hash": "1a48e73ea276ca88e376a1dd33a3aad3",
+    "semantic_hash": "1a48e73ea276ca88e376a1dd33a3aad3"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\SettingsPage.jsx": {
+    "mtime": 1781360259.3979924,
+    "ast_hash": "a51d6d395f871b32afba2a291d85f738",
+    "semantic_hash": "a51d6d395f871b32afba2a291d85f738"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\settings\\AboutSection.jsx": {
+    "mtime": 1781360422.4418862,
+    "ast_hash": "06e6cb816f0c19f80de16f75c732b57a",
+    "semantic_hash": "06e6cb816f0c19f80de16f75c732b57a"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\settings\\AccountSection.jsx": {
+    "mtime": 1781360281.337047,
+    "ast_hash": "0a29e79eacd5457a5a029f136332621a",
+    "semantic_hash": "0a29e79eacd5457a5a029f136332621a"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\settings\\HouseholdSection.jsx": {
+    "mtime": 1781360562.9857218,
+    "ast_hash": "ef106b8d59d09b5de14a16e0383d029a",
+    "semantic_hash": "ef106b8d59d09b5de14a16e0383d029a"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\frontend\\src\\pages\\settings\\NotificationsSection.jsx": {
+    "mtime": 1781360329.887163,
+    "ast_hash": "0f528905260fbca21892b51139d21026",
+    "semantic_hash": "0f528905260fbca21892b51139d21026"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\website\\main.js": {
+    "mtime": 1781358295.785282,
+    "ast_hash": "fb281a0a508b473ae981ea664c7cced6",
+    "semantic_hash": "fb281a0a508b473ae981ea664c7cced6"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-41-58-867Z.yml": {
+    "mtime": 1781358295.3782809,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-43-24-103Z.yml": {
+    "mtime": 1781358295.3782809,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-44-55-313Z.yml": {
+    "mtime": 1781358295.3787808,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-45-14-532Z.yml": {
+    "mtime": 1781358295.379281,
+    "ast_hash": "7a864614d3da0316a7f3b7b157a9f151",
+    "semantic_hash": "7a864614d3da0316a7f3b7b157a9f151"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-46-32-671Z.yml": {
+    "mtime": 1781358295.3797815,
+    "ast_hash": "7a864614d3da0316a7f3b7b157a9f151",
+    "semantic_hash": "7a864614d3da0316a7f3b7b157a9f151"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-51-04-334Z.yml": {
+    "mtime": 1781358295.3802807,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-53-29-991Z.yml": {
+    "mtime": 1781358295.4257796,
+    "ast_hash": "2db6241f62969411ff4969486ee592d6",
+    "semantic_hash": "2db6241f62969411ff4969486ee592d6"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T07-56-27-895Z.yml": {
+    "mtime": 1781358295.4262803,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-05-04-675Z.yml": {
+    "mtime": 1781358295.4262803,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-05-23-088Z.yml": {
+    "mtime": 1781358295.4267807,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-05-41-262Z.yml": {
+    "mtime": 1781358295.4267807,
+    "ast_hash": "1af32349471c484aec500bc085a64094",
+    "semantic_hash": "1af32349471c484aec500bc085a64094"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-06-03-039Z.yml": {
+    "mtime": 1781358295.4272819,
+    "ast_hash": "ce9895efb37e16cd710022b3f8f6142f",
+    "semantic_hash": "ce9895efb37e16cd710022b3f8f6142f"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-22-31-639Z.yml": {
+    "mtime": 1781358295.4277816,
+    "ast_hash": "1af32349471c484aec500bc085a64094",
+    "semantic_hash": "1af32349471c484aec500bc085a64094"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-23-13-125Z.yml": {
+    "mtime": 1781358295.4282813,
+    "ast_hash": "b6081f39533497fc127d095f3c38d1ed",
+    "semantic_hash": "b6081f39533497fc127d095f3c38d1ed"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-29-17-201Z.yml": {
+    "mtime": 1781358295.4282813,
+    "ast_hash": "dbb6abc00e1329ed5093921612bf54eb",
+    "semantic_hash": "dbb6abc00e1329ed5093921612bf54eb"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-31-50-554Z.yml": {
+    "mtime": 1781358295.4287808,
+    "ast_hash": "22c1c95b2f3be9407be8102c5d336086",
+    "semantic_hash": "22c1c95b2f3be9407be8102c5d336086"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-33-13-098Z.yml": {
+    "mtime": 1781358295.4292812,
+    "ast_hash": "22c1c95b2f3be9407be8102c5d336086",
+    "semantic_hash": "22c1c95b2f3be9407be8102c5d336086"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T08-34-11-523Z.yml": {
+    "mtime": 1781358295.4292812,
+    "ast_hash": "22c1c95b2f3be9407be8102c5d336086",
+    "semantic_hash": "22c1c95b2f3be9407be8102c5d336086"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-09-00-020Z.yml": {
+    "mtime": 1781358295.4297805,
+    "ast_hash": "f791d7e8c9e597625d3b42cb2a1af986",
+    "semantic_hash": "f791d7e8c9e597625d3b42cb2a1af986"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-09-04-350Z.yml": {
+    "mtime": 1781358295.4302814,
+    "ast_hash": "22c1c95b2f3be9407be8102c5d336086",
+    "semantic_hash": "22c1c95b2f3be9407be8102c5d336086"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-10-09-678Z.yml": {
+    "mtime": 1781358295.4307816,
+    "ast_hash": "3f6171a62fbae7625b941cf426fff69f",
+    "semantic_hash": "3f6171a62fbae7625b941cf426fff69f"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-11-11-261Z.yml": {
+    "mtime": 1781358295.433281,
+    "ast_hash": "b7b5538286c6398a3e0e441c3d09d5c4",
+    "semantic_hash": "b7b5538286c6398a3e0e441c3d09d5c4"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-34-27-501Z.yml": {
+    "mtime": 1781358295.434281,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-54-16-277Z.yml": {
+    "mtime": 1781358295.434781,
+    "ast_hash": "a90f275e737cec44149d7b3314e3696d",
+    "semantic_hash": "a90f275e737cec44149d7b3314e3696d"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-56-38-351Z.yml": {
+    "mtime": 1781358295.4477813,
+    "ast_hash": "21b3a4d2f076e4e6e8f9ba230a41addc",
+    "semantic_hash": "21b3a4d2f076e4e6e8f9ba230a41addc"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-57-47-748Z.yml": {
+    "mtime": 1781358295.4487808,
+    "ast_hash": "1af32349471c484aec500bc085a64094",
+    "semantic_hash": "1af32349471c484aec500bc085a64094"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-57-52-845Z.yml": {
+    "mtime": 1781358295.4487808,
+    "ast_hash": "a4afb99ae5176553136e07a063344d2f",
+    "semantic_hash": "a4afb99ae5176553136e07a063344d2f"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-58-48-617Z.yml": {
+    "mtime": 1781358295.449282,
+    "ast_hash": "1af32349471c484aec500bc085a64094",
+    "semantic_hash": "1af32349471c484aec500bc085a64094"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T12-58-54-469Z.yml": {
+    "mtime": 1781358295.449781,
+    "ast_hash": "ad08747ba7a6e4bb93bb7c435077a658",
+    "semantic_hash": "ad08747ba7a6e4bb93bb7c435077a658"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-00-10-326Z.yml": {
+    "mtime": 1781358295.4502816,
+    "ast_hash": "1af32349471c484aec500bc085a64094",
+    "semantic_hash": "1af32349471c484aec500bc085a64094"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-00-15-426Z.yml": {
+    "mtime": 1781358295.4512815,
+    "ast_hash": "ad08747ba7a6e4bb93bb7c435077a658",
+    "semantic_hash": "ad08747ba7a6e4bb93bb7c435077a658"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-00-54-378Z.yml": {
+    "mtime": 1781358295.451781,
+    "ast_hash": "1af32349471c484aec500bc085a64094",
+    "semantic_hash": "1af32349471c484aec500bc085a64094"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-00-59-013Z.yml": {
+    "mtime": 1781358295.4522812,
+    "ast_hash": "ad08747ba7a6e4bb93bb7c435077a658",
+    "semantic_hash": "ad08747ba7a6e4bb93bb7c435077a658"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-01-24-111Z.yml": {
+    "mtime": 1781358295.4527805,
+    "ast_hash": "f327f0c1a76caa82a5d84009f78fea12",
+    "semantic_hash": "f327f0c1a76caa82a5d84009f78fea12"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-01-42-683Z.yml": {
+    "mtime": 1781358295.4532835,
+    "ast_hash": "313ffc2e55eb07cf350338193507d5e2",
+    "semantic_hash": "313ffc2e55eb07cf350338193507d5e2"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-07-45-266Z.yml": {
+    "mtime": 1781358295.456282,
+    "ast_hash": "2a8ef112a62e085195cee2e8f20436ca",
+    "semantic_hash": "2a8ef112a62e085195cee2e8f20436ca"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-10-55-580Z.yml": {
+    "mtime": 1781358295.4572823,
+    "ast_hash": "fe15fa4e87b175a8c87443b294d4706e",
+    "semantic_hash": "fe15fa4e87b175a8c87443b294d4706e"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-12-50-831Z.yml": {
+    "mtime": 1781358295.4577818,
+    "ast_hash": "c136842b4618c7be78ff40a782f9ffd8",
+    "semantic_hash": "c136842b4618c7be78ff40a782f9ffd8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-14-32-723Z.yml": {
+    "mtime": 1781358295.4582822,
+    "ast_hash": "c136842b4618c7be78ff40a782f9ffd8",
+    "semantic_hash": "c136842b4618c7be78ff40a782f9ffd8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-33-08-534Z.yml": {
+    "mtime": 1781358295.4587815,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-37-30-132Z.yml": {
+    "mtime": 1781358295.4592824,
+    "ast_hash": "c136842b4618c7be78ff40a782f9ffd8",
+    "semantic_hash": "c136842b4618c7be78ff40a782f9ffd8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-39-49-968Z.yml": {
+    "mtime": 1781358295.4597816,
+    "ast_hash": "780420213bd383b2748bca5510123aa8",
+    "semantic_hash": "780420213bd383b2748bca5510123aa8"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-40-26-031Z.yml": {
+    "mtime": 1781358295.4602807,
+    "ast_hash": "f8700494d2a35c37c498e752c6a601b5",
+    "semantic_hash": "f8700494d2a35c37c498e752c6a601b5"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\.playwright-mcp\\page-2026-06-13T13-40-32-185Z.yml": {
+    "mtime": 1781358295.4607806,
+    "ast_hash": "01fd0ee47e09bcf544aca2f66c949b77",
+    "semantic_hash": "01fd0ee47e09bcf544aca2f66c949b77"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\backend\\README.md": {
+    "mtime": 1781358253.5586796,
+    "ast_hash": "efc467e7a0edbe69dcd8e56e76dac9d5",
+    "semantic_hash": "efc467e7a0edbe69dcd8e56e76dac9d5"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\website\\index.html": {
+    "mtime": 1781358295.784783,
+    "ast_hash": "2efc33ed2a008f3f2dd1a3ceeb28c5c5",
+    "semantic_hash": "2efc33ed2a008f3f2dd1a3ceeb28c5c5"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\website\\og.html": {
+    "mtime": 1781358295.7857828,
+    "ast_hash": "ad3880cb24f558c2745ff4c35cb37091",
+    "semantic_hash": "ad3880cb24f558c2745ff4c35cb37091"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-49-16-914Z_no-project-links.png": {
+    "mtime": 1781358295.694782,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-49-17-117Z_generate-image-error.png": {
+    "mtime": 1781358295.699782,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-49-26-081Z_hestia-logo-state.png": {
+    "mtime": 1781358295.7032828,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-49-44-860Z_no-project-links.png": {
+    "mtime": 1781358295.706782,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-49-45-049Z_generate-image-error.png": {
+    "mtime": 1781358295.7097826,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-49-50-795Z_hestia-after-retry.png": {
+    "mtime": 1781358295.712782,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-50-32-119Z_discover-image-generation.png": {
+    "mtime": 1781358295.7177813,
+    "ast_hash": "5b1acdbd5c2c41f2ef9555033aa85389",
+    "semantic_hash": "5b1acdbd5c2c41f2ef9555033aa85389"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-50-32-668Z_discover-error-image-generation.png": {
+    "mtime": 1781358295.7222824,
+    "ast_hash": "8075be5864bd4190cbbfe5bc8a89d07f",
+    "semantic_hash": "8075be5864bd4190cbbfe5bc8a89d07f"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-50-42-695Z_discover-main.png": {
+    "mtime": 1781358295.7272818,
+    "ast_hash": "4224835ef0f00033e3ec243a5f6bbc4f",
+    "semantic_hash": "4224835ef0f00033e3ec243a5f6bbc4f"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-50-43-266Z_discover-error-main.png": {
+    "mtime": 1781358295.731783,
+    "ast_hash": "fdfeb503ee718d2bee93f1dad8237eb5",
+    "semantic_hash": "fdfeb503ee718d2bee93f1dad8237eb5"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-50-56-980Z_discover-main.png": {
+    "mtime": 1781358295.7367837,
+    "ast_hash": "a898096f359da3db02685ccc88a75e50",
+    "semantic_hash": "a898096f359da3db02685ccc88a75e50"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-51-47-077Z_no-project-links.png": {
+    "mtime": 1781358295.7497816,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-51-53-700Z_after-use-tool.png": {
+    "mtime": 1781358295.7532835,
+    "ast_hash": "141f894985a5422bb374a2e1f1174183",
+    "semantic_hash": "141f894985a5422bb374a2e1f1174183"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T07-56-00-407Z_after-signin.png": {
+    "mtime": 1781358295.7647827,
+    "ast_hash": "6e8d64e339ffdc0e750cfbd549fe8929",
+    "semantic_hash": "6e8d64e339ffdc0e750cfbd549fe8929"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T08-01-18-589Z_pre-generate-verification.png": {
+    "mtime": 1781358295.7662823,
+    "ast_hash": "0be2f849e272664eb5f24d7cb8d364f4",
+    "semantic_hash": "0be2f849e272664eb5f24d7cb8d364f4"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T08-02-27-668Z_download-failed.png": {
+    "mtime": 1781358295.7677827,
+    "ast_hash": "0b0e533f3b5174d665c58bd4299535dc",
+    "semantic_hash": "0b0e533f3b5174d665c58bd4299535dc"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T08-02-27-952Z_generate-image-error.png": {
+    "mtime": 1781358295.7687821,
+    "ast_hash": "e642121c9fde4afe65bf47a39fbb8517",
+    "semantic_hash": "e642121c9fde4afe65bf47a39fbb8517"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T08-03-54-328Z_generated-result.png": {
+    "mtime": 1781358295.7717817,
+    "ast_hash": "95b99bc9fc66b20b20e457828f836028",
+    "semantic_hash": "95b99bc9fc66b20b20e457828f836028"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T08-04-01-198Z_download-btn-not-found.png": {
+    "mtime": 1781358295.7747824,
+    "ast_hash": "95b99bc9fc66b20b20e457828f836028",
+    "semantic_hash": "95b99bc9fc66b20b20e457828f836028"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\screenshots-debug\\2026-06-13T08-04-20-640Z_discover-image-generation.png": {
+    "mtime": 1781358295.779783,
+    "ast_hash": "58f5e1b151802c80321a4eca9305fb79",
+    "semantic_hash": "58f5e1b151802c80321a4eca9305fb79"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\website\\favicon.svg": {
+    "mtime": 1781358295.7842817,
+    "ast_hash": "00e5d61f411ce47776b55b836a488be3",
+    "semantic_hash": "00e5d61f411ce47776b55b836a488be3"
+  },
+  "C:\\Users\\Austin Cheng\\Documents\\coding\\jamhacsk-2026\\website\\og.png": {
+    "mtime": 1781358295.7872822,
+    "ast_hash": "dc9b43fd60ca32f3732c676263fde5db",
+    "semantic_hash": "dc9b43fd60ca32f3732c676263fde5db"
   }
 }
