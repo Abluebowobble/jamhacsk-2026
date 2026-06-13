@@ -20,9 +20,9 @@ except ImportError:
 @dataclass(frozen=True)
 class Config:
     device_id: str
+    household_id: str
     host: str
     port: int
-    username: Optional[str]
     password: Optional[str]
     keepalive: int
 
@@ -35,11 +35,12 @@ def _require(name):
 
 
 def load_config():
-    # TESTING: device-ID verification disabled. DEVICE_ID is no longer required
-    # and need not match a Supabase `devices` row; it falls back to a default.
-    # To re-enable strict verification, restore the _require(...) line below.
-    # device_id = _require("DEVICE_ID")
-    device_id = os.environ.get("DEVICE_ID", "").strip() or "test-device-001"
+    # Each physical device MUST set its own unique DEVICE_ID and the HOUSEHOLD_ID
+    # it belongs to (both match its row in Supabase `devices`). These key the
+    # MQTT topic + ACL, which is what isolates one family from another. The
+    # provisioning step (mqtt/provision-device.sh) prints all three values.
+    device_id = _require("DEVICE_ID")
+    household_id = _require("HOUSEHOLD_ID")
     broker_url = _require("MQTT_BROKER_URL")
 
     # Accept "mqtt://host:1883" or a bare "host:1883".
@@ -49,9 +50,11 @@ def load_config():
 
     return Config(
         device_id=device_id,
+        household_id=household_id,
         host=host,
         port=port,
-        username=os.environ.get("MQTT_USERNAME") or None,
+        # The device authenticates as username = DEVICE_ID (see mqtt_client), so
+        # only the password is needed here.
         password=os.environ.get("MQTT_PASSWORD") or None,
         keepalive=int(os.environ.get("MQTT_KEEPALIVE", "60")),
     )

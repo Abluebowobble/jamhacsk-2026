@@ -6,7 +6,8 @@ import { sendToHouseholdMembers } from './push.js'
 let client = null
 let logger = console
 
-const TOPIC_BASE = 'hestia/devices'
+// Topics are keyed by household: hestia/households/{householdId}/devices/{deviceId}/{kind}
+const TOPIC_BASE = 'hestia/households'
 
 /**
  * Connect to the MQTT broker and subscribe to device topics. Safe to call when
@@ -40,9 +41,9 @@ export function initMqtt(log = console) {
     else logger.info?.(`MQTT connected: ${url}`)
     warnedOffline = false
     client.subscribe([
-      `${TOPIC_BASE}/+/status`,
-      `${TOPIC_BASE}/+/presence`,
-      `${TOPIC_BASE}/+/events`,
+      `${TOPIC_BASE}/+/devices/+/status`,
+      `${TOPIC_BASE}/+/devices/+/presence`,
+      `${TOPIC_BASE}/+/devices/+/events`,
     ], (err) => {
       if (err) logger.error?.({ err }, 'MQTT subscribe failed')
     })
@@ -73,14 +74,14 @@ export function getMqttStatus() {
   return client.connected ? 'connected' : 'offline'
 }
 
-function parseDeviceId(topic) {
-  // hestia/devices/{deviceId}/{kind}
+function parseTopic(topic) {
+  // hestia/households/{householdId}/devices/{deviceId}/{kind}
   const parts = topic.split('/')
-  return { deviceId: parts[2], kind: parts[3] }
+  return { householdId: parts[2], deviceId: parts[4], kind: parts[5] }
 }
 
 async function handleMessage(topic, buffer) {
-  const { deviceId, kind } = parseDeviceId(topic)
+  const { deviceId, kind } = parseTopic(topic)
   let payload
   try {
     payload = JSON.parse(buffer.toString())
@@ -119,8 +120,9 @@ async function handleStatus(deviceId, payload) {
 
 async function handlePresence(deviceId, payload) {
   const device = await loadDeviceHousehold(deviceId)
-  // TESTING: device-ID verification disabled — process even unknown devices.
-  // if (!device?.household_id) return
+  // Only act on devices that exist and belong to a household, so presence is
+  // attributed to the correct household (and unknown devices are ignored).
+  if (!device?.household_id) return
 
   const detected = payload.presence === 'detected' || payload.detected === true
   await supabaseAdmin
@@ -129,7 +131,7 @@ async function handlePresence(deviceId, payload) {
     .eq('id', deviceId)
 
   await logEvent({
-    householdId: device?.household_id ?? null,
+    householdId: device.household_id,
     deviceId,
     eventType: detected ? 'PRESENCE_DETECTED' : 'NO_PRESENCE_DETECTED',
     metadata: payload,
@@ -144,40 +146,47 @@ const NOTIFY_EVENTS = {
 
 async function handleDeviceEvent(deviceId, payload) {
   const device = await loadDeviceHousehold(deviceId)
-  // TESTING: device-ID verification disabled — process even unknown devices.
-  // if (!device?.household_id) return
+  // Only act on devices that belong to a household, so events + notifications
+  // go to the correct household and unknown devices are ignored.
+  if (!device?.household_id) return
 
   const eventType = payload.eventType || payload.type
   if (!eventType) return
 
   await logEvent({
-    householdId: device?.household_id ?? null,
+    householdId: device.household_id,
     deviceId,
     eventType,
     metadata: payload,
   }, logger)
 
   const body = NOTIFY_EVENTS[eventType]
-  if (body && device?.household_id) {
+  if (body) {
     await sendToHouseholdMembers(device.household_id, { title: 'Hestia', body }, logger)
   }
 }
 
 /**
- * Publish a command/settings/timer payload to a device topic. Fire-and-forget:
- * resolves immediately even if the broker is down.
+ * Publish a command/settings/timer payload to a device's household-keyed topic.
+ * Fire-and-forget: resolves immediately even if the broker is down. Looks up the
+ * device's household so the topic matches what the device subscribes to.
  *
  * @param {string} deviceId
  * @param {object} payload
  * @param {string} [kind] one of 'commands' | 'settings' | 'timers' (default 'commands')
  */
-export function publishToDevice(deviceId, payload, kind = 'commands') {
+export async function publishToDevice(deviceId, payload, kind = 'commands') {
   if (!client || !client.connected) {
     logger.warn?.(`MQTT not connected — dropping ${kind} for ${deviceId}`)
     return
   }
-  client.publish(`${TOPIC_BASE}/${deviceId}/${kind}`, JSON.stringify({
-    ...payload,
-    timestamp: new Date().toISOString(),
-  }))
+  const device = await loadDeviceHousehold(deviceId)
+  if (!device?.household_id) {
+    logger.warn?.(`No household for device ${deviceId} — dropping ${kind}`)
+    return
+  }
+  client.publish(
+    `${TOPIC_BASE}/${device.household_id}/devices/${deviceId}/${kind}`,
+    JSON.stringify({ ...payload, timestamp: new Date().toISOString() }),
+  )
 }
