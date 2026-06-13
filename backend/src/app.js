@@ -1,29 +1,44 @@
-// Builds the Fastify app: plugins + routes. No listening here (see server.js)
-// so the app can be imported by tests without opening a port.
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import config from './config/index.js';
-import apiRoutes from './routes/index.js';
-import { registerErrorHandlers } from './middleware/errorHandler.js';
+// Builds the Fastify app: plugins + routes. No listening and no background
+// services here (see server.js) so the app can be imported by tests without
+// opening a port or connecting to MQTT.
+import 'dotenv/config'
+import Fastify from 'fastify'
+import cors from '@fastify/cors'
 
-export function buildApp() {
-  const app = Fastify({
-    logger: { level: config.isProd ? 'info' : 'debug' },
-  });
+import authPlugin from './plugins/auth.js'
+import healthRoutes from './routes/health.js'
+import householdsRoutes from './routes/households.js'
+import membersRoutes from './routes/members.js'
+import joinRequestsRoutes from './routes/joinRequests.js'
+import devicesRoutes from './routes/devices.js'
+import stoveControlRoutes from './routes/stoveControl.js'
+import safetySettingsRoutes from './routes/safetySettings.js'
+import timersRoutes from './routes/timers.js'
+import eventsRoutes from './routes/events.js'
+import pushRoutes from './routes/push.js'
 
-  // CORS limited to the configured frontend origin(s).
-  app.register(cors, {
-    origin: config.frontendOrigins,
-    credentials: true,
-  });
+export async function buildApp() {
+  const app = Fastify({ logger: true })
 
-  // Root ping so hitting the bare host shows the server is up.
-  app.get('/', () => ({ name: 'hestia-backend', env: config.env, api: config.apiPrefix }));
+  await app.register(cors, { origin: process.env.FRONTEND_URL || true })
+  await app.register(authPlugin)
 
-  // All /api routes (JSON body parsing is built into Fastify).
-  app.register(apiRoutes, { prefix: config.apiPrefix });
+  // Health API (public): /health (liveness) + /health/ready (readiness)
+  await app.register(healthRoutes)
 
-  registerErrorHandlers(app);
+  // Current user (authenticated)
+  app.get('/api/me', { preHandler: [app.authenticate] }, async (request) => ({ user: request.user }))
 
-  return app;
+  // Feature routes. Prefixes chosen so each file's paths resolve to the PRD's URLs.
+  await app.register(householdsRoutes, { prefix: '/api/households' })
+  await app.register(membersRoutes, { prefix: '/api/households' })
+  await app.register(joinRequestsRoutes, { prefix: '/api' })
+  await app.register(devicesRoutes, { prefix: '/api' })
+  await app.register(stoveControlRoutes, { prefix: '/api/devices' })
+  await app.register(safetySettingsRoutes, { prefix: '/api/devices' })
+  await app.register(timersRoutes, { prefix: '/api' })
+  await app.register(eventsRoutes, { prefix: '/api' })
+  await app.register(pushRoutes, { prefix: '/api/push' })
+
+  return app
 }

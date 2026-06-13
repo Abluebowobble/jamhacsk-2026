@@ -13,18 +13,27 @@ const TOPIC_BASE = 'hestia/devices'
  * no broker is reachable — mqtt.js auto-reconnects and we only log errors, so
  * the API stays up regardless.
  */
+
+// Values that explicitly turn the MQTT bridge off (besides empty/unset).
+const DISABLED_VALUES = new Set(['off', 'disabled', 'none', 'false', '0'])
+
 export function initMqtt(log = console) {
   logger = log
-  const url = process.env.MQTT_BROKER_URL
-  if (!url) {
-    logger.warn?.('MQTT_BROKER_URL not set — MQTT bridge disabled')
+  const url = process.env.MQTT_BROKER_URL?.trim()
+  if (!url || DISABLED_VALUES.has(url.toLowerCase())) {
+    logger.info?.('MQTT bridge disabled (MQTT_BROKER_URL not set)')
     return
   }
 
   client = mqtt.connect(url, { reconnectPeriod: 5000 })
 
+  // Track offline state so a dead broker logs once, not every reconnect attempt.
+  let warnedOffline = false
+
   client.on('connect', () => {
-    logger.info?.(`MQTT connected: ${url}`)
+    if (warnedOffline) logger.info?.(`MQTT reconnected: ${url}`)
+    else logger.info?.(`MQTT connected: ${url}`)
+    warnedOffline = false
     client.subscribe([
       `${TOPIC_BASE}/+/status`,
       `${TOPIC_BASE}/+/presence`,
@@ -34,8 +43,29 @@ export function initMqtt(log = console) {
     })
   })
 
-  client.on('error', (err) => logger.error?.({ err }, 'MQTT error'))
+  // ECONNREFUSED / offline: warn ONCE, then stay quiet while mqtt.js keeps
+  // retrying in the background. The API runs fine without the broker.
+  client.on('error', (err) => {
+    if (err?.code === 'ECONNREFUSED' || err?.code === 'ENOTFOUND') {
+      if (!warnedOffline) {
+        warnedOffline = true
+        logger.warn?.(`MQTT broker unreachable at ${url} — retrying quietly in background`)
+      }
+      return
+    }
+    logger.error?.({ err }, 'MQTT error')
+  })
+
   client.on('message', handleMessage)
+}
+
+/**
+ * Current MQTT bridge state for health checks. No I/O — reads in-memory state.
+ * @returns {'disabled'|'connected'|'offline'}
+ */
+export function getMqttStatus() {
+  if (!client) return 'disabled'
+  return client.connected ? 'connected' : 'offline'
 }
 
 function parseDeviceId(topic) {
