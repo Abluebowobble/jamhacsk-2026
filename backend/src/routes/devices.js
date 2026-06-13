@@ -100,32 +100,45 @@ export default async function devicesRoutes(app) {
     return { device: request.device }
   })
 
-  // PATCH /api/devices/:deviceId — rename (admin only)
+  // PATCH /api/devices/:deviceId — rename and/or set the camera stream URL (admin only)
   app.patch('/devices/:deviceId', {
     preHandler: [requireDeviceAccess('admin')],
     schema: {
       body: {
         type: 'object',
-        required: ['device_name'],
-        properties: { device_name: { type: 'string', minLength: 1, maxLength: 100 } },
+        minProperties: 1,
+        additionalProperties: false,
+        properties: {
+          device_name: { type: 'string', minLength: 1, maxLength: 100 },
+          // Public MJPEG base URL (e.g. a Cloudflare Tunnel address). Empty string clears it.
+          camera_stream_url: { type: 'string', format: 'uri', maxLength: 500 },
+        },
       },
     },
   }, async (request, reply) => {
+    const patch = { updated_at: new Date().toISOString() }
+    if (request.body.device_name !== undefined) patch.device_name = request.body.device_name
+    if (request.body.camera_stream_url !== undefined) {
+      patch.camera_stream_url = request.body.camera_stream_url || null
+    }
+
     const { data, error } = await supabaseAdmin
       .from('devices')
-      .update({ device_name: request.body.device_name, updated_at: new Date().toISOString() })
+      .update(patch)
       .eq('id', request.params.deviceId)
       .select()
       .single()
     if (error) return reply.code(500).send({ error: error.message })
 
-    await logEvent({
-      householdId: request.device.household_id,
-      deviceId: request.params.deviceId,
-      userId: request.user.id,
-      eventType: 'DEVICE_RENAMED',
-      metadata: { device_name: request.body.device_name },
-    }, request.log)
+    if (patch.device_name !== undefined) {
+      await logEvent({
+        householdId: request.device.household_id,
+        deviceId: request.params.deviceId,
+        userId: request.user.id,
+        eventType: 'DEVICE_RENAMED',
+        metadata: { device_name: patch.device_name },
+      }, request.log)
+    }
 
     return { device: data }
   })

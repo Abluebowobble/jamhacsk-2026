@@ -33,6 +33,7 @@ Self-test (no MQTT broker, no Pi needed)
 import argparse
 import logging
 import os
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Tuple
@@ -308,6 +309,13 @@ class PresenceMonitor:
         self._pending_state: Optional[bool] = None
         self._pending_count = 0
 
+        # Latest captured BGR frame, shared with the optional MJPEG stream
+        # server (src/camera_stream.py). The stream re-serves whatever the
+        # detector last saw, so the single physical camera is never opened
+        # twice (USB/Pi cameras don't allow concurrent handles).
+        self._frame_lock = threading.Lock()
+        self._latest_frame = None
+
     def start(self):
         """Initialise vision libraries, camera and detector.
 
@@ -350,7 +358,26 @@ class PresenceMonitor:
         if frame is None:
             log.warning("Camera returned no frame")
             return None
+        # Publish the raw frame for the MJPEG stream before detection.
+        with self._frame_lock:
+            self._latest_frame = frame
         return self.detect_frame(frame)
+
+    def latest_jpeg(self, quality: int = 60) -> Optional[bytes]:
+        """JPEG-encode the most recently captured frame for streaming.
+
+        Returns the encoded bytes, or ``None`` if no frame has been captured
+        yet (or encoding fails). Thread-safe: called from the stream server's
+        background thread while the main loop keeps polling.
+        """
+        with self._frame_lock:
+            frame = self._latest_frame
+        if frame is None or self._cv2 is None:
+            return None
+        ok, buf = self._cv2.imencode(
+            ".jpg", frame, [self._cv2.IMWRITE_JPEG_QUALITY, int(quality)]
+        )
+        return buf.tobytes() if ok else None
 
     def poll(self) -> Optional[PresenceResult]:
         """Detect once and apply debounce; fire on_change on a stable flip.

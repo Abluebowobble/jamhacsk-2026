@@ -31,6 +31,7 @@ import { useDevice, useDeviceLoading, useDeviceEvents, useHouseholds, actions } 
 import { useCan, can, RoleContext } from '../lib/roles'
 import { unattendedAnchor } from '../lib/deviceState'
 import { formatDuration } from '../lib/format'
+import { api } from '../lib/api'
 
 export function DeviceDetailPage() {
   const { deviceId } = useParams()
@@ -160,7 +161,8 @@ export function DeviceDetailPage() {
         title="Camera"
         description="Processed on the device. Visible only to authorized household members."
       >
-        <CameraStream device={device} />
+        {/* Remount on open/close so closing unmounts the <img> and drops the MJPEG connection. */}
+        <CameraStream key={cameraOpen ? 'cam-open' : 'cam-closed'} device={device} />
       </Modal>
     </div>
     </RoleContext.Provider>
@@ -180,21 +182,59 @@ function Section({ title, action, children }) {
 }
 
 function CameraStream({ device }) {
+  // The parent remounts this via `key` on open/close, so closing unmounts the
+  // <img> and drops the long-lived MJPEG connection — no teardown effect needed.
   const canView = useCan('viewCamera')
+  const [streamUrl, setStreamUrl] = useState(null)
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  async function start() {
+    setLoading(true)
+    setError(null)
+    try {
+      const { streamUrl: url, token } = await api.cameraToken(device.id)
+      setStreamUrl(`${url}?token=${encodeURIComponent(token)}`)
+    } catch (err) {
+      setError(err?.message || 'Could not start the camera stream.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="overflow-hidden rounded-md border border-border bg-ink/95">
-      <div className="flex aspect-video flex-col items-center justify-center gap-2 text-center">
-        <Camera className="size-7 text-primary-fg/60" aria-hidden="true" />
-        <p className="text-sm text-primary-fg/70">
-          {!device.online
-            ? 'Camera offline'
-            : canView
-              ? 'Tap to start the local stream'
-              : 'Not permitted for your role'}
-        </p>
-        <p className="px-6 text-xs text-primary-fg/40">
-          Processed on the device. Visible only to authorized household members.
-        </p>
+      <div className="relative flex aspect-video flex-col items-center justify-center gap-2 text-center">
+        {streamUrl ? (
+          <img
+            src={streamUrl}
+            alt="Live camera"
+            className="absolute inset-0 size-full object-contain"
+            onError={() => {
+              setStreamUrl(null)
+              setError('The camera stream stopped. The device may be offline.')
+            }}
+          />
+        ) : (
+          <>
+            <Camera className="size-7 text-primary-fg/60" aria-hidden="true" />
+            {!device.online ? (
+              <p className="text-sm text-primary-fg/70">Camera offline</p>
+            ) : !canView ? (
+              <p className="text-sm text-primary-fg/70">Not permitted for your role</p>
+            ) : (
+              <>
+                <Button size="sm" onClick={start} disabled={loading}>
+                  {loading ? 'Starting…' : 'Start preview'}
+                </Button>
+                {error && <p className="px-6 text-xs text-danger-fg">{error}</p>}
+              </>
+            )}
+            <p className="px-6 text-xs text-primary-fg/40">
+              Processed on the device. Visible only to authorized household members.
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

@@ -186,4 +186,14 @@ export const demoApi = {
     devices = devices.filter((d) => d.id !== deviceId)
     return wait(null)
   },
+
+  // No real Pi in demo mode — surface a graceful message (status 409 mirrors the
+  // backend's "not configured" response) instead of a fake video.
+  cameraToken: () =>
+    Promise.reject(
+      Object.assign(new Error('Live camera preview is unavailable in demo mode.'), {
+        name: 'ApiError',
+        status: 409,
+      }),
+    ),
 }
