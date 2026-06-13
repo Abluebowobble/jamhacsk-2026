@@ -14,6 +14,7 @@ export default defineConfig({
         name: 'Hestia',
         short_name: 'Hestia',
         description: 'Smart stove safety system',
+        display: 'standalone',
         theme_color: '#ffffff',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
