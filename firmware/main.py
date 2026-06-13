@@ -1,16 +1,21 @@
 """Hestia Raspberry Pi firmware entry point.
 
-Wires the (complete) MQTT client to the device logic. The presence *vision* is
-implemented (src/presence.py); the buzzer / stove / safety state machine are
-still stubs — implement them, then drive them from presence via
-safety.on_presence(). Run with:  python main.py
+Assembles the device and runs the firmware logic loop (see src/loop.py). Each
+loop tick: sync inbound MQTT requests -> run the local safety logic -> publish
+action logs + sensor data back. The loop keeps running even with no broker, and
+all critical safety decisions (buzzer + auto-shutoff) happen locally.
+
+Run with:  python main.py
 """
 import logging
-import time
 
 from config import load_config
-from src import presence, safety, stove
+from src import presence
+from src.buzzer import Buzzer
+from src.loop import FirmwareLoop
 from src.mqtt_client import MqttClient
+from src.safety import SafetyController
+from src.stove import Stove
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,106 +23,67 @@ logging.basicConfig(
 )
 log = logging.getLogger("hestia.main")
 
-# How often to capture + run presence detection (seconds). ~2 FPS keeps Pi 4
-# CPU comfortable while staying responsive.
+# How often to capture + run presence detection and advance the safety logic
+# (seconds). ~2 Hz keeps Pi 4 CPU comfortable while staying responsive.
 POLL_INTERVAL_SECONDS = 0.5
 # How often to publish a full status heartbeat regardless of changes.
 STATUS_HEARTBEAT_SECONDS = 30
 
 
-def handle_command(payload):
-    """Backend -> Pi command (e.g. TURN_ON / TURN_OFF)."""
-    command = payload.get("command")
-    log.info("Command: %s (source=%s)", command, payload.get("source"))
-    if command == "TURN_ON":
-        stove.turn_on()
-    elif command == "TURN_OFF":
-        stove.turn_off()
-    else:
-        log.warning("Unknown command: %s", command)
-
-
-def handle_settings(payload):
-    """Backend -> Pi safety settings update."""
-    log.info("Settings: %s", payload)
-    safety.update_settings(
-        absence_timeout_seconds=payload.get("absenceTimeoutSeconds"),
-        warning_delay_seconds=payload.get("warningDelaySeconds"),
-    )
-
-
-def handle_timer(payload):
-    """Backend -> Pi timer event (TIMER_STARTED / TIMER_CANCELLED)."""
-    log.info("Timer: %s", payload)
-    # TODO: integrate timer with the safety/stove behavior.
-
-
-def run_presence_loop(client, monitor):
-    """Poll the camera, publish presence on change + a periodic heartbeat.
-
-    Presence is published only on a debounced state flip (the backend logs an
-    event for every presence message, so we avoid spamming). Status is a
-    retained heartbeat that always reflects the latest presence.
-    """
-    last_heartbeat = 0.0
-    while True:
-        monitor.poll()  # captures, detects, debounces, may fire on_change
-
-        now = time.monotonic()
-        if now - last_heartbeat >= STATUS_HEARTBEAT_SECONDS:
-            present = monitor.state
-            client.publish_status(
-                online=True,
-                presence="detected" if present else "not_detected",
-            )
-            last_heartbeat = now
-
-        time.sleep(POLL_INTERVAL_SECONDS)
-
-
 def main():
     config = load_config()
-    client = MqttClient(
-        config,
-        on_command=handle_command,
-        on_settings=handle_settings,
-        on_timer=handle_timer,
-    )
     log.info("Starting Hestia firmware for device %s", config.device_id)
 
-    # Network loop runs in the background so the main thread can drive the
-    # camera. start() connects, announces online, and auto-reconnects.
-    client.start()
+    # Actuators (lazy hardware init; simulated automatically off-Pi).
+    buzzer = Buzzer()
+    stove = Stove()
 
-    # Publish presence (and feed the safety loop) whenever the debounced state
-    # flips. on_change is the seam for safety.on_presence() to drive the absence
-    # timer later, with no change to the loop below.
-    def on_presence_change(detected):
-        client.publish_presence(detected)
-        safety.on_presence(detected)
+    # Local safety state machine (the firmware's own logic). Drives the buzzer
+    # and stove directly and reports the actions it takes via on_event.
+    safety = SafetyController(buzzer=buzzer, stove=stove)
 
-    monitor = None
+    # MQTT client. The loop's callbacks only enqueue; handling is on the main
+    # thread. start_resilient() means a down broker never crashes us.
+    loop = FirmwareLoop(
+        config=config,
+        client=None,  # set below once it can use the loop's enqueueing callbacks
+        safety=safety,
+        stove=stove,
+        poll_interval=POLL_INTERVAL_SECONDS,
+        status_heartbeat=STATUS_HEARTBEAT_SECONDS,
+    )
+    client = MqttClient(
+        config,
+        on_command=loop.on_command,
+        on_settings=loop.on_settings,
+        on_timer=loop.on_timer,
+    )
+    loop.set_client(client)
+
+    # Presence vision is optional: on a dev machine without a camera/vision libs
+    # we keep everything else running (MQTT + safety still work).
     try:
-        monitor = presence.PresenceMonitor(on_change=on_presence_change)
+        monitor = presence.PresenceMonitor()
         monitor.start()
+        loop.attach_monitor(monitor)
     except presence.PresenceUnavailable as exc:
-        # No camera / vision libs (e.g. running on a dev machine). Keep MQTT
-        # alive so commands/settings still work; just skip presence.
+        monitor = None
         log.warning("Presence detection disabled: %s", exc)
 
+    # Connect in the background and run the network loop; never raises if the
+    # broker is unreachable at boot.
+    client.start_resilient()
+
     try:
-        if monitor is not None:
-            run_presence_loop(client, monitor)
-        else:
-            # No vision — idle so the MQTT background loop keeps serving.
-            while True:
-                time.sleep(STATUS_HEARTBEAT_SECONDS)
-                client.publish_status(online=True)
+        loop.run()
     except KeyboardInterrupt:
         log.info("Shutting down…")
     finally:
+        loop.stop()
         if monitor is not None:
             monitor.stop()
+        buzzer.close()
+        stove.close()
         client.stop()
 
 

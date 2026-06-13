@@ -56,19 +56,19 @@ class MqttClient:
         self._client.on_disconnect = self._handle_disconnect
 
     # --- lifecycle ----------------------------------------------------------
-    def connect(self):
-        log.info("Connecting to broker %s:%s", self.cfg.host, self.cfg.port)
-        self._client.connect(self.cfg.host, self.cfg.port, keepalive=self.cfg.keepalive)
+    def start_resilient(self):
+        """Connect in the background; never raises if the broker is down.
 
-    def start(self):
-        """Connect and run the network loop in a background thread."""
-        self.connect()
+        Uses connect_async so the background loop owns the (re)connection: if the
+        broker is unreachable at boot it keeps retrying with backoff instead of
+        crashing. This lets the firmware's local safety loop run with no broker
+        and pick the connection up later (PRD section 22, Reliability).
+        """
+        log.info("Connecting (async) to broker %s:%s", self.cfg.host, self.cfg.port)
+        self._client.connect_async(
+            self.cfg.host, self.cfg.port, keepalive=self.cfg.keepalive
+        )
         self._client.loop_start()
-
-    def loop_forever(self):
-        """Connect and block forever, handling reconnects. Main entry point."""
-        self.connect()
-        self._client.loop_forever()
 
     def stop(self):
         """Publish an explicit offline status, then disconnect cleanly."""

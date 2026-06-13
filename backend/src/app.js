@@ -21,7 +21,18 @@ import pushRoutes from './routes/push.js'
 export async function buildApp() {
   const app = Fastify({ logger: true })
 
-  await app.register(cors, { origin: process.env.FRONTEND_URL || true })
+  // Allowed browser origins for CORS. FRONTEND_ORIGIN is a comma-separated
+  // allowlist (e.g. "https://app.example.com,http://localhost:5173"). If unset,
+  // we reflect any origin — convenient in dev, but set it in production so only
+  // your frontend domain can call the API.
+  const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+  await app.register(cors, {
+    origin: allowedOrigins.length ? allowedOrigins : true,
+    credentials: true,
+  })
   await app.register(authPlugin)
 
   // Health API (public): /health (liveness) + /health/ready (readiness)

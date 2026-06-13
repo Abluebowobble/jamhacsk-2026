@@ -13,6 +13,13 @@ numpy>=1.24.0
 # (pip install is fragile on Pi). Without it, capture falls back to OpenCV.
 # picamera2
 
-# --- Future feature dependencies (uncomment as you implement) ---
-# gpiozero         # buzzer + relay GPIO control
-# RPi.GPIO         # low-level GPIO backend for gpiozero
+# Buzzer + stove relay GPIO control on the Raspberry Pi 4B. The firmware falls
+# back to a simulated (no-op, logs only) backend automatically on a dev machine,
+# so these are optional off-Pi (the markers skip them on non-ARM hosts).
+#
+# gpiozero 2.x on Raspberry Pi OS (Bookworm) selects the lgpio pin factory by
+# default on the Pi 4B, so lgpio is the backend to install. (RPi.GPIO is the
+# legacy backend and is no longer needed.) Pi 4B runs 64-bit (aarch64) or
+# 32-bit (armv7l) Raspberry Pi OS — lgpio has wheels for both.
+gpiozero>=2.0
+lgpio>=0.2.2.0 ; platform_machine == "aarch64" or platform_machine == "armv7l"
