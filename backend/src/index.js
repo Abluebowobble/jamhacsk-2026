@@ -19,7 +19,7 @@ import { startTimerPoller } from './services/timerPoller.js'
 
 const app = Fastify({ logger: true })
 const PORT = Number(process.env.PORT) || 3001
-
+ 
 await app.register(cors, { origin: process.env.FRONTEND_URL || true })
 await app.register(authPlugin)
 
