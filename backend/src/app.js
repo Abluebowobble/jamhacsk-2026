@@ -13,6 +13,7 @@ import membersRoutes from './routes/members.js'
 import joinRequestsRoutes from './routes/joinRequests.js'
 import devicesRoutes from './routes/devices.js'
 import stoveControlRoutes from './routes/stoveControl.js'
+import cameraRoutes from './routes/camera.js'
 import safetySettingsRoutes from './routes/safetySettings.js'
 import timersRoutes from './routes/timers.js'
 import eventsRoutes from './routes/events.js'
@@ -66,6 +67,7 @@ export async function buildApp() {
   await app.register(joinRequestsRoutes, { prefix: '/api' })
   await app.register(devicesRoutes, { prefix: '/api' })
   await app.register(stoveControlRoutes, { prefix: '/api/devices' })
+  await app.register(cameraRoutes, { prefix: '/api/devices' })
   await app.register(safetySettingsRoutes, { prefix: '/api/devices' })
   await app.register(timersRoutes, { prefix: '/api' })
   await app.register(eventsRoutes, { prefix: '/api' })

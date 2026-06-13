@@ -1,15 +1,15 @@
 """Hestia Raspberry Pi firmware entry point.
 
 Wires the (complete) MQTT client to the device logic. The presence *vision* is
-implemented (src/presence.py); the buzzer / stove / safety state machine are
-still stubs — implement them, then drive them from presence via
-safety.on_presence(). Run with:  python main.py
+implemented (src/presence.py) and re-served as an MJPEG stream (src/camera_stream.py);
+the buzzer / stove / safety state machine are still stubs — implement them, then
+drive them from presence via safety.on_presence(). Run with:  python main.py
 """
 import logging
 import time
 
 from config import load_config
-from src import presence, safety, stove
+from src import camera_stream, presence, safety, stove
 from src.mqtt_client import MqttClient
 
 logging.basicConfig(
@@ -105,6 +105,16 @@ def main():
         # alive so commands/settings still work; just skip presence.
         log.warning("Presence detection disabled: %s", exc)
 
+    # The MJPEG camera stream re-serves frames from the presence monitor, so it
+    # only runs when presence (and thus a camera) is available and a shared
+    # secret is configured. The browser connects directly (see camera_stream.py).
+    stream_server = None
+    if monitor is not None and config.camera_stream_enabled:
+        if config.camera_stream_secret:
+            stream_server = camera_stream.start(monitor, config)
+        else:
+            log.warning("Camera stream disabled: CAMERA_STREAM_SECRET not set")
+
     try:
         if monitor is not None:
             run_presence_loop(client, monitor)
@@ -116,6 +126,8 @@ def main():
     except KeyboardInterrupt:
         log.info("Shutting down…")
     finally:
+        if stream_server is not None:
+            stream_server.stop()
         if monitor is not None:
             monitor.stop()
         client.stop()

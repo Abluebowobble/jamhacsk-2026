@@ -24,7 +24,10 @@ const MODES = {
 export function AuthPage() {
   const { status } = useAuth()
   const location = useLocation()
-  const from = location.state?.from?.pathname ?? '/'
+  // Preserve the full target (path + query) so an NFC deep-link like
+  // /pair?device_id=… survives the bounce through login.
+  const fromLocation = location.state?.from
+  const from = fromLocation ? `${fromLocation.pathname}${fromLocation.search ?? ''}` : '/'
 
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')

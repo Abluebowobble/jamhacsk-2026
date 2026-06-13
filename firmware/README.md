@@ -8,9 +8,9 @@ Per the PRD, **critical safety logic runs locally** — the Pi decides on shutof
 even when the cloud is unreachable. The cloud backend is only for remote
 visibility, configuration, notifications, and history.
 
-> Status: **MQTT communication and camera presence detection are implemented.**
-> The safety state machine, the buzzer, and stove control are **stubs** — ready
-> to implement, not done yet.
+> Status: **MQTT communication, camera presence detection, and the live camera
+> stream are implemented.** The safety state machine, the buzzer, and stove
+> control are **stubs** — ready to implement, not done yet.
 
 ## Layout
 
@@ -24,6 +24,7 @@ firmware/
     ├── mqtt_client.py # MQTT client (COMPLETE)
     ├── messages.py    # topic + payload contract (shared shape w/ backend)
     ├── presence.py    # camera presence detection (COMPLETE)
+    ├── camera_stream.py # token-gated MJPEG stream server (COMPLETE)
     ├── safety.py      # absence/warning/shutoff state machine (STUB)
     ├── buzzer.py      # warning buzzer GPIO (STUB)
     └── stove.py       # stove relay control (STUB)
@@ -110,6 +111,42 @@ python -m src.presence                 # live webcam: draws boxes + prints state
 python -m src.presence --image cat.jpg # person vs pet check (deterministic)
 ```
 
+## Camera stream (PRD section 13)
+
+`camera_stream.py` runs a small MJPEG HTTP server that **re-serves the frames the
+presence loop already captured** — the camera is never opened twice. The browser
+connects **directly** to this server (the backend never proxies the video);
+access is gated by a short-lived HMAC token the backend mints with a secret
+shared via `CAMERA_STREAM_SECRET`.
+
+- `GET /stream?token=...` — `multipart/x-mixed-replace` MJPEG (401 on a bad/expired token)
+- `GET /healthz` — liveness check for the tunnel (no auth)
+
+It starts automatically when a camera is available and `CAMERA_STREAM_SECRET` is
+set (see `.env.example`). Frame rate / JPEG quality are tunable via env.
+
+### Exposing it (Cloudflare Tunnel)
+
+The Pi sits behind home NAT, so expose the stream port with a tunnel and register
+the resulting public URL on the device:
+
+```bash
+cloudflared tunnel --url http://localhost:8089
+# prints e.g. https://abc-def.trycloudflare.com
+```
+
+Then set that URL as the device's `camera_stream_url` (admin only):
+
+```bash
+curl -X PATCH "$BACKEND/api/devices/$DEVICE_ID" \
+  -H "Authorization: Bearer $JWT" -H 'Content-Type: application/json' \
+  -d '{"camera_stream_url":"https://abc-def.trycloudflare.com"}'
+```
+
+The frontend then requests a token (`GET /api/devices/:id/camera-token`) and loads
+`{camera_stream_url}/stream?token=...` directly. Verify the tunnel with
+`https://<tunnel>/healthz`.
+
 ## TODO (feature implementation)
 
 - [x] `presence.py` — camera person detection (OpenCV DNN MobileNet-SSD / HOG)
@@ -118,4 +155,4 @@ python -m src.presence --image cat.jpg # person vs pet check (deterministic)
 - [ ] `buzzer.py` — buzzer GPIO on/off
 - [ ] `stove.py` — relay stove power control
 - [x] Periodic `publish_status` heartbeat from the main loop
-- [ ] Camera stream endpoint (PRD section 13)
+- [x] Camera stream endpoint (PRD section 13) — `camera_stream.py` (MJPEG + token)

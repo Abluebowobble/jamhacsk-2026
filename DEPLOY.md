@@ -5,22 +5,25 @@ This runs the **Mosquitto MQTT broker** and the **Fastify backend** together via
 the broker remotely.
 
 ```
-                 Vultr VM (one IP)
-   ┌───────────────────────────────────────┐
-   │  docker compose                        │
-   │   ┌──────────┐      ┌────────────────┐ │
-   │   │ backend  │◀────▶│ mqtt (mosquitto)│ │   internal: mqtt://mqtt:1883
-   │   │ :3000    │      │ :1883          │ │
-   │   └────┬─────┘      └───────┬────────┘ │
-   └────────┼────────────────────┼──────────┘
-        :3000 (API)          :1883 (MQTT)
-            │                    │
-        your PWA            Raspberry Pi firmware  → mqtt://VULTR_IP:1883
+                          Vultr VM (one IP)
+   ┌────────────────────────────────────────────────────────┐
+   │  docker compose                                         │
+   │   ┌───────┐    ┌──────────┐    ┌────────────────┐       │
+   │   │ caddy │◀──▶│ backend  │◀──▶│ mqtt (mosquitto)│      │  internal:
+   │   │:80/443│    │ :3000    │    │ :1883          │       │  backend→mqtt:1883
+   │   └───┬───┘    └──────────┘    └───────┬────────┘       │  caddy→backend:3000
+   └───────┼────────────────────────────────┼───────────────┘
+       :443 (HTTPS)                      :1883 (MQTT)
+           │                                 │
+   api.hestia.my  ← your PWA          Raspberry Pi firmware → mqtt://VULTR_IP:1883
 ```
 
-> ⚠️ This exposes 1883 (MQTT) and 3000 (API) on the public internet with password
-> auth only — fine for a demo. Lock the firewall to known IPs, or add TLS, before
-> production.
+Caddy terminates HTTPS for `api.hestia.my` and proxies to the backend, which is
+no longer published on the host directly. MQTT is still exposed on 1883.
+
+> ⚠️ This exposes 1883 (MQTT) on the public internet with password auth only —
+> fine for a demo. Lock the firewall to known IPs, or add MQTT TLS, before
+> production. The API is HTTPS via Caddy.
 
 ---
 
@@ -97,21 +100,42 @@ MQTT_USERNAME=hestia MQTT_PASSWORD='a-strong-password' docker compose up -d --bu
 
 **Two layers — do both.**
 
+The API is now served over HTTPS at `api.hestia.my` by the Caddy reverse proxy
+(ports **80**/**443**), not directly on 3000 — so open 80/443 instead of 3000.
+
 1. **Vultr Cloud Firewall** (dashboard → Firewall → create group, attach to server):
-   allow inbound TCP **22** (SSH), **1883** (MQTT), **3000** (API).
+   allow inbound TCP **22** (SSH), **80** + **443** (HTTP/HTTPS for the API),
+   **1883** (MQTT).
 2. **Server UFW:**
    ```bash
-   ufw allow 22/tcp && ufw allow 1883/tcp && ufw allow 3000/tcp
+   ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 1883/tcp
    ufw --force enable
    ufw status
    ```
 
+## 6b. Point api.hestia.my at the server (Cloudflare)
+
+Caddy can only obtain its HTTPS certificate once the DNS name resolves to this
+server. In the **Cloudflare dashboard** for `hestia.my`:
+
+1. **DNS → Records → Add record:** Type `A`, Name `api`, IPv4 address =
+   `VULTR_IP`, Proxy status **Proxied** (orange cloud). Save.
+2. **SSL/TLS → Overview:** set encryption mode to **Full (strict)** so the
+   browser↔Cloudflare↔server path is encrypted end-to-end.
+
+DNS usually propagates within a minute or two. Caddy then fetches a Let's Encrypt
+certificate automatically the first time it starts (`docker compose logs -f caddy`
+shows `certificate obtained`).
+
 ## 7. Verify from your laptop
 
 ```bash
-# API health (PowerShell or curl)
-curl http://VULTR_IP:3000/health          # {"status":"ok",...}
-curl http://VULTR_IP:3000/health/ready     # services status
+# API health over HTTPS at the real domain
+curl https://api.hestia.my/health          # {"status":"ok",...}
+curl https://api.hestia.my/health/ready     # services status
+
+# (debug only) hit the backend container directly from the server:
+#   docker compose exec backend wget -qO- http://localhost:3000/health
 
 # MQTT port reachable (PowerShell)
 Test-NetConnection VULTR_IP -Port 1883     # TcpTestSucceeded : True
@@ -176,8 +200,8 @@ docker compose down                # stop everything (volumes/data kept)
 
 ## Hardening (later)
 
-- Restrict the Vultr firewall's 1883/3000 rules to your laptop + Pi IPs instead of `0.0.0.0/0`.
-- Put the API behind Caddy/Nginx with HTTPS (Let's Encrypt).
+- Restrict the Vultr firewall's 1883 rule to your laptop + Pi IPs instead of `0.0.0.0/0`.
+- ~~Put the API behind Caddy/Nginx with HTTPS~~ — done: Caddy serves `api.hestia.my` with auto Let's Encrypt.
 - Add MQTT TLS: `listener 8883` with `cafile/certfile/keyfile` in `mqtt/config/mosquitto.conf`, then use `mqtts://VULTR_IP:8883`.
 - Run as a non-root user on the server.
 
