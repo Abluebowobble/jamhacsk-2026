@@ -1,113 +1,192 @@
 @import "tailwindcss";
 
+/* =====================================================================
+   Hestia design system — "Clinical Precision" (light only)
+   Cool steel-blue on near-white. Hairline structure. Calm at rest,
+   decisive in a safety event. The resting world is blue/green;
+   amber and red are EARNED — warning and danger only.
+   Full rationale in /DESIGN.md.
+   ===================================================================== */
+
+@theme {
+  /* ---- Surfaces (faint cool tint — clinical, not "blue paper") ---- */
+  --color-bg: oklch(0.990 0.004 240);
+  --color-surface: oklch(1 0 0);
+  --color-surface-sunken: oklch(0.974 0.005 240);
+  --color-panel: oklch(0.982 0.006 245);
+
+  /* ---- Ink ---- */
+  --color-ink: oklch(0.20 0.012 250);        /* headings, primary text */
+  --color-ink-body: oklch(0.32 0.012 250);   /* body */
+  --color-ink-muted: oklch(0.50 0.015 250);  /* secondary, labels, placeholders */
+  --color-ink-faint: oklch(0.62 0.013 250);  /* disabled / decorative — NOT body */
+
+  /* ---- Borders ---- */
+  --color-border: oklch(0.918 0.005 245);
+  --color-border-strong: oklch(0.860 0.006 245);
+
+  /* ---- Primary: steel-blue (actions, selection, focus, "on & attended") ---- */
+  --color-primary: oklch(0.50 0.12 245);
+  --color-primary-hover: oklch(0.45 0.13 245);
+  --color-primary-active: oklch(0.40 0.13 245);
+  --color-primary-fg: oklch(0.99 0.005 245);
+  --color-primary-subtle: oklch(0.960 0.022 245);
+  --color-primary-border: oklch(0.850 0.040 245);
+
+  /* ---- Safe / online / presence — green ---- */
+  --color-success: oklch(0.60 0.13 155);
+  --color-success-subtle: oklch(0.950 0.040 155);
+  --color-success-fg: oklch(0.40 0.11 155);
+
+  /* ---- Warning / buzzer / absence countdown — amber ---- */
+  --color-warn: oklch(0.72 0.15 70);
+  --color-warn-subtle: oklch(0.955 0.050 75);
+  --color-warn-fg: oklch(0.45 0.10 60);
+
+  /* ---- Danger / auto-shutoff / offline / destructive — red ---- */
+  --color-danger: oklch(0.55 0.21 25);
+  --color-danger-hover: oklch(0.50 0.21 25);
+  --color-danger-subtle: oklch(0.950 0.040 25);
+  --color-danger-fg: oklch(0.45 0.16 25);
+
+  /* ---- Neutral / stove-off / inactive (calm gray, NOT red) ---- */
+  --color-neutral: oklch(0.70 0.010 250);
+  --color-neutral-subtle: oklch(0.962 0.004 245);
+
+  /* ---- Type ---- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --text-xs: 0.75rem;     /* 12 */
+  --text-sm: 0.8125rem;   /* 13 */
+  --text-base: 0.9375rem; /* 15 */
+  --text-lg: 1.0625rem;   /* 17 */
+  --text-xl: 1.25rem;     /* 20 */
+  --text-2xl: 1.5rem;     /* 24 */
+  --text-3xl: 1.875rem;   /* 30 */
+
+  /* ---- Radius (clinical = restrained) ---- */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* ---- Elevation (only for things that float) ---- */
+  --shadow-pop: 0 4px 12px -2px oklch(0.20 0.02 250 / 0.10);
+  --shadow-modal: 0 16px 40px -8px oklch(0.20 0.02 250 / 0.18);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Durations (plain props — used in transitions/animations) */
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 240ms;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Semantic z-index scale — never magic 9999 */
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-backdrop: 1200;
+  --z-modal: 1300;
+  --z-toast: 1400;
+  --z-tooltip: 1500;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-ink-body);
+  background: var(--color-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+}
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background: var(--color-bg);
+    color: var(--color-ink-body);
+  }
+
+  h1, h2, h3 {
+    color: var(--color-ink);
+    font-weight: 600;
+    letter-spacing: -0.011em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 { font-size: var(--text-3xl); line-height: 1.2; }
+  h2 { font-size: var(--text-2xl); line-height: 1.25; }
+  h3 { font-size: var(--text-xl); line-height: 1.3; }
+
+  p { margin: 0; text-wrap: pretty; }
+
+  /* Machine readouts: countdowns, codes, thresholds, timestamps */
+  code, kbd, samp, .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  a:hover { color: var(--color-primary-hover); }
+
+  ::placeholder {
+    color: var(--color-ink-muted);
+    opacity: 1;
+  }
+
+  ::selection {
+    background: var(--color-primary-subtle);
+    color: var(--color-ink);
+  }
+
+  /* Consistent, visible focus on every interactive element */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  :focus:not(:focus-visible) { outline: none; }
+}
+
+@layer components {
+  /* Signature motion: the warning state is the only thing that moves at
+     rest, and only when something is genuinely wrong. Steady (no pulse)
+     on danger — steady reads as serious. */
+  .hestia-pulse-warn {
+    animation: hestia-pulse 1.6s var(--ease-out) infinite;
+  }
+
+  @keyframes hestia-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.15 70 / 0.45); }
+    50%      { box-shadow: 0 0 0 6px oklch(0.72 0.15 70 / 0); }
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  /* Pulse → static amber ring; no information lost to stilled motion */
+  .hestia-pulse-warn {
+    box-shadow: 0 0 0 2px var(--color-warn);
   }
-}
-
-body {
-  margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
