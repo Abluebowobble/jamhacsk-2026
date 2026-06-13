@@ -2,7 +2,7 @@
 
 Local device firmware for a Hestia smart-stove-safety unit. Runs on a
 Raspberry Pi 4 with a Pi Camera (presence detection), a buzzer, and a
-relay/ESP32 for stove power.
+relay for stove power.
 
 Per the PRD, **critical safety logic runs locally** — the Pi decides on shutoff
 even when the cloud is unreachable. The cloud backend is only for remote
@@ -26,7 +26,7 @@ firmware/
     ├── presence.py    # camera presence detection (COMPLETE)
     ├── safety.py      # absence/warning/shutoff state machine (STUB)
     ├── buzzer.py      # warning buzzer GPIO (STUB)
-    └── stove.py       # stove relay / ESP32 control (STUB)
+    └── stove.py       # stove relay control (STUB)
 ```
 
 ## Setup
@@ -116,6 +116,6 @@ python -m src.presence --image cat.jpg # person vs pet check (deterministic)
 - [ ] `safety.py` — absence-timeout → warning-delay → auto-shutoff state machine
       (hook ready: `safety.on_presence()`)
 - [ ] `buzzer.py` — buzzer GPIO on/off
-- [ ] `stove.py` — relay / ESP32 stove power control
+- [ ] `stove.py` — relay stove power control
 - [x] Periodic `publish_status` heartbeat from the main loop
 - [ ] Camera stream endpoint (PRD section 13)
