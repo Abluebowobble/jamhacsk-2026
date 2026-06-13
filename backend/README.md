@@ -1,4 +1,4 @@
-# Hestia Backend (Express template)
+# Hestia Backend (Fastify template)
 
 Template API server. Three jobs:
 

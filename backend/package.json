@@ -1,0 +1,16 @@
+{
+  "name": "hestia-backend",
+  "version": "0.1.0",
+  "description": "Template Fastify backend for Hestia: serves the frontend, fetches from the upstream/device backend, and pushes events to clients.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.1"
+  }
+}

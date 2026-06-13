@@ -1,12 +1,18 @@
 // SSE endpoint: the frontend opens an EventSource here and receives every event
 // broadcast via eventBus — this is the "push to the frontend" channel.
 //
+// reply.hijack() tells Fastify to stop managing the response so we can write the
+// raw event stream ourselves and keep the connection open.
+//
 // Frontend usage:
 //   const es = new EventSource('/api/events');
 //   es.onmessage = (e) => console.log(JSON.parse(e.data));
 import { eventBus } from '../services/eventBus.js';
 
-export function stream(req, res) {
+export function stream(req, reply) {
+  reply.hijack();
+  const res = reply.raw;
+
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -25,7 +31,7 @@ export function stream(req, res) {
   // Heartbeat keeps proxies/load balancers from closing an idle connection.
   const heartbeat = setInterval(() => res.write(': ping\n\n'), 25000);
 
-  req.on('close', () => {
+  req.raw.on('close', () => {
     clearInterval(heartbeat);
     unsubscribe();
   });

@@ -1,19 +1,17 @@
-// Central error handler + 404. Keeps controllers free of try/catch boilerplate.
+// Central error + 404 handlers. Fastify catches thrown/rejected errors from
+// async route handlers automatically, so no asyncHandler wrapper is needed.
 
-// Wrap async route handlers so thrown/rejected errors reach errorHandler.
-export const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
+export function registerErrorHandlers(app) {
+  app.setNotFoundHandler((req, reply) => {
+    reply.code(404).send({ error: 'Not found', path: req.url });
+  });
 
-export function notFound(req, res) {
-  res.status(404).json({ error: 'Not found', path: req.originalUrl });
-}
-
-// eslint-disable-next-line no-unused-vars -- Express needs the 4-arg signature
-export function errorHandler(err, req, res, next) {
-  const status = err.status || 500;
-  if (status >= 500) console.error(err);
-  res.status(status).json({
-    error: err.message || 'Internal Server Error',
-    ...(err.data ? { details: err.data } : {}),
+  app.setErrorHandler((err, req, reply) => {
+    const status = err.status || err.statusCode || 500;
+    if (status >= 500) req.log.error(err);
+    reply.code(status).send({
+      error: err.message || 'Internal Server Error',
+      ...(err.data ? { details: err.data } : {}),
+    });
   });
 }

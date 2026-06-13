@@ -1,33 +1,29 @@
-// Builds the Express app: middleware + routes. No listening here (see server.js)
+// Builds the Fastify app: plugins + routes. No listening here (see server.js)
 // so the app can be imported by tests without opening a port.
-import express from 'express';
-import cors from 'cors';
-import morgan from 'morgan';
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import config from './config/index.js';
 import apiRoutes from './routes/index.js';
-import { notFound, errorHandler } from './middleware/errorHandler.js';
+import { registerErrorHandlers } from './middleware/errorHandler.js';
 
-const app = express();
+export function buildApp() {
+  const app = Fastify({
+    logger: { level: config.isProd ? 'info' : 'debug' },
+  });
 
-// CORS limited to the configured frontend origin(s).
-app.use(
-  cors({
+  // CORS limited to the configured frontend origin(s).
+  app.register(cors, {
     origin: config.frontendOrigins,
     credentials: true,
-  })
-);
+  });
 
-app.use(express.json());
-app.use(morgan(config.isProd ? 'combined' : 'dev'));
+  // Root ping so hitting the bare host shows the server is up.
+  app.get('/', () => ({ name: 'hestia-backend', env: config.env, api: config.apiPrefix }));
 
-// Root ping so hitting the bare host shows the server is up.
-app.get('/', (req, res) => {
-  res.json({ name: 'hestia-backend', env: config.env, api: config.apiPrefix });
-});
+  // All /api routes (JSON body parsing is built into Fastify).
+  app.register(apiRoutes, { prefix: config.apiPrefix });
 
-app.use(config.apiPrefix, apiRoutes);
+  registerErrorHandlers(app);
 
-app.use(notFound);
-app.use(errorHandler);
-
-export default app;
+  return app;
+}
