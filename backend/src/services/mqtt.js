@@ -25,7 +25,12 @@ export function initMqtt(log = console) {
     return
   }
 
-  client = mqtt.connect(url, { reconnectPeriod: 5000 })
+  client = mqtt.connect(url, {
+    reconnectPeriod: 5000,
+    // Optional broker auth — omitted (anonymous) when env vars are unset.
+    username: process.env.MQTT_USERNAME || undefined,
+    password: process.env.MQTT_PASSWORD || undefined,
+  })
 
   // Track offline state so a dead broker logs once, not every reconnect attempt.
   let warnedOffline = false
@@ -114,7 +119,8 @@ async function handleStatus(deviceId, payload) {
 
 async function handlePresence(deviceId, payload) {
   const device = await loadDeviceHousehold(deviceId)
-  if (!device?.household_id) return
+  // TESTING: device-ID verification disabled — process even unknown devices.
+  // if (!device?.household_id) return
 
   const detected = payload.presence === 'detected' || payload.detected === true
   await supabaseAdmin
@@ -123,7 +129,7 @@ async function handlePresence(deviceId, payload) {
     .eq('id', deviceId)
 
   await logEvent({
-    householdId: device.household_id,
+    householdId: device?.household_id ?? null,
     deviceId,
     eventType: detected ? 'PRESENCE_DETECTED' : 'NO_PRESENCE_DETECTED',
     metadata: payload,
@@ -138,20 +144,21 @@ const NOTIFY_EVENTS = {
 
 async function handleDeviceEvent(deviceId, payload) {
   const device = await loadDeviceHousehold(deviceId)
-  if (!device?.household_id) return
+  // TESTING: device-ID verification disabled — process even unknown devices.
+  // if (!device?.household_id) return
 
   const eventType = payload.eventType || payload.type
   if (!eventType) return
 
   await logEvent({
-    householdId: device.household_id,
+    householdId: device?.household_id ?? null,
     deviceId,
     eventType,
     metadata: payload,
   }, logger)
 
   const body = NOTIFY_EVENTS[eventType]
-  if (body) {
+  if (body && device?.household_id) {
     await sendToHouseholdMembers(device.household_id, { title: 'Hestia', body }, logger)
   }
 }

@@ -35,7 +35,11 @@ def _require(name):
 
 
 def load_config():
-    device_id = _require("DEVICE_ID")
+    # TESTING: device-ID verification disabled. DEVICE_ID is no longer required
+    # and need not match a Supabase `devices` row; it falls back to a default.
+    # To re-enable strict verification, restore the _require(...) line below.
+    # device_id = _require("DEVICE_ID")
+    device_id = os.environ.get("DEVICE_ID", "").strip() or "test-device-001"
     broker_url = _require("MQTT_BROKER_URL")
 
     # Accept "mqtt://host:1883" or a bare "host:1883".
