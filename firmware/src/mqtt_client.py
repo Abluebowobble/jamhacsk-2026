@@ -9,6 +9,7 @@ Publishes to:   status, presence, events     (Pi -> backend)
 """
 import json
 import logging
+from uuid import uuid4
 
 import paho.mqtt.client as mqtt
 
@@ -25,9 +26,13 @@ class MqttClient:
         self._on_settings = on_settings
         self._on_timer = on_timer
 
+        # A short random suffix keeps the client_id unique. Two clients with the
+        # SAME id make the broker kick one off repeatedly (connect/disconnect
+        # loop) — easy to hit now that device-ID verification is off and every
+        # instance defaults to the same DEVICE_ID.
         self._client = mqtt.Client(
             mqtt.CallbackAPIVersion.VERSION2,
-            client_id=f"hestia-device-{self.device_id}",
+            client_id=f"hestia-device-{self.device_id}-{uuid4().hex[:6]}",
         )
 
         if config.username:
