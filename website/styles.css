@@ -1,0 +1,1529 @@
+/* =====================================================================
+   HESTIA — marketing site
+   Design language: "Clinical Precision" (light only).
+   Cool steel-blue on near-white. Hairline structure. Calm at rest,
+   decisive in a safety event. The resting world is blue/green;
+   amber and red are EARNED — warning and danger only.
+   Tokens mirror frontend/src/index.css (the product's design system).
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   0. Tokens
+   --------------------------------------------------------------------- */
+:root {
+  /* Surfaces — faint cool tint (clinical, not "blue paper") */
+  --color-bg: oklch(0.990 0.004 240);
+  --color-surface: oklch(1 0 0);
+  --color-surface-sunken: oklch(0.974 0.005 240);
+  --color-panel: oklch(0.982 0.006 245);
+
+  /* Ink */
+  --color-ink: oklch(0.20 0.012 250);
+  --color-ink-body: oklch(0.32 0.012 250);
+  --color-ink-muted: oklch(0.50 0.015 250);
+  --color-ink-faint: oklch(0.62 0.013 250);
+
+  /* Borders */
+  --color-border: oklch(0.918 0.005 245);
+  --color-border-strong: oklch(0.860 0.006 245);
+
+  /* Primary — steel-blue */
+  --color-primary: oklch(0.50 0.12 245);
+  --color-primary-hover: oklch(0.45 0.13 245);
+  --color-primary-active: oklch(0.40 0.13 245);
+  --color-primary-fg: oklch(0.99 0.005 245);
+  --color-primary-subtle: oklch(0.960 0.022 245);
+  --color-primary-border: oklch(0.850 0.040 245);
+
+  /* Safe / online / presence — green */
+  --color-success: oklch(0.60 0.13 155);
+  --color-success-subtle: oklch(0.950 0.040 155);
+  --color-success-fg: oklch(0.40 0.11 155);
+
+  /* Warning / buzzer / absence countdown — amber */
+  --color-warn: oklch(0.72 0.15 70);
+  --color-warn-subtle: oklch(0.955 0.050 75);
+  --color-warn-fg: oklch(0.45 0.10 60);
+
+  /* Danger / auto-shutoff / offline / destructive — red */
+  --color-danger: oklch(0.55 0.21 25);
+  --color-danger-hover: oklch(0.50 0.21 25);
+  --color-danger-subtle: oklch(0.950 0.040 25);
+  --color-danger-fg: oklch(0.45 0.16 25);
+
+  /* Neutral / stove-off / inactive (calm gray, NOT red) */
+  --color-neutral: oklch(0.70 0.010 250);
+  --color-neutral-subtle: oklch(0.962 0.004 245);
+
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --text-xs: 0.75rem;     /* 12 */
+  --text-sm: 0.8125rem;   /* 13 */
+  --text-base: 0.9375rem; /* 15 */
+  --text-lg: 1.0625rem;   /* 17 */
+  --text-xl: 1.25rem;     /* 20 */
+  --text-2xl: 1.5rem;     /* 24 */
+  --text-3xl: 1.875rem;   /* 30 */
+  /* Marketing-scale display sizes (larger than product UI, fluid) */
+  --text-4xl: clamp(2.1rem, 1.4rem + 2.6vw, 3rem);
+  --text-5xl: clamp(2.6rem, 1.5rem + 4.2vw, 4.25rem);
+
+  /* Radius (clinical = restrained) */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 14px;       /* large marketing panels only */
+  --radius-full: 9999px;
+
+  /* Elevation — only for things that float / lift on hover */
+  --shadow-pop: 0 4px 12px -2px oklch(0.20 0.02 250 / 0.10);
+  --shadow-modal: 0 16px 40px -8px oklch(0.20 0.02 250 / 0.18);
+  --shadow-card-hover: 0 1px 2px oklch(0.20 0.02 250 / 0.04),
+                       0 8px 24px -12px oklch(0.20 0.02 250 / 0.14);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 240ms;
+
+  /* Layout */
+  --container: 1140px;
+  --container-narrow: 760px;
+  --nav-h: 60px;
+
+  /* Z-index — semantic, never magic 9999 */
+  --z-base: 1;
+  --z-sticky: 1100;
+  --z-backdrop: 1200;
+  --z-nav: 1250;
+  --z-modal: 1300;
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------
+   1. Reset / base
+   --------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100svh;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-ink-body);
+  background: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-ink);
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  text-wrap: balance;
+  line-height: 1.12;
+}
+
+p { text-wrap: pretty; }
+
+img, svg, video { display: block; max-width: 100%; }
+svg { flex-shrink: 0; }
+
+a { color: var(--color-primary); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+a:hover { color: var(--color-primary-hover); }
+
+ul { list-style: none; padding: 0; }
+
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+
+/* Machine readouts: countdowns, codes, thresholds, timestamps */
+code, kbd, samp, .tabular, .mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection { background: var(--color-primary-subtle); color: var(--color-ink); }
+
+::placeholder { color: var(--color-ink-muted); opacity: 1; }
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: fixed; top: 8px; left: 8px; z-index: var(--z-modal);
+  padding: 10px 16px; background: var(--color-primary); color: var(--color-primary-fg);
+  border-radius: var(--radius-md); font-weight: 600; font-size: var(--text-sm);
+  transform: translateY(-150%); transition: transform var(--dur) var(--ease-out);
+}
+.skip-link:focus { transform: translateY(0); color: var(--color-primary-fg); }
+
+/* ---------------------------------------------------------------------
+   2. Layout primitives
+   --------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 40px);
+}
+.container--narrow { max-width: var(--container-narrow); }
+
+.section { padding-block: clamp(64px, 9vw, 120px); position: relative; }
+.section--tight { padding-block: clamp(48px, 6vw, 80px); }
+
+/* hairline rule that separates major bands */
+.section--ruled { border-top: 1px solid var(--color-border); }
+
+.section-head { max-width: 60ch; margin-bottom: clamp(36px, 5vw, 56px); }
+.section-head--center { margin-inline: auto; text-align: center; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--text-sm); font-weight: 600; color: var(--color-primary);
+  letter-spacing: 0; margin-bottom: 14px;
+}
+.eyebrow::before {
+  content: ""; width: 7px; height: 7px; border-radius: var(--radius-full);
+  background: var(--color-primary); flex-shrink: 0;
+}
+
+h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
+.section-lead {
+  margin-top: 18px; font-size: var(--text-lg); line-height: 1.6;
+  color: var(--color-ink-muted); max-width: 60ch;
+}
+.section-head--center .section-lead { margin-inline: auto; }
+
+/* ---------------------------------------------------------------------
+   3. Buttons  (default, hover, focus-visible, active, disabled)
+   --------------------------------------------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 0 22px;
+  font-size: var(--text-base); font-weight: 600; line-height: 1;
+  border-radius: var(--radius-md); border: 1px solid transparent;
+  cursor: pointer; white-space: nowrap; user-select: none;
+  transition: background-color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              color var(--dur) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+}
+.btn svg { width: 18px; height: 18px; }
+.btn:active { transform: translateY(1px); }
+
+.btn--primary { background: var(--color-primary); color: var(--color-primary-fg); }
+.btn--primary:hover { background: var(--color-primary-hover); color: var(--color-primary-fg); }
+.btn--primary:active { background: var(--color-primary-active); }
+
+.btn--secondary {
+  background: var(--color-surface); color: var(--color-ink);
+  border-color: var(--color-border-strong);
+}
+.btn--secondary:hover { border-color: var(--color-ink-faint); color: var(--color-ink); background: var(--color-surface); }
+
+.btn--ghost { background: transparent; color: var(--color-ink-body); }
+.btn--ghost:hover { background: var(--color-primary-subtle); color: var(--color-primary-hover); }
+
+.btn--lg { min-height: 52px; padding: 0 28px; font-size: var(--text-lg); }
+.btn--block { width: 100%; }
+
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+
+/* Text link with arrow */
+.link-arrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-weight: 600; color: var(--color-primary);
+}
+.link-arrow svg { width: 16px; height: 16px; transition: transform var(--dur) var(--ease-out); }
+.link-arrow:hover svg { transform: translateX(3px); }
+
+/* ---------------------------------------------------------------------
+   4. Cards / surfaces  (hairline = the clinical signature)
+   --------------------------------------------------------------------- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(22px, 3vw, 30px);
+}
+.card--interactive {
+  transition: border-color var(--dur) var(--ease-out),
+              transform var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+}
+.card--interactive:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Icon tile used atop feature cards */
+.icon-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: var(--radius-md);
+  background: var(--color-primary-subtle); color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+}
+.icon-tile svg { width: 22px; height: 22px; stroke-width: 1.6; }
+
+/* ---------------------------------------------------------------------
+   5. Status vocabulary — pill / badge (color + icon + label, never color alone)
+   --------------------------------------------------------------------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px 5px 9px; border-radius: var(--radius-full);
+  font-size: var(--text-sm); font-weight: 600; line-height: 1;
+  border: 1px solid transparent;
+}
+.pill svg { width: 14px; height: 14px; stroke-width: 2; }
+.pill .dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: currentColor; }
+
+.pill--neutral { background: var(--color-neutral-subtle); color: var(--color-ink-muted); border-color: var(--color-border); }
+.pill--primary { background: var(--color-primary-subtle); color: var(--color-primary); border-color: var(--color-primary-border); }
+.pill--success { background: var(--color-success-subtle); color: var(--color-success-fg); border-color: oklch(0.85 0.06 155); }
+.pill--warn    { background: var(--color-warn-subtle); color: var(--color-warn-fg); border-color: oklch(0.86 0.08 75); }
+.pill--danger  { background: var(--color-danger-subtle); color: var(--color-danger-fg); border-color: oklch(0.86 0.07 25); }
+
+/* small uppercase micro-label (ONLINE) — the one allowed uppercase */
+.micro-label {
+  font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--color-ink-muted);
+}
+
+/* ---------------------------------------------------------------------
+   6. Navigation
+   --------------------------------------------------------------------- */
+.nav {
+  position: sticky; top: 0; z-index: var(--z-nav);
+  height: var(--nav-h);
+  background: oklch(0.990 0.004 240 / 0.78);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.nav[data-scrolled="true"] {
+  border-bottom-color: var(--color-border);
+  background: oklch(0.990 0.004 240 / 0.92);
+}
+.nav__inner {
+  height: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+}
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--color-ink); font-weight: 600; }
+.brand:hover { color: var(--color-ink); }
+.brand__mark { width: 30px; height: 30px; color: var(--color-primary); }
+.brand__name { font-size: var(--text-lg); letter-spacing: -0.02em; }
+
+.nav__links { display: flex; align-items: center; gap: 4px; }
+.nav__link {
+  display: inline-flex; align-items: center; min-height: 40px;
+  padding: 8px 12px; border-radius: var(--radius-md);
+  color: var(--color-ink-body); font-size: var(--text-base); font-weight: 500;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.nav__link:hover { background: var(--color-primary-subtle); color: var(--color-primary-hover); }
+.nav__actions { display: flex; align-items: center; gap: 10px; }
+
+.nav__toggle {
+  display: none; width: 44px; height: 44px; align-items: center; justify-content: center;
+  border-radius: var(--radius-md); color: var(--color-ink);
+}
+.nav__toggle:hover { background: var(--color-primary-subtle); }
+.nav__toggle svg { width: 24px; height: 24px; }
+
+/* mobile drawer */
+.nav__drawer {
+  position: fixed; inset: var(--nav-h) 0 auto 0; z-index: var(--z-nav);
+  background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+  padding: 12px clamp(20px, 5vw, 40px) 20px;
+  display: none; flex-direction: column; gap: 4px;
+  box-shadow: var(--shadow-pop);
+}
+.nav__drawer.is-open { display: flex; }
+.nav__drawer .nav__link { padding: 12px; font-size: var(--text-lg); }
+.nav__drawer .btn { margin-top: 8px; }
+
+@media (max-width: 880px) {
+  .nav__links { display: none; }
+  .nav__actions .btn--secondary { display: none; }
+  .nav__toggle { display: inline-flex; }
+}
+
+/* ---------------------------------------------------------------------
+   7. Footer
+   --------------------------------------------------------------------- */
+.footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-panel);
+  padding-block: clamp(48px, 6vw, 72px) 32px;
+}
+.footer__grid {
+  display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 40px 32px;
+}
+.footer__brandcol { max-width: 34ch; }
+.footer__tagline { margin-top: 14px; color: var(--color-ink-muted); font-size: var(--text-sm); }
+.footer__coltitle {
+  font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--color-ink-muted); margin-bottom: 14px;
+}
+.footer__links { display: flex; flex-direction: column; gap: 10px; }
+.footer__links a { display: inline-flex; align-items: center; min-height: 28px; color: var(--color-ink-body); font-size: var(--text-sm); font-weight: 500; }
+.footer__links a:hover { color: var(--color-primary); }
+.footer__bottom {
+  margin-top: clamp(36px, 5vw, 56px); padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  color: var(--color-ink-muted); font-size: var(--text-sm);
+}
+@media (max-width: 720px) {
+  .footer__grid { grid-template-columns: 1fr 1fr; }
+  .footer__brandcol { grid-column: 1 / -1; }
+}
+
+/* ---------------------------------------------------------------------
+   8. Reveal-on-scroll (progressive enhancement; no info lives in motion)
+   --------------------------------------------------------------------- */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+  will-change: opacity, transform;
+}
+.js [data-reveal].is-visible { opacity: 1; transform: none; }
+[data-reveal-delay="1"] { transition-delay: 60ms; }
+[data-reveal-delay="2"] { transition-delay: 120ms; }
+[data-reveal-delay="3"] { transition-delay: 180ms; }
+[data-reveal-delay="4"] { transition-delay: 240ms; }
+[data-reveal-delay="5"] { transition-delay: 300ms; }
+
+/* ---------------------------------------------------------------------
+   9. Blueprint texture — faint instrument grid for select bands
+   (whisper quiet; structure, not decoration)
+   --------------------------------------------------------------------- */
+.grid-bg { position: relative; isolation: isolate; }
+.grid-bg::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(to right, oklch(0.50 0.05 245 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.50 0.05 245 / 0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 78%);
+}
+
+/* ---------------------------------------------------------------------
+   10. Reduced motion — every animation degrades; no info lost
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .js [data-reveal] { opacity: 1; transform: none; }
+}
+
+/* =====================================================================
+   SECTION STYLES  (assembled from website/_partials/*.css — do not edit
+   below this line by hand; edit the partial and re-run assemble.mjs)
+   ===================================================================== */
+
+/* SECTION-STYLES-START */
+
+/* ===========================================================
+   hero (#hero) — page H1 + live instrument panel
+   Clinical Precision: hairline structure, calm blue/green.
+   Scoped: .hs-hero__*
+   =========================================================== */
+
+.hs-hero {
+  overflow: hidden;
+}
+
+.hs-hero__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(40px, 6vw, 72px);
+  align-items: center;
+}
+
+@media (min-width: 880px) {
+  .hs-hero__grid {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+}
+
+/* ---- Copy column ---- */
+.hs-hero__title {
+  font-size: var(--text-5xl);
+  letter-spacing: -0.028em;
+  max-width: 16ch;
+}
+
+.hs-hero__lead {
+  margin-top: 22px;
+  font-size: var(--text-xl);
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+  max-width: 52ch;
+}
+
+.hs-hero__cta {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hs-hero__trust {
+  margin-top: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.hs-hero__trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+.hs-hero__trust svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
+/* ---- Instrument panel ---- */
+.hs-hero__panelwrap {
+  display: flex;
+  justify-content: center;
+}
+
+.hs-hero__panel {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 3vw, 26px);
+  box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hs-hero__panelhead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.hs-hero__device {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.hs-hero__devicename {
+  font-size: var(--text-xl);
+  letter-spacing: -0.018em;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* ---- Stat tiles ---- */
+.hs-hero__tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hs-hero__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.hs-hero__tilebody {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hs-hero__value {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+/* ---- Concentric ring badge: nested circles, hairline + subtle fill ---- */
+.hs-hero__ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+/* outer faint ring */
+.hs-hero__ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+  opacity: 0.22;
+}
+/* inner subtle-fill disc */
+.hs-hero__ring::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+  background: currentColor;
+  opacity: 0.10;
+}
+.hs-hero__ring svg {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.hs-hero__ring--primary { color: var(--color-primary); }
+.hs-hero__ring--success { color: var(--color-success); }
+
+/* ---- Bottom status line ---- */
+.hs-hero__statusline {
+  display: flex;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+}
+
+/* ===========================================================
+   stakes (#stakes) — quiet, factual band (NOT alarmist)
+   Sunken/ruled surface, calm steel-blue numerals. No danger red.
+   Scoped: .hs-stakes__*
+   =========================================================== */
+
+.hs-stakes {
+  background: var(--color-surface-sunken);
+}
+
+.hs-stakes__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(40px, 5vw, 64px);
+  align-items: start;
+}
+
+@media (min-width: 880px) {
+  .hs-stakes__grid {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+}
+
+.hs-stakes__intro {
+  max-width: 42ch;
+}
+
+/* ---- Stat blocks ---- */
+.hs-stakes__stats {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.hs-stakes__stat {
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr;
+  gap: clamp(20px, 4vw, 40px);
+  align-items: baseline;
+  padding-block: clamp(22px, 3vw, 30px);
+  border-top: 1px solid var(--color-border);
+}
+.hs-stakes__stat:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.hs-stakes__figure {
+  margin: 0;
+  font-size: clamp(2.6rem, 1.8rem + 3vw, 4rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hs-stakes__detail {
+  margin: 0;
+}
+.hs-stakes__caption {
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--color-ink-body);
+  max-width: 44ch;
+}
+.hs-stakes__source {
+  margin-top: 10px;
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+/* =====================================================================
+   how (#how) — how it works + the signature safety-loop demo
+   Scoped: .hs-how__*  · tokens only · alarm color is EARNED.
+   Drives the [data-loop] contract in main.js (no timer JS of its own).
+   ===================================================================== */
+
+/* ---- Layout: steps (left) + instrument (right) ---- */
+.hs-how__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+/* ---- The three steps (left rail) ---- */
+.hs-how__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hs-how__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 18px;
+  padding: 18px 4px;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+/* Dim steps that are not yet reached during playback */
+.hs-how__step[data-active="false"] { opacity: 0.55; }
+
+/* connecting hairline rail between step icons */
+.hs-how__step-rail {
+  position: absolute;
+  left: 21px;
+  top: 44px;
+  bottom: -22px;
+  width: 1px;
+  background: var(--color-border);
+}
+.hs-how__step:last-child .hs-how__step-rail { display: none; }
+
+.hs-how__step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-ink-muted);
+  position: relative;
+  z-index: var(--z-base);
+  transition: color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              background-color var(--dur) var(--ease-out);
+}
+.hs-how__step-icon svg { width: 22px; height: 22px; }
+
+/* current step gets steel-blue emphasis (calm, not alarm) */
+.hs-how__step[data-current="true"] .hs-how__step-icon {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+
+.hs-how__step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-lg);
+  color: var(--color-ink);
+}
+.hs-how__step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-strong);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hs-how__step[data-current="true"] .hs-how__step-num {
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+  background: var(--color-surface);
+}
+.hs-how__step-text {
+  margin-top: 6px;
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: 1.55;
+  max-width: 42ch;
+}
+
+/* ---- The instrument (right) ---- */
+.hs-how__demo { margin: 0; }
+
+.hs-how__instrument {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: clamp(24px, 3.4vw, 36px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: border-color var(--dur-slow) var(--ease-out),
+              box-shadow var(--dur-slow) var(--ease-out);
+}
+
+/* ---- State pill row: show only the pill for the current state ---- */
+.hs-how__pillrow {
+  display: grid;
+  place-items: center;
+  min-height: 30px;
+}
+.hs-how__pill {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur) var(--ease-out);
+}
+.hs-how__layout[data-loop-state="attended"]  .hs-how__pill[data-loop-pill="attended"],
+.hs-how__layout[data-loop-state="unattended"] .hs-how__pill[data-loop-pill="unattended"],
+.hs-how__layout[data-loop-state="warning"]    .hs-how__pill[data-loop-pill="warning"],
+.hs-how__layout[data-loop-state="shutoff"]    .hs-how__pill[data-loop-pill="shutoff"],
+.hs-how__layout[data-loop-state="safe"]       .hs-how__pill[data-loop-pill="safe"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---- The progress ring + centred readout ---- */
+.hs-how__ring-wrap {
+  position: relative;
+  width: clamp(208px, 46vw, 252px);
+  aspect-ratio: 1 / 1;
+}
+.hs-how__ring {
+  width: 100%;
+  height: 100%;
+}
+.hs-how__ring-track {
+  stroke: var(--color-border);
+}
+.hs-how__ring-fill {
+  /* JS sets stroke-dasharray + stroke-dashoffset; we animate the drain */
+  stroke: var(--color-success);
+  transition: stroke-dashoffset 0.25s linear,
+              stroke var(--dur-slow) var(--ease-out);
+}
+
+/* Readout stack centred in the ring */
+.hs-how__readout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  padding: 0 18px;
+}
+.hs-how__readout-label {
+  color: var(--color-ink-muted);
+  transition: color var(--dur-slow) var(--ease-out);
+}
+.hs-how__count {
+  font-size: var(--text-5xl);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  transition: color var(--dur-slow) var(--ease-out);
+}
+.hs-how__readout-sub {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+/* ---- State theming of the ring + readout (alarm color is EARNED) ---- */
+/* attended (rest) — calm green */
+.hs-how__layout[data-loop-state="attended"] .hs-how__ring-fill { stroke: var(--color-success); }
+
+/* unattended — steel-blue (status, not alarm) */
+.hs-how__layout[data-loop-state="unattended"] .hs-how__ring-fill { stroke: var(--color-primary); }
+.hs-how__layout[data-loop-state="unattended"] .hs-how__readout-label { color: var(--color-primary); }
+
+/* warning — amber, breathing pulse, draining ring, mono countdown */
+.hs-how__layout[data-loop-state="warning"] .hs-how__ring-fill { stroke: var(--color-warn); }
+.hs-how__layout[data-loop-state="warning"] .hs-how__readout-label { color: var(--color-warn-fg); }
+.hs-how__layout[data-loop-state="warning"] .hs-how__count { color: var(--color-warn-fg); }
+.hs-how__layout[data-loop-state="warning"] .hs-how__instrument {
+  border-color: oklch(0.86 0.08 75);
+  animation: hs-pulse 1.6s var(--ease-out) infinite;
+}
+
+/* shutoff — red, STEADY (no pulse) */
+.hs-how__layout[data-loop-state="shutoff"] .hs-how__ring-fill { stroke: var(--color-danger); }
+.hs-how__layout[data-loop-state="shutoff"] .hs-how__readout-label { color: var(--color-danger-fg); }
+.hs-how__layout[data-loop-state="shutoff"] .hs-how__count { color: var(--color-danger-fg); }
+.hs-how__layout[data-loop-state="shutoff"] .hs-how__instrument { border-color: oklch(0.86 0.07 25); }
+
+/* safe — calm green again */
+.hs-how__layout[data-loop-state="safe"] .hs-how__ring-fill { stroke: var(--color-success); }
+.hs-how__layout[data-loop-state="safe"] .hs-how__readout-label { color: var(--color-success-fg); }
+
+/* breathing pulse — warning only. Defined here (not in the kit). */
+@keyframes hs-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.15 70 / 0.40); }
+  50%      { box-shadow: 0 0 0 7px oklch(0.72 0.15 70 / 0); }
+}
+
+/* ---- Controls ---- */
+.hs-how__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.hs-how__play { min-width: 168px; }
+.hs-how__play-icon { width: 18px; height: 18px; }
+
+/* Toggle play vs reset affordance via JS data-running */
+.hs-how__play-icon--reset,
+.hs-how__play-label--reset { display: none; }
+.hs-how__play[data-running="true"] .hs-how__play-icon--run,
+.hs-how__play[data-running="true"] .hs-how__play-label--run { display: none; }
+.hs-how__play[data-running="true"] .hs-how__play-icon--reset,
+.hs-how__play[data-running="true"] .hs-how__play-label--reset { display: inline; }
+.hs-how__play[data-running="true"] .hs-how__play-icon--reset { display: inline-flex; }
+
+.hs-how__hint {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  max-width: 34ch;
+  line-height: 1.5;
+}
+
+/* ---- Caption ---- */
+.hs-how__caption {
+  margin-top: 16px;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+/* ---- Responsive: stack on narrow viewports ---- */
+@media (max-width: 880px) {
+  .hs-how__layout {
+    grid-template-columns: 1fr;
+    gap: clamp(36px, 7vw, 52px);
+  }
+  .hs-how__demo { order: -1; }
+}
+
+/* ---- Reduced motion: drop the breathing pulse; state still legible ---- */
+@media (prefers-reduced-motion: reduce) {
+  .hs-how__layout[data-loop-state="warning"] .hs-how__instrument { animation: none; }
+  .hs-how__ring-fill { transition: stroke var(--dur-slow) var(--ease-out); }
+}
+
+/* features (#features) — 6-card grid. Scoped: .hs-features__ */
+
+.hs-features__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(16px, 2vw, 22px);
+}
+
+.hs-features__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.hs-features__title {
+  font-size: var(--text-xl);
+  letter-spacing: -0.012em;
+}
+
+.hs-features__body {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+  margin-top: -4px;
+}
+
+/* trust (#trust) — local-first / privacy. Scoped: .hs-trust__ */
+
+.hs-trust__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(40px, 6vw, 72px);
+  align-items: center;
+}
+
+@media (min-width: 880px) {
+  .hs-trust__layout {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+}
+
+/* ---- copy column ---- */
+.hs-trust__copy .section-head {
+  margin-bottom: clamp(28px, 4vw, 40px);
+}
+
+.hs-trust__points {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hs-trust__point {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.hs-trust__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+}
+.hs-trust__check svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.hs-trust__pointtext {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+}
+.hs-trust__pointlabel {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.hs-trust__pointtext em {
+  font-style: normal;
+  color: var(--color-ink-body);
+  font-weight: 600;
+}
+
+/* ---- diagram column ---- */
+.hs-trust__board {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: clamp(22px, 3vw, 30px);
+  background: var(--color-surface);
+}
+
+/* device row — the prominent element: where the decision lives */
+.hs-trust__device {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px 16px;
+  padding: 18px;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+}
+
+.hs-trust__deviceicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+}
+.hs-trust__deviceicon svg { width: 24px; height: 24px; }
+
+.hs-trust__devicemeta { min-width: 0; }
+.hs-trust__devicename {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-top: 3px;
+}
+
+.hs-trust__decision {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* connector — the link up to the cloud, clearly labelled optional */
+.hs-trust__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  margin-inline: auto;
+  width: 100%;
+}
+.hs-trust__link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  border-left: 1px dashed var(--color-border-strong);
+}
+.hs-trust__linklabel {
+  position: relative;
+  background: var(--color-surface);
+  padding: 4px 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+/* cloud row — de-emphasized, non-essential */
+.hs-trust__cloud {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
+  opacity: 0.78;
+}
+
+.hs-trust__cloudicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink-faint);
+  border: 1px solid var(--color-border);
+}
+.hs-trust__cloudicon svg { width: 22px; height: 22px; }
+
+.hs-trust__cloudname {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+.hs-trust__cloudnote {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  margin-top: 2px;
+}
+
+.hs-trust__caption {
+  margin-top: 18px;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+  max-width: 46ch;
+}
+
+/* =====================================================================
+   showcase (#showcase) — device-card states (the app's status language)
+   Compact hairline cards mirroring the hero panel across 4 safety states.
+   Amber/red are EARNED here: they depict real warning/danger states.
+   ===================================================================== */
+
+.hs-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.hs-showcase__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* caption above each card naming the state */
+.hs-showcase__caption {
+  padding-left: 2px;
+  color: var(--color-ink-muted);
+}
+
+/* the device card — compact, hairline, near-flat */
+.hs-showcase__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+}
+
+/* the single EARNED amber treatment — a static ring on the warning card.
+   No pulse: four cards breathing at once would be alarmist. */
+.hs-showcase__card--warn {
+  border-color: var(--color-warn);
+  box-shadow: 0 0 0 3px var(--color-warn-subtle);
+}
+
+.hs-showcase__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hs-showcase__device {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+
+/* two stat tiles, side by side */
+.hs-showcase__tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hs-showcase__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.hs-showcase__tilebody {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* concentric-ring badge holding the status icon */
+.hs-showcase__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+}
+.hs-showcase__badge svg { width: 18px; height: 18px; }
+
+.hs-showcase__badge--primary {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+.hs-showcase__badge--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success-fg);
+  border-color: var(--color-success);
+}
+.hs-showcase__badge--neutral {
+  background: var(--color-neutral-subtle);
+  color: var(--color-ink-muted);
+  border-color: var(--color-border);
+}
+
+.hs-showcase__value {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.hs-showcase__value--primary { color: var(--color-primary); }
+.hs-showcase__value--success { color: var(--color-success-fg); }
+.hs-showcase__value--muted   { color: var(--color-ink-muted); }
+
+.hs-showcase__status {
+  display: flex;
+  padding-top: 2px;
+}
+
+/* mono countdown sits inside the warn pill; inherit pill color */
+.hs-showcase__count {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: inherit;
+}
+
+@media (max-width: 540px) {
+  .hs-showcase__grid { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================
+   faq (#faq) — single-open accordion (main.js drives data-open / aria-expanded)
+   Hairline-divided list. Panel animates via max-height/opacity; icon
+   rotates plus -> x with transform only. Closed panel is inert.
+   ===================================================================== */
+
+/* hairline-divided list framed by a single rule top and bottom */
+.hs-faq__list {
+  border-top: 1px solid var(--color-border);
+}
+
+.hs-faq__item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* the <h3> is just a wrapper for the trigger — strip heading metrics */
+.hs-faq__h {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
+  line-height: inherit;
+}
+
+.hs-faq__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding: 20px 4px;
+  text-align: left;
+  color: var(--color-ink);
+  transition: color var(--dur) var(--ease-out);
+}
+.hs-faq__trigger:hover { color: var(--color-primary); }
+
+.hs-faq__q {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+/* plus icon -> rotates to an "x" on open (transform only) */
+.hs-faq__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink-muted);
+  transition: transform var(--dur-slow) var(--ease-out),
+              color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              background-color var(--dur) var(--ease-out);
+}
+.hs-faq__icon svg { width: 17px; height: 17px; }
+
+.hs-faq__trigger:hover .hs-faq__icon {
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+
+.hs-faq__item[data-open="true"] .hs-faq__icon {
+  transform: rotate(45deg); /* plus -> x */
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+
+/* panel: collapsed by default, animated open. Closed = inert + invisible. */
+.hs-faq__panel {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: max-height var(--dur-slow) var(--ease-out),
+              opacity var(--dur) var(--ease-out),
+              visibility 0s linear var(--dur-slow);
+}
+
+.hs-faq__item[data-open="true"] .hs-faq__panel {
+  max-height: 48rem;
+  opacity: 1;
+  visibility: visible;
+  transition: max-height var(--dur-slow) var(--ease-out),
+              opacity var(--dur) var(--ease-out) 60ms,
+              visibility 0s linear 0s;
+}
+
+.hs-faq__a {
+  padding: 0 4px 22px;
+  margin: 0;
+  max-width: 64ch;
+  color: var(--color-ink-muted);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-faq__panel { transition: none; }
+}
+
+/* =====================================================================
+   get-started (#get-started) — calm final CTA on a hairline panel
+   Big radius, quiet primary-subtle wash + faint instrument grid.
+   Optional email "early access" form. No alarm color anywhere.
+   ===================================================================== */
+
+.hs-get-started__panel {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-primary-subtle);
+  padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 56px);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* keep the section head measure centered and contained on the panel */
+.hs-get-started__head {
+  max-width: 52ch;
+  margin-bottom: 32px;
+}
+
+.hs-get-started__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* early-access form */
+.hs-get-started__form {
+  margin-top: 36px;
+}
+
+.hs-get-started__field {
+  display: flex;
+  gap: 10px;
+  max-width: 460px;
+  margin-inline: auto;
+}
+
+.hs-get-started__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: var(--text-base);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+}
+.hs-get-started__input:hover {
+  border-color: var(--color-ink-faint);
+}
+.hs-get-started__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+/* preserve the kit's visible keyboard focus ring */
+.hs-get-started__input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.hs-get-started__submit {
+  flex: 0 0 auto;
+}
+
+.hs-get-started__note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+.hs-get-started__note svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-ink-faint);
+}
+
+@media (max-width: 560px) {
+  .hs-get-started__actions .btn { width: 100%; }
+  .hs-get-started__field { flex-direction: column; }
+  .hs-get-started__submit { width: 100%; }
+}
