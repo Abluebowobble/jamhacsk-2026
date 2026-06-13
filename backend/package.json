@@ -1,7 +1,7 @@
 {
   "name": "hestia-backend",
   "version": "1.0.0",
-  "description": "Hestia Express backend",
+  "description": "Hestia Fastify backend",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -9,9 +9,12 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
+    "@fastify/cors": "^10.0.1",
     "@supabase/supabase-js": "^2.50.0",
-    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "fastify": "^5.1.0",
+    "fastify-plugin": "^5.0.1",
+    "mqtt": "^5.10.1",
+    "web-push": "^3.6.7"
   }
 }
