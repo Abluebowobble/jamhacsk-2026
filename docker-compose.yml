@@ -3,9 +3,10 @@ services:
     image: eclipse-mosquitto:2.0
     container_name: hestia-mqtt
     restart: unless-stopped
-    # Credentials default to hestia/hestiadev; override via root .env or shell.
+    # These create the privileged "backend" MQTT user. Devices get their own
+    # per-device users via mqtt/provision-device.sh. Override via root .env/shell.
     environment:
-      MQTT_USERNAME: ${MQTT_USERNAME:-hestia}
+      MQTT_USERNAME: ${MQTT_USERNAME:-backend}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-hestiadev}
     ports:
       - "1883:1883"
@@ -20,17 +21,15 @@ services:
     build: ./backend
     container_name: hestia-backend
     restart: unless-stopped
-    # Secrets (Supabase, VAPID) come from backend/.env on the host.
+    # All config (Supabase, VAPID, and MQTT_BROKER_URL → the Vultr server) comes
+    # from backend/.env, so the backend connects to the same server broker as the
+    # firmware and frontend — no local-vs-server split.
     env_file:
       - ./backend/.env
     environment:
-      # Reach the broker over the compose network by service name, not localhost.
-      MQTT_BROKER_URL: mqtt://mqtt:1883
-      MQTT_USERNAME: ${MQTT_USERNAME:-hestia}
-      MQTT_PASSWORD: ${MQTT_PASSWORD:-hestiadev}
       PORT: "3000"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - mqtt
 
