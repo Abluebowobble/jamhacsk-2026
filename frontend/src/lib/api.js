@@ -116,6 +116,10 @@ const realApi = {
   deviceEvents: (deviceId, limit = 8) =>
     request(`/api/devices/${deviceId}/events?limit=${limit}`).then((r) => r.events ?? []),
 
+  // Camera stream — returns { streamUrl, token, expiresAt }; the browser then
+  // loads `${streamUrl}?token=${token}` directly from the Pi (backend doesn't proxy).
+  cameraToken: (deviceId) => request(`/api/devices/${deviceId}/camera-token`),
+
   // Stove control
   turnOn: (deviceId) => request(`/api/devices/${deviceId}/turn-on`, { method: 'POST' }),
   turnOff: (deviceId) => request(`/api/devices/${deviceId}/turn-off`, { method: 'POST' }),

@@ -5,12 +5,15 @@ loop tick: sync inbound MQTT requests -> run the local safety logic -> publish
 action logs + sensor data back. The loop keeps running even with no broker, and
 all critical safety decisions (buzzer + auto-shutoff) happen locally.
 
+The camera presence vision is also re-served as a token-gated MJPEG stream
+(src/camera_stream.py) when a camera + shared secret are available.
+
 Run with:  python main.py
 """
 import logging
 
 from config import load_config
-from src import presence
+from src import camera_stream, presence
 from src.buzzer import Buzzer
 from src.loop import FirmwareLoop
 from src.mqtt_client import MqttClient
@@ -70,6 +73,16 @@ def main():
         monitor = None
         log.warning("Presence detection disabled: %s", exc)
 
+    # The MJPEG camera stream re-serves frames from the presence monitor, so it
+    # only runs when presence (and thus a camera) is available and a shared
+    # secret is configured. The browser connects directly (see camera_stream.py).
+    stream_server = None
+    if monitor is not None and config.camera_stream_enabled:
+        if config.camera_stream_secret:
+            stream_server = camera_stream.start(monitor, config)
+        else:
+            log.warning("Camera stream disabled: CAMERA_STREAM_SECRET not set")
+
     # Connect in the background and run the network loop; never raises if the
     # broker is unreachable at boot.
     client.start_resilient()
@@ -80,6 +93,8 @@ def main():
         log.info("Shutting down…")
     finally:
         loop.stop()
+        if stream_server is not None:
+            stream_server.stop()
         if monitor is not None:
             monitor.stop()
         buzzer.close()

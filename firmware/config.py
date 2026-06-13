@@ -25,6 +25,14 @@ class Config:
     port: int
     password: Optional[str]
     keepalive: int
+    # Camera stream (PRD section 13). The browser connects directly to this
+    # MJPEG server (via a Cloudflare Tunnel in deployment), gated by an HMAC
+    # token the backend mints with the shared camera_stream_secret.
+    camera_stream_enabled: bool
+    camera_stream_port: int
+    camera_stream_secret: Optional[str]
+    camera_stream_fps: int
+    camera_stream_jpeg_quality: int
 
 
 def _require(name):
@@ -32,6 +40,20 @@ def _require(name):
     if not value:
         raise SystemExit(f"Missing required env var: {name} (copy .env.example to .env)")
     return value
+
+
+def _env_bool(name, default):
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw in ("1", "true", "yes", "on")
+
+
+def _env_int(name, default):
+    try:
+        return int(os.environ.get(name, "").strip() or default)
+    except ValueError:
+        return default
 
 
 def load_config():
@@ -57,4 +79,9 @@ def load_config():
         # only the password is needed here.
         password=os.environ.get("MQTT_PASSWORD") or None,
         keepalive=int(os.environ.get("MQTT_KEEPALIVE", "60")),
+        camera_stream_enabled=_env_bool("CAMERA_STREAM_ENABLED", True),
+        camera_stream_port=_env_int("CAMERA_STREAM_PORT", 8089),
+        camera_stream_secret=os.environ.get("CAMERA_STREAM_SECRET") or None,
+        camera_stream_fps=_env_int("CAMERA_STREAM_FPS", 4),
+        camera_stream_jpeg_quality=_env_int("CAMERA_STREAM_JPEG_QUALITY", 60),
     )
