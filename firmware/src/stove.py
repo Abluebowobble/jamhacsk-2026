@@ -1,4 +1,4 @@
-"""Stove power control (relay / ESP32).
+"""Stove power control (relay).
 
 The actuator behind FR8 (automatic shutoff) and the TURN_ON / TURN_OFF commands
 (PRD section 20). The local safety state machine calls ``turn_off()`` when it

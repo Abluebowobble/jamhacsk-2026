@@ -2,7 +2,7 @@
 
 Local device firmware for a Hestia smart-stove-safety unit. Runs on a
 Raspberry Pi 4 with a Pi Camera (presence detection), a buzzer, and a
-relay/ESP32 for stove power.
+relay for stove power.
 
 Per the PRD, **critical safety logic runs locally** — the Pi decides on shutoff
 even when the cloud is unreachable. The cloud backend is only for remote

@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#fbfcfd" />
+  <meta name="color-scheme" content="light" />
+
+  <title>Get started with Hestia</title>
+  <meta name="description" content="You tapped a Hestia device. Get the app, create your household, and pair this unit in a few minutes — then let the kitchen watch itself." />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+
+  <!-- Open Graph / social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Get started with Hestia" />
+  <meta property="og:description" content="You tapped a Hestia device. Get the app, create your household, and pair this unit in minutes." />
+  <meta property="og:image" content="og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Page-specific styling for the get-started flow. Tokens mirror styles.css. -->
+  <style>
+    /* Hero: device-tapped acknowledgement */
+    .gs-hero { padding-block: clamp(48px, 8vw, 96px); }
+    .gs-hero__grid {
+      display: grid;
+      gap: clamp(28px, 4vw, 48px);
+      align-items: center;
+    }
+    @media (min-width: 880px) {
+      .gs-hero__grid { grid-template-columns: 1.15fr 0.85fr; }
+    }
+    .gs-hero__title { font-size: var(--text-5xl); margin-top: 14px; }
+    .gs-hero__lead {
+      font-size: var(--text-lg);
+      color: var(--color-ink-body);
+      max-width: 46ch;
+      margin-top: 18px;
+    }
+    .gs-hero__cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    /* The device chip — confirms WHICH unit was tapped */
+    .gs-device {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 26px;
+      padding: 12px 16px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-card-hover);
+    }
+    .gs-device__icon {
+      display: grid;
+      place-items: center;
+      width: 40px; height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+    }
+    .gs-device__icon svg { width: 20px; height: 20px; }
+    .gs-device__meta { display: flex; flex-direction: column; gap: 2px; }
+    .gs-device__id {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+    }
+    /* Hidden until JS confirms a device_id is present in the URL */
+    .gs-device[hidden] { display: none; }
+
+    /* Instrument panel echoing the product UI (the "all clear" card) */
+    .gs-panel {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background: var(--color-surface);
+      padding: clamp(20px, 3vw, 28px);
+      box-shadow: var(--shadow-card-hover);
+    }
+    .gs-panel__head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 18px;
+    }
+    .gs-panel__name { font-weight: 600; color: var(--color-ink); }
+    .gs-panel__rows { display: grid; gap: 10px; }
+    .gs-panel__row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-sunken);
+    }
+
+    /* Steps */
+    .gs-steps {
+      display: grid;
+      gap: 18px;
+      counter-reset: gs-step;
+    }
+    @media (min-width: 720px) { .gs-steps { grid-template-columns: repeat(2, 1fr); } }
+    .gs-step { padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+    .gs-step__top { display: flex; align-items: center; gap: 14px; }
+    .gs-step__num {
+      counter-increment: gs-step;
+      display: grid; place-items: center;
+      width: 34px; height: 34px; flex: none;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: var(--color-primary-fg);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: var(--text-base);
+    }
+    .gs-step__num::before { content: counter(gs-step); }
+    .gs-step__title { font-size: var(--text-lg); color: var(--color-ink); font-weight: 600; }
+    .gs-step__body { color: var(--color-ink-body); font-size: var(--text-base); }
+    .gs-step__body a { font-weight: 500; }
+
+    /* Get-the-app: two platform cards */
+    .gs-app__grid { display: grid; gap: 18px; margin-top: 8px; }
+    @media (min-width: 720px) { .gs-app__grid { grid-template-columns: repeat(2, 1fr); } }
+    .gs-app__card { padding: 24px; }
+    .gs-app__head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .gs-app__platform { font-size: var(--text-lg); font-weight: 600; color: var(--color-ink); }
+    .gs-app__steps { display: grid; gap: 12px; }
+    .gs-app__steps li {
+      display: flex; gap: 12px; align-items: flex-start;
+      font-size: var(--text-base); color: var(--color-ink-body);
+    }
+    .gs-app__bullet {
+      flex: none; margin-top: 1px;
+      display: grid; place-items: center;
+      width: 22px; height: 22px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 600;
+    }
+    .gs-app__note {
+      margin-top: 22px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: var(--text-sm); color: var(--color-ink-muted);
+    }
+    .gs-app__note svg { width: 16px; height: 16px; }
+
+    /* Highlight the platform the visitor is likely on */
+    .gs-app__card[data-likely="true"] { border-color: var(--color-primary-border); box-shadow: var(--shadow-card-hover); }
+    .gs-app__likely {
+      margin-left: auto;
+      font-size: var(--text-xs);
+    }
+    .gs-app__card:not([data-likely="true"]) .gs-app__likely { display: none; }
+
+    /* Help row */
+    .gs-help { display: grid; gap: 16px; }
+    @media (min-width: 720px) { .gs-help { grid-template-columns: repeat(3, 1fr); } }
+    .gs-help__item { padding: 22px; }
+    .gs-help__item h3 { font-size: var(--text-base); color: var(--color-ink); margin-bottom: 6px; }
+    .gs-help__item p { font-size: var(--text-sm); color: var(--color-ink-body); }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ============================ NAV ============================ -->
+  <header class="nav" id="nav" data-scrolled="false">
+    <div class="container nav__inner">
+      <a class="brand" href="index.html#top" aria-label="Hestia — home">
+        <svg class="brand__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="16" cy="16" r="9.4" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+          <g transform="translate(8.08 8.1) scale(0.66)">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="currentColor"/>
+          </g>
+        </svg>
+        <span class="brand__name">Hestia</span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a class="nav__link" href="#setup">Set up</a>
+        <a class="nav__link" href="#get-app">Get the app</a>
+        <a class="nav__link" href="index.html#how">How it works</a>
+        <a class="nav__link" href="index.html#faq">FAQ</a>
+      </nav>
+
+      <div class="nav__actions">
+        <a class="btn btn--primary" id="navPair" href="#setup">Pair this device</a>
+        <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav__drawer" id="navDrawer">
+    <a class="nav__link" href="#setup">Set up</a>
+    <a class="nav__link" href="#get-app">Get the app</a>
+    <a class="nav__link" href="index.html#how">How it works</a>
+    <a class="nav__link" href="index.html#faq">FAQ</a>
+    <a class="btn btn--primary btn--block" id="navPairDrawer" href="#setup">Pair this device</a>
+  </div>
+
+  <span id="top"></span>
+  <main id="main">
+
+    <!-- ==== SECTION: hero / device tapped ==== -->
+    <section id="setup">
+      <div class="section grid-bg gs-hero">
+        <div class="container gs-hero__grid">
+
+          <!-- Copy column -->
+          <div>
+            <p class="eyebrow" data-reveal>Device tapped</p>
+            <h1 class="gs-hero__title" data-reveal data-reveal-delay="1">Let's set up your Hestia.</h1>
+            <p class="gs-hero__lead" data-reveal data-reveal-delay="2">
+              You've tapped a Hestia stove-safety unit. Get the app, create your household,
+              and pair this device — it takes a few minutes, and then the kitchen watches itself.
+            </p>
+
+            <!-- Confirms which unit was tapped (populated from ?device_id=…) -->
+            <div class="gs-device" id="gsDevice" hidden data-reveal data-reveal-delay="3">
+              <span class="gs-device__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+              </span>
+              <span class="gs-device__meta">
+                <span class="micro-label">This device</span>
+                <span class="gs-device__id" id="gsDeviceId">—</span>
+              </span>
+            </div>
+
+            <div class="gs-hero__cta" data-reveal data-reveal-delay="4">
+              <a class="btn btn--primary btn--lg" id="ctaPair" href="#get-app">
+                Pair this device
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+              <a class="btn btn--secondary btn--lg" href="#get-app">Get the app</a>
+            </div>
+          </div>
+
+          <!-- Instrument panel — what you'll see once it's paired -->
+          <div data-reveal data-reveal-delay="2">
+            <div class="gs-panel" role="img" aria-label="Preview of the Hestia app: Kitchen Stove online, stove off, kitchen safe.">
+              <div class="gs-panel__head">
+                <span class="gs-panel__name">Kitchen Stove</span>
+                <span class="pill pill--success">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                  Online
+                </span>
+              </div>
+              <div class="gs-panel__rows">
+                <div class="gs-panel__row">
+                  <span class="micro-label">Stove</span>
+                  <span class="pill pill--neutral">Off</span>
+                </div>
+                <div class="gs-panel__row">
+                  <span class="micro-label">Presence</span>
+                  <span class="pill pill--success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                    Detected
+                  </span>
+                </div>
+                <div class="gs-panel__row">
+                  <span class="micro-label">Status</span>
+                  <span class="pill pill--success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+                    Kitchen safe
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==== SECTION: four steps ==== -->
+    <section id="steps">
+      <div class="section section--ruled">
+        <div class="container">
+          <div class="section-head section-head--center" data-reveal>
+            <span class="eyebrow">Getting started</span>
+            <h2 class="section-title">Four steps to a stove that watches itself.</h2>
+            <p class="section-lead">No tools, no codes to copy. Tap to pair and you're done.</p>
+          </div>
+
+          <ol class="gs-steps">
+            <li class="card gs-step" data-reveal data-reveal-delay="1">
+              <div class="gs-step__top">
+                <span class="gs-step__num" aria-hidden="true"></span>
+                <span class="gs-step__title">Get the app</span>
+              </div>
+              <p class="gs-step__body">
+                Hestia is a web app — nothing to download from a store.
+                <a href="#get-app">Add it to your home screen</a> so it opens like any other app,
+                or just use it in your browser.
+              </p>
+            </li>
+
+            <li class="card gs-step" data-reveal data-reveal-delay="2">
+              <div class="gs-step__top">
+                <span class="gs-step__num" aria-hidden="true"></span>
+                <span class="gs-step__title">Create your account</span>
+              </div>
+              <p class="gs-step__body">
+                Sign up with your email. Then create a household — or join one a family member
+                already set up. The person who creates it is the admin.
+              </p>
+            </li>
+
+            <li class="card gs-step" data-reveal data-reveal-delay="3">
+              <div class="gs-step__top">
+                <span class="gs-step__num" aria-hidden="true"></span>
+                <span class="gs-step__title">Pair this device</span>
+              </div>
+              <p class="gs-step__body">
+                Tap <strong>Pair this device</strong> below. Hestia recognises the unit you tapped
+                and adds it to your household. If it already belongs to someone, you can request access.
+              </p>
+            </li>
+
+            <li class="card gs-step" data-reveal data-reveal-delay="4">
+              <div class="gs-step__top">
+                <span class="gs-step__num" aria-hidden="true"></span>
+                <span class="gs-step__title">Set it and relax</span>
+              </div>
+              <p class="gs-step__body">
+                Invite the rest of the household, tune the safety thresholds for how you cook, and you're set.
+                From now on the kitchen watches itself — on the device, not the cloud.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==== SECTION: get the app ==== -->
+    <section id="get-app">
+      <div class="section section--ruled">
+        <div class="container container--narrow">
+          <div class="section-head section-head--center" data-reveal>
+            <span class="eyebrow">Get the app</span>
+            <h2 class="section-title">Open Hestia, then add it to your home screen.</h2>
+            <p class="section-lead">
+              Hestia is a Progressive Web App: install it for one-tap access, or use it right in the browser.
+              No app store, no waiting.
+            </p>
+          </div>
+
+          <div class="gs-hero__cta" style="justify-content:center; margin-bottom: 8px;" data-reveal>
+            <a class="btn btn--primary btn--lg" id="ctaOpenApp" href="#">
+              Open Hestia &amp; pair
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
+
+          <div class="gs-app__grid">
+            <!-- iOS -->
+            <div class="card gs-app__card" id="appiOS" data-reveal data-reveal-delay="1">
+              <div class="gs-app__head">
+                <span class="icon-tile" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+                </span>
+                <span class="gs-app__platform">iPhone &amp; iPad</span>
+                <span class="pill pill--primary gs-app__likely">You're likely here</span>
+              </div>
+              <ol class="gs-app__steps">
+                <li><span class="gs-app__bullet">1</span><span>Open Hestia in <strong>Safari</strong>.</span></li>
+                <li><span class="gs-app__bullet">2</span><span>Tap the <strong>Share</strong> button (the square with an up-arrow).</span></li>
+                <li><span class="gs-app__bullet">3</span><span>Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</span></li>
+                <li><span class="gs-app__bullet">4</span><span>Open Hestia from your home screen — it runs full-screen, like an app.</span></li>
+              </ol>
+            </div>
+
+            <!-- Android -->
+            <div class="card gs-app__card" id="appAndroid" data-reveal data-reveal-delay="2">
+              <div class="gs-app__head">
+                <span class="icon-tile" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+                </span>
+                <span class="gs-app__platform">Android</span>
+                <span class="pill pill--primary gs-app__likely">You're likely here</span>
+              </div>
+              <ol class="gs-app__steps">
+                <li><span class="gs-app__bullet">1</span><span>Open Hestia in <strong>Chrome</strong>.</span></li>
+                <li><span class="gs-app__bullet">2</span><span>Tap the <strong>⋮</strong> menu in the top-right.</span></li>
+                <li><span class="gs-app__bullet">3</span><span>Choose <strong>Install app</strong> (or <strong>Add to Home screen</strong>).</span></li>
+                <li><span class="gs-app__bullet">4</span><span>Confirm <strong>Install</strong> — Hestia appears with your other apps.</span></li>
+              </ol>
+            </div>
+          </div>
+
+          <p class="gs-app__note" data-reveal>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Installing is optional. Everything works in the browser too — installing just makes it one tap away and enables notifications.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==== SECTION: reassurance / help ==== -->
+    <section id="help">
+      <div class="section section--ruled">
+        <div class="container">
+          <div class="section-head section-head--center" data-reveal>
+            <span class="eyebrow">Good to know</span>
+            <h2 class="section-title">A few things before you start.</h2>
+          </div>
+
+          <div class="gs-help">
+            <div class="card gs-help__item" data-reveal data-reveal-delay="1">
+              <h3>Safety never waits on Wi-Fi</h3>
+              <p>Detection, the warning, and the auto-shutoff all run on the device in your kitchen. The app is the window onto it — not the brain behind it.</p>
+            </div>
+            <div class="card gs-help__item" data-reveal data-reveal-delay="2">
+              <h3>No cameras</h3>
+              <p>Presence is sensed locally. Nothing streams your kitchen anywhere, and your status and history stay with your household.</p>
+            </div>
+            <div class="card gs-help__item" data-reveal data-reveal-delay="3">
+              <h3>Already someone's device?</h3>
+              <p>If this unit is already paired, pairing will offer to request access. An admin of that household approves you as a member.</p>
+            </div>
+          </div>
+
+          <div class="gs-hero__cta" style="justify-content:center; margin-top: 36px;" data-reveal>
+            <a class="btn btn--primary btn--lg" id="ctaPairBottom" href="#">
+              Pair this device
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a class="btn btn--secondary btn--lg" href="index.html#faq">Read the FAQ</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================ FOOTER ============================ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brandcol">
+          <a class="brand" href="index.html#top" aria-label="Hestia — home">
+            <svg class="brand__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.7"/>
+              <circle cx="16" cy="16" r="9.4" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+              <g transform="translate(8.08 8.1) scale(0.66)">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="currentColor"/>
+              </g>
+            </svg>
+            <span class="brand__name">Hestia</span>
+          </a>
+          <p class="footer__tagline">A safety instrument for the kitchen. The stove watches itself — and the decision that matters runs on the device, not the cloud.</p>
+        </div>
+
+        <div>
+          <p class="footer__coltitle">Get started</p>
+          <ul class="footer__links">
+            <li><a href="#setup">Set up</a></li>
+            <li><a href="#get-app">Get the app</a></li>
+            <li><a href="#help">Good to know</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="footer__coltitle">Product</p>
+          <ul class="footer__links">
+            <li><a href="index.html#how">How it works</a></li>
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="index.html#trust">Local-first</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="footer__coltitle">Company</p>
+          <ul class="footer__links">
+            <li><a href="index.html#faq">FAQ</a></li>
+            <li><a href="index.html#get-started">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Hestia.</span>
+        <span class="micro-label">Local-first stove safety</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shared site interactions (nav, reveal-on-scroll). Defensive: no-ops if elements are absent. -->
+  <script src="main.js" defer></script>
+
+  <!-- Page-specific: carry the tapped device through to the app's pairing flow. -->
+  <script>
+    (function () {
+      "use strict";
+
+      /* Where the Hestia PWA lives. The NFC tag points at this marketing page
+         (e.g. https://hestia.app/start?device_id=…); pairing happens in the app
+         at /pair. If the PWA is hosted on a different origin (e.g.
+         https://app.hestia.app), set APP_BASE to that origin — otherwise leave
+         it "" to use the same origin. */
+      var APP_BASE = "";
+      var PAIR_PATH = "/pair";
+      var LOGIN_PATH = "/login";
+
+      var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+      var params = new URLSearchParams(window.location.search);
+      var deviceId = (params.get("device_id") || "").trim();
+      var hasDevice = UUID_RE.test(deviceId);
+
+      /* Build the destination into the app, preserving the device the user tapped. */
+      var pairUrl = APP_BASE + PAIR_PATH + (hasDevice ? "?device_id=" + encodeURIComponent(deviceId) : "");
+      var openUrl = hasDevice ? pairUrl : APP_BASE + LOGIN_PATH;
+
+      /* Point every pair/open CTA at the app. */
+      ["ctaPair", "ctaPairBottom", "navPair", "navPairDrawer"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.setAttribute("href", pairUrl);
+      });
+      var openApp = document.getElementById("ctaOpenApp");
+      if (openApp) openApp.setAttribute("href", openUrl);
+
+      /* Show which unit was tapped, if the URL carried a valid id. */
+      if (hasDevice) {
+        var chip = document.getElementById("gsDevice");
+        var idEl = document.getElementById("gsDeviceId");
+        if (idEl) idEl.textContent = deviceId;
+        if (chip) chip.hidden = false;
+      }
+
+      /* Highlight the platform the visitor is most likely using. */
+      var ua = navigator.userAgent || "";
+      var isiOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      var isAndroid = /Android/.test(ua);
+      if (isiOS) { var ios = document.getElementById("appiOS"); if (ios) ios.setAttribute("data-likely", "true"); }
+      else if (isAndroid) { var and = document.getElementById("appAndroid"); if (and) and.setAttribute("data-likely", "true"); }
+    })();
+  </script>
+</body>
+</html>

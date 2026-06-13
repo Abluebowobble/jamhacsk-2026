@@ -125,6 +125,25 @@ async function refreshDevice(id) {
   }
 }
 
+/**
+ * Re-fetch a device's reported state until the hardware confirms `predicate`
+ * (or we run out of tries). Stove control is fire-the-signal / wait-for-report:
+ * the backend relays the command to the Pi, the Pi actuates and pushes its new
+ * state back, and only that *reported* state is allowed to move the UI — never
+ * an optimistic guess. If it never confirms (relay stuck, device offline), the
+ * poll simply times out and the device keeps showing its last real state, which
+ * for a safety instrument is the correct, honest outcome.
+ */
+async function awaitDeviceState(id, predicate, { tries = 24, intervalMs = 250 } = {}) {
+  for (let i = 0; i < tries; i++) {
+    await refreshDevice(id)
+    const d = state.devices.find((x) => x.id === id)
+    if (d && predicate(d)) return d
+    await new Promise((r) => setTimeout(r, intervalMs))
+  }
+  return state.devices.find((x) => x.id === id)
+}
+
 async function loadMembers(householdId) {
   if (!householdId) return
   emit({ ...state, loadingMembers: { ...state.loadingMembers, [householdId]: true } })
@@ -240,9 +259,23 @@ export const actions = {
   async toggleStove(id) {
     const d = state.devices.find((x) => x.id === id)
     if (!d) return
-    if (d.stoveOn) await api.turnOff(id)
-    else await api.turnOn(id)
-    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
+    const target = !d.stoveOn // desired stove state after the command
+    if (target) await api.turnOn(id)
+    else await api.turnOff(id)
+    // Reflect the hardware's *reported* state, not the command we sent.
+    await awaitDeviceState(id, (x) => x.stoveOn === target)
+    await loadDeviceEvents(id)
+  },
+  // Auto shut-off when an unattended countdown expires. Idempotent: only a lit
+  // stove is acted on, so a double-fire or a stale call is a no-op. NOTE: the
+  // authoritative safety shutoff runs locally on the Pi (PRD); this app-side
+  // signal is a secondary actuation, not the guarantee.
+  async autoShutoff(id) {
+    const d = state.devices.find((x) => x.id === id)
+    if (!d || !d.stoveOn) return
+    await api.turnOff(id) // signal the hardware to shut off
+    await awaitDeviceState(id, (x) => !x.stoveOn) // show OFF only once it reports back
+    await loadDeviceEvents(id)
   },
   async createTimer(id, durationSecs) {
     await api.createTimer(id, durationSecs)

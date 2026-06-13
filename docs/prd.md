@@ -278,7 +278,7 @@ The backend server is hosted on Vultr and runs:
 
 ### 11.5 Local Device System
 
-**Technology:** Raspberry Pi + Raspberry Pi Camera + MQTT + ESP32 CAM
+**Technology:** Raspberry Pi + Raspberry Pi Camera + MQTT + relay
 
 The Raspberry Pi runs the local safety logic. This is important because stove shutoff should not depend fully on the cloud.
 
@@ -291,7 +291,7 @@ The Raspberry Pi handles:
 - Local MQTT communication.
 - Device status reporting.
 
-The ESP32 CAM or connected microcontroller handles:
+The relay or connected microcontroller handles:
 
 - Stove on/off simulation or relay control.
 - Device-level MQTT messages.
