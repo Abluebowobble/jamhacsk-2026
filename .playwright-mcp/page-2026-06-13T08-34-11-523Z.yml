@@ -1,0 +1,120 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Hestia — home" [ref=e5] [cursor=pointer]:
+        - /url: "#top"
+        - img [ref=e6]
+        - generic [ref=e11]: Hestia
+      - navigation "Primary" [ref=e12]:
+        - link "How it works" [ref=e13] [cursor=pointer]:
+          - /url: "#how"
+        - link "Features" [ref=e14] [cursor=pointer]:
+          - /url: "#features"
+        - link "Local-first" [ref=e15] [cursor=pointer]:
+          - /url: "#trust"
+        - link "FAQ" [ref=e16] [cursor=pointer]:
+          - /url: "#faq"
+      - generic [ref=e17]:
+        - link "Sign in" [ref=e18] [cursor=pointer]:
+          - /url: "#get-started"
+        - link "Get started" [ref=e19] [cursor=pointer]:
+          - /url: "#get-started"
+  - main [ref=e20]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]: How it works
+        - heading "Detect. Warn. Shut off." [level=2] [ref=e26]
+        - paragraph [ref=e27]: Three steps run continuously on the device in your kitchen. Watch the loop play out.
+      - generic [ref=e28]:
+        - list "The safety loop, in three steps" [ref=e29]:
+          - listitem [ref=e30]:
+            - img [ref=e33]
+            - generic [ref=e38]:
+              - heading "1 Detect" [level=3] [ref=e39]:
+                - generic [ref=e40]: "1"
+                - text: Detect
+              - paragraph [ref=e41]: Sensors watch the burner and the room — is the stove lit, and is anyone near it?
+          - listitem [ref=e42]:
+            - img [ref=e45]
+            - generic [ref=e48]:
+              - heading "2 Warn" [level=3] [ref=e49]:
+                - generic [ref=e50]: "2"
+                - text: Warn
+              - paragraph [ref=e51]: If a lit stove is left unattended, the buzzer sounds and an absence countdown begins.
+          - listitem [ref=e52]:
+            - img [ref=e54]
+            - generic [ref=e56]:
+              - heading "3 Shut off" [level=3] [ref=e57]:
+                - generic [ref=e58]: "3"
+                - text: Shut off
+              - paragraph [ref=e59]: If no one returns before the countdown ends, Hestia cuts power to the stove.
+        - figure "A live walkthrough — no stove required." [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e63]:
+              - img [ref=e64]
+              - generic [ref=e67]: Stove on · someone's cooking
+            - generic [ref=e68]:
+              - img "Safety-loop countdown ring" [ref=e69]
+              - generic [ref=e72]:
+                - generic [ref=e73]: Time to act
+                - generic [ref=e74]: 10s
+                - generic [ref=e75]: on-device countdown
+            - generic [ref=e76]:
+              - button "Play the loop" [ref=e77] [cursor=pointer]:
+                - img [ref=e78]
+                - generic [ref=e80]: Play the loop
+              - paragraph [ref=e81]: Detection and the decision both run on the device — not the cloud.
+          - generic [ref=e82]: A live walkthrough — no stove required.
+  - contentinfo [ref=e83]:
+    - generic [ref=e84]:
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - link "Hestia — home" [ref=e87] [cursor=pointer]:
+            - /url: "#top"
+            - img [ref=e88]
+            - generic [ref=e93]: Hestia
+          - paragraph [ref=e94]: A safety instrument for the kitchen. The stove watches itself — and the decision that matters runs on the device, not the cloud.
+        - generic [ref=e95]:
+          - paragraph [ref=e96]: Product
+          - list [ref=e97]:
+            - listitem [ref=e98]:
+              - link "How it works" [ref=e99] [cursor=pointer]:
+                - /url: "#how"
+            - listitem [ref=e100]:
+              - link "Features" [ref=e101] [cursor=pointer]:
+                - /url: "#features"
+            - listitem [ref=e102]:
+              - link "Local-first" [ref=e103] [cursor=pointer]:
+                - /url: "#trust"
+            - listitem [ref=e104]:
+              - link "The app" [ref=e105] [cursor=pointer]:
+                - /url: "#showcase"
+        - generic [ref=e106]:
+          - paragraph [ref=e107]: Company
+          - list [ref=e108]:
+            - listitem [ref=e109]:
+              - link "FAQ" [ref=e110] [cursor=pointer]:
+                - /url: "#faq"
+            - listitem [ref=e111]:
+              - link "Get started" [ref=e112] [cursor=pointer]:
+                - /url: "#get-started"
+            - listitem [ref=e113]:
+              - link "Contact" [ref=e114] [cursor=pointer]:
+                - /url: "#get-started"
+        - generic [ref=e115]:
+          - paragraph [ref=e116]: Safety
+          - list [ref=e117]:
+            - listitem [ref=e118]:
+              - link "The safety loop" [ref=e119] [cursor=pointer]:
+                - /url: "#how"
+            - listitem [ref=e120]:
+              - link "Privacy" [ref=e121] [cursor=pointer]:
+                - /url: "#trust"
+            - listitem [ref=e122]:
+              - link "Reliability" [ref=e123] [cursor=pointer]:
+                - /url: "#faq"
+      - generic [ref=e124]:
+        - generic [ref=e125]: © 2026 Hestia. Built for safer homes.
+        - generic [ref=e126]: Vigilant · Clear · Reassuring
