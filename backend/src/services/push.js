@@ -14,6 +14,11 @@ export function initPush(logger = console) {
   configured = true
 }
 
+/** Whether VAPID keys were configured at startup. No I/O. */
+export function isPushConfigured() {
+  return configured
+}
+
 /**
  * Send a push notification to every subscription belonging to a user.
  * Stale (410/404) subscriptions are pruned from the DB.
