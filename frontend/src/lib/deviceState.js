@@ -4,6 +4,8 @@
 import {
   Flame,
   Power,
+  Users,
+  UserX,
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
@@ -41,15 +43,48 @@ export const PHASE_META = {
   shutoff: { label: 'Auto shut-off', tone: 'danger', Icon: ShieldAlert, detail: 'Turned off — no one returned' },
 }
 
-/** The live countdown for the active phase, or null. */
+/**
+ * The live countdown for the active phase, or null.
+ *
+ * Returns null unless we actually have live elapsed progress (absenceElapsed /
+ * warningElapsed). The backend snapshot doesn't expose that — it lives on the
+ * Pi — so without it we show the phase and thresholds rather than a frozen
+ * fake countdown. When a realtime feed populates the elapsed fields, the
+ * ticking readout lights up automatically.
+ */
 export function activeCountdown(d, phase = computePhase(d)) {
-  if (phase === PHASE.UNATTENDED) {
-    return { secs: Math.max(0, d.absenceTimeout - (d.absenceElapsed ?? 0)), label: 'until warning' }
+  if (phase === PHASE.UNATTENDED && d.absenceElapsed != null) {
+    return { secs: Math.max(0, d.absenceTimeout - d.absenceElapsed), label: 'until warning' }
   }
-  if (phase === PHASE.WARNING) {
-    return { secs: Math.max(0, d.warningDelay - (d.warningElapsed ?? 0)), label: 'until shut-off' }
+  if (phase === PHASE.WARNING && d.warningElapsed != null) {
+    return { secs: Math.max(0, d.warningDelay - d.warningElapsed), label: 'until shut-off' }
   }
   return null
+}
+
+// The two anchor visuals — stove + presence — as a single source of truth for
+// tone, icon, glance-value, and supporting line. Both the device-detail hero
+// and the overview tile render from these so the vocabulary never drifts.
+// Tone follows the state map: stove-on = blue (status, not alarm); presence
+// gone while the burner's lit = amber (the warning lives on presence).
+
+export function stovePanel(d) {
+  return {
+    tone: !d.online ? 'neutral' : d.stoveOn ? 'primary' : 'neutral',
+    icon: d.stoveOn ? Flame : Power,
+    value: d.stoveOn ? 'On' : 'Off',
+    detail: !d.online ? 'Last known' : d.stoveOn ? 'Burner is on' : 'Burner is off',
+  }
+}
+
+export function presencePanel(d, phase = computePhase(d)) {
+  return {
+    tone: !d.online ? 'neutral' : d.presence ? 'success' : d.stoveOn ? 'warn' : 'neutral',
+    icon: d.presence ? Users : UserX,
+    value: d.presence ? 'Here' : 'Away',
+    detail: !d.online ? 'Last known' : d.presence ? 'Someone is nearby' : 'No one detected',
+    pulse: phase === PHASE.WARNING,
+  }
 }
 
 /** Is anything time-evolving on this device right now? */

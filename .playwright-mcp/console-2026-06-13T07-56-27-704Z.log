@@ -1,0 +1,33 @@
+[     115ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e7cd768e:14336
+[  382331ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382332ms] [ERROR] [vite] Failed to reload /src/pages/PairPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382332ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382332ms] [ERROR] [vite] Failed to reload /src/pages/OnboardingPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382333ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382333ms] [ERROR] [vite] Failed to reload /src/app/SessionProvider.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382333ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382333ms] [ERROR] [vite] Failed to reload /src/app/SessionProvider.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382333ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382333ms] [ERROR] [vite] Failed to reload /src/components/SafetySettings.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382334ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382334ms] [ERROR] [vite] Failed to reload /src/pages/DeviceDetailPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382334ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382334ms] [ERROR] [vite] Failed to reload /src/components/TimerControls.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382334ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382335ms] [ERROR] [vite] Failed to reload /src/pages/OverviewPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382335ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382335ms] [ERROR] [vite] Failed to reload /src/pages/PairPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382336ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382336ms] [ERROR] [vite] Failed to reload /src/pages/OnboardingPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382336ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382336ms] [ERROR] [vite] Failed to reload /src/components/HouseholdSwitcher.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382337ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382337ms] [ERROR] [vite] Failed to reload /src/components/SafetySettings.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382338ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382338ms] [ERROR] [vite] Failed to reload /src/pages/OverviewPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382338ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382338ms] [ERROR] [vite] Failed to reload /src/components/HouseholdSwitcher.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382338ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382338ms] [ERROR] [vite] Failed to reload /src/pages/DeviceDetailPage.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524
+[  382339ms] [ERROR] [vite] SyntaxError: The requested module '/src/lib/api.js?t=1781337769973' does not provide an export named 'api' @ http://localhost:5173/@vite/client:524
+[  382339ms] [ERROR] [vite] Failed to reload /src/components/TimerControls.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:524

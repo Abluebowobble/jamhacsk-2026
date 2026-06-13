@@ -1,19 +1,28 @@
-// In-memory reactive store + the safety simulation clock.
+// Dashboard data layer, backed by the Hestia backend (PRD §19).
 //
-// A single 1s ticker advances any device with live dynamics (absence timer,
-// warning delay, or an active cooking timer), escalating safe → unattended →
-// warning → auto-shutoff and logging events as it goes. Built on
-// useSyncExternalStore so any component re-renders on change. Swap the action
-// bodies for REST/MQTT calls later; the component API stays identical.
-import { useSyncExternalStore, useMemo } from 'react'
-import { DEVICES, EVENTS, HOUSEHOLDS } from './mockData'
-import { isDynamic } from './deviceState'
+// Keeps the same public surface the UI was built against — useHouseholds,
+// useDevices, useDevice, useDeviceEvents, and an `actions` object — but every
+// read hits the REST API and every action is a real, awaited mutation followed
+// by a targeted refetch. A tiny reactive cache (useSyncExternalStore) lets any
+// component re-render when devices/events change.
+//
+// Shape note: the backend stores a *snapshot* (online / stove on-off / presence
+// + thresholds), not the live absence→warning→shutoff progress that runs on the
+// Pi. So adapted devices carry absenceElapsed/warningElapsed/justShutoffAt as
+// null; deviceState.activeCountdown suppresses the ticking readout when that
+// live data is absent rather than showing a frozen timer.
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { api } from './api'
+import { useSession } from './sessionContext'
+
+// ---- reactive cache -------------------------------------------------------
 
 let state = {
-  devices: DEVICES.map((d) => ({ ...d })),
-  events: [...EVENTS],
+  devices: [], // adapted devices across loaded households
+  events: {}, // deviceId -> adapted events
+  loadingHouseholds: {}, // householdId -> bool
+  attempted: {}, // deviceId -> bool (a single-device fetch has settled at least once)
 }
-
 const listeners = new Set()
 const emit = (next) => {
   state = next
@@ -24,183 +33,203 @@ const subscribe = (cb) => {
   return () => listeners.delete(cb)
 }
 const getSnapshot = () => state
+const useStore = () => useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-let evSeq = 0
-const mkEvent = (deviceId, type, meta = {}) => ({
-  id: `ev_live_${Date.now()}_${evSeq++}`,
-  deviceId,
-  type,
-  meta,
-  at: new Date().toISOString(),
-})
+// ---- adapters (backend snake_case → the UI's camelCase shape) -------------
 
-/** Apply a transform to one device; optionally append events; re-render. */
-function update(id, fn, newEvents = []) {
-  const devices = state.devices.map((d) => (d.id === id ? fn(d) : d))
-  emit({ devices, events: newEvents.length ? [...newEvents, ...state.events] : state.events })
-  ensureTicker()
-}
-
-// ---- the simulation clock -------------------------------------------------
-
-let ticker = null
-function ensureTicker() {
-  const anyDynamic = state.devices.some(isDynamic)
-  if (anyDynamic && !ticker) ticker = setInterval(tick, 1000)
-  if (!anyDynamic && ticker) {
-    clearInterval(ticker)
-    ticker = null
+function adaptDevice(d, timers = []) {
+  const active = timers.find((t) => t.status === 'active') ?? timers[0] ?? null
+  return {
+    id: d.id,
+    name: d.device_name,
+    householdId: d.household_id,
+    online: Boolean(d.online_status),
+    stoveOn: d.stove_status === 'on',
+    presence: d.presence_status === 'detected',
+    absenceTimeout: d.absence_timeout_seconds,
+    warningDelay: d.warning_delay_seconds,
+    // Live escalation isn't exposed by the snapshot API (it lives on the Pi).
+    absenceElapsed: null,
+    warningElapsed: null,
+    justShutoffAt: null,
+    timer: active
+      ? { id: active.id, durationSecs: active.duration_seconds, endsAt: new Date(active.ends_at).getTime() }
+      : null,
   }
 }
 
-function tick() {
-  const newEvents = []
-  const devices = state.devices.map((d) => stepDevice(d, newEvents))
-  emit({ devices, events: newEvents.length ? [...newEvents, ...state.events] : state.events })
-  ensureTicker()
+function adaptEvent(e) {
+  return { id: e.id, deviceId: e.device_id, type: e.event_type, meta: e.metadata ?? {}, at: e.created_at }
 }
 
-function stepDevice(d, out) {
-  if (!d.online) return d
-  let next = d
+/** Recompute the live `remainingSecs` of a timer from its end time. */
+function withLiveTimer(d, now) {
+  if (!d.timer) return d
+  const remainingSecs = Math.max(0, Math.round((d.timer.endsAt - now) / 1000))
+  return { ...d, timer: { ...d.timer, remainingSecs } }
+}
 
-  // Cooking timer countdown. On completion: notify + turn the stove off
-  // (PRD §14 recommended safety-first behaviour).
-  if (next.timer && next.timer.remainingSecs > 0) {
-    const remainingSecs = next.timer.remainingSecs - 1
-    if (remainingSecs <= 0) {
-      out.push(mkEvent(d.id, 'TIMER_COMPLETED'))
-      out.push(mkEvent(d.id, 'STOVE_TURNED_OFF', { by: 'Timer' }))
-      next = { ...next, timer: null, stoveOn: false, absenceElapsed: null, warningElapsed: null }
-    } else {
-      next = { ...next, timer: { ...next.timer, remainingSecs } }
-    }
+// ---- fetching -------------------------------------------------------------
+
+function upsertDevices(next) {
+  const ids = new Set(next.map((d) => d.id))
+  const kept = state.devices.filter((d) => !ids.has(d.id))
+  emit({ ...state, devices: [...kept, ...next] })
+}
+
+async function fetchDeviceWithTimers(deviceRow) {
+  let timers = []
+  try {
+    timers = await api.listTimers(deviceRow.id)
+  } catch {
+    /* timers are best-effort; a device still renders without them */
   }
+  return adaptDevice(deviceRow, timers)
+}
 
-  // Absence → warning → auto-shutoff escalation.
-  if (next.stoveOn && !next.presence) {
-    if (next.warningElapsed != null) {
-      const we = next.warningElapsed + 1
-      if (we >= next.warningDelay) {
-        out.push(mkEvent(d.id, 'AUTO_SHUTOFF_TRIGGERED'))
-        // Stove is off — any running cooking timer is moot, cancel it.
-        next = { ...next, stoveOn: false, timer: null, warningElapsed: null, absenceElapsed: null, justShutoffAt: Date.now() }
-      } else {
-        next = { ...next, warningElapsed: we }
-      }
-    } else {
-      const ae = (next.absenceElapsed ?? 0) + 1
-      if (ae >= next.absenceTimeout) {
-        out.push(mkEvent(d.id, 'WARNING_BUZZER_STARTED'))
-        next = { ...next, absenceElapsed: next.absenceTimeout, warningElapsed: 0 }
-      } else {
-        next = { ...next, absenceElapsed: ae }
-      }
-    }
+async function loadHouseholdDevices(householdId) {
+  if (!householdId) return
+  emit({ ...state, loadingHouseholds: { ...state.loadingHouseholds, [householdId]: true } })
+  try {
+    const rows = await api.listDevices(householdId)
+    const adapted = await Promise.all(rows.map(fetchDeviceWithTimers))
+    // Replace this household's devices wholesale (drops any removed remotely).
+    const others = state.devices.filter((d) => d.householdId !== householdId)
+    emit({
+      ...state,
+      devices: [...others, ...adapted],
+      loadingHouseholds: { ...state.loadingHouseholds, [householdId]: false },
+    })
+  } catch {
+    emit({ ...state, loadingHouseholds: { ...state.loadingHouseholds, [householdId]: false } })
   }
-
-  return next
 }
 
-// ---- actions (the would-be API surface) -----------------------------------
-
-export const actions = {
-  simulateLeave(id) {
-    update(
-      id,
-      (d) => ({ ...d, presence: false, absenceElapsed: 0, warningElapsed: null, justShutoffAt: null }),
-      [mkEvent(id, 'NO_PRESENCE_DETECTED')],
-    )
-  },
-  simulateReturn(id) {
-    const d = state.devices.find((x) => x.id === id)
-    const evs = [mkEvent(id, 'PRESENCE_DETECTED')]
-    if (d?.warningElapsed != null) evs.unshift(mkEvent(id, 'WARNING_CANCELLED'))
-    update(id, (dev) => ({ ...dev, presence: true, absenceElapsed: null, warningElapsed: null }), evs)
-  },
-  toggleStove(id) {
-    const d = state.devices.find((x) => x.id === id)
-    const turningOn = !d.stoveOn
-    update(
-      id,
-      (dev) => ({
-        ...dev,
-        stoveOn: turningOn,
-        justShutoffAt: null,
-        absenceElapsed: null,
-        warningElapsed: null,
-      }),
-      [mkEvent(id, turningOn ? 'STOVE_TURNED_ON' : 'STOVE_TURNED_OFF', { by: 'You' })],
-    )
-  },
-  createTimer(id, durationSecs) {
-    update(
-      id,
-      (d) => ({ ...d, timer: { durationSecs, remainingSecs: durationSecs } }),
-      [mkEvent(id, 'TIMER_CREATED', { duration: durationSecs })],
-    )
-  },
-  cancelTimer(id) {
-    update(id, (d) => ({ ...d, timer: null }), [mkEvent(id, 'TIMER_CANCELLED')])
-  },
-  updateSettings(id, { absenceTimeout, warningDelay }) {
-    update(
-      id,
-      (d) => ({ ...d, absenceTimeout, warningDelay }),
-      [mkEvent(id, 'SAFETY_SETTINGS_UPDATED', { absenceTimeout, warningDelay })],
-    )
-  },
-  reset(id) {
-    update(id, (d) => ({
-      ...d,
-      online: true,
-      stoveOn: true,
-      presence: true,
-      absenceElapsed: null,
-      warningElapsed: null,
-      justShutoffAt: null,
-    }))
-  },
-  renameDevice(id, name) {
-    update(id, (d) => ({ ...d, name }), [mkEvent(id, 'DEVICE_RENAMED', { name })])
-  },
-  removeDevice(id) {
-    emit({ devices: state.devices.filter((d) => d.id !== id), events: state.events })
-    ensureTicker()
-  },
+async function refreshDevice(id) {
+  try {
+    const row = await api.getDevice(id)
+    const adapted = await fetchDeviceWithTimers(row)
+    upsertDevices([adapted])
+  } catch {
+    /* leave stale copy on transient failure */
+  } finally {
+    // Mark that we've at least tried — lets useDeviceLoading distinguish
+    // "still loading" from "genuinely not found / no access".
+    if (!state.attempted[id]) emit({ ...state, attempted: { ...state.attempted, [id]: true } })
+  }
 }
 
-// ---- hooks ----------------------------------------------------------------
-
-function useStore() {
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+async function loadDeviceEvents(id, limit = 8) {
+  try {
+    const rows = await api.deviceEvents(id, limit)
+    emit({ ...state, events: { ...state.events, [id]: rows.map(adaptEvent) } })
+  } catch {
+    /* keep any prior events */
+  }
 }
 
+// ---- a shared 1s clock (only ticks while something needs it) --------------
+
+function useNow(active) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!active) return undefined
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [active])
+  return now
+}
+
+// ---- hooks (stable public API) --------------------------------------------
+
+/** Households the signed-in user belongs to (from the account session). */
 export function useHouseholds() {
-  return HOUSEHOLDS
+  return useSession().households
 }
 
 export function useDevices(householdId) {
   const s = useStore()
-  return useMemo(
-    () => s.devices.filter((d) => !householdId || d.householdId === householdId),
+
+  useEffect(() => {
+    loadHouseholdDevices(householdId)
+  }, [householdId])
+
+  const devices = useMemo(
+    () => s.devices.filter((d) => d.householdId === householdId),
     [s.devices, householdId],
   )
+  const hasTimer = devices.some((d) => d.timer)
+  const now = useNow(hasTimer)
+
+  return useMemo(() => devices.map((d) => withLiveTimer(d, now)), [devices, now])
+}
+
+export function useDevicesLoading(householdId) {
+  const s = useStore()
+  // Undefined (never fetched) reads as loading so the first paint shows skeletons.
+  return s.loadingHouseholds[householdId] !== false
 }
 
 export function useDevice(id) {
   const s = useStore()
-  return useMemo(() => s.devices.find((d) => d.id === id), [s.devices, id])
+  const cached = s.devices.find((d) => d.id === id)
+
+  useEffect(() => {
+    if (id) refreshDevice(id)
+  }, [id])
+
+  const now = useNow(Boolean(cached?.timer))
+  return useMemo(() => (cached ? withLiveTimer(cached, now) : undefined), [cached, now])
+}
+
+/**
+ * Whether a single device is still being resolved (for the detail page).
+ * Derived from the cache + whether a fetch has settled, so there's no effect:
+ * useDevice() (called alongside this) triggers the actual refresh.
+ */
+export function useDeviceLoading(id) {
+  const s = useStore()
+  const inCache = s.devices.some((d) => d.id === id)
+  return !inCache && !s.attempted[id]
 }
 
 export function useDeviceEvents(id, limit = 8) {
   const s = useStore()
-  return useMemo(
-    () =>
-      s.events
-        .filter((e) => e.deviceId === id)
-        .sort((a, b) => new Date(b.at) - new Date(a.at))
-        .slice(0, limit),
-    [s.events, id, limit],
-  )
+  useEffect(() => {
+    if (id) loadDeviceEvents(id, limit)
+  }, [id, limit])
+  return useMemo(() => (s.events[id] ?? []).slice(0, limit), [s.events, id, limit])
+}
+
+// ---- actions (real, awaited mutations + targeted refetch) -----------------
+
+export const actions = {
+  async toggleStove(id) {
+    const d = state.devices.find((x) => x.id === id)
+    if (!d) return
+    if (d.stoveOn) await api.turnOff(id)
+    else await api.turnOn(id)
+    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
+  },
+  async createTimer(id, durationSecs) {
+    await api.createTimer(id, durationSecs)
+    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
+  },
+  async cancelTimer(id) {
+    const d = state.devices.find((x) => x.id === id)
+    if (d?.timer?.id) await api.cancelTimer(d.timer.id)
+    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
+  },
+  async updateSettings(id, { absenceTimeout, warningDelay }) {
+    await api.updateSafety(id, { absenceTimeout, warningDelay })
+    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
+  },
+  async renameDevice(id, name) {
+    await api.renameDevice(id, name)
+    await refreshDevice(id)
+  },
+  async removeDevice(id) {
+    await api.removeDevice(id)
+    emit({ ...state, devices: state.devices.filter((d) => d.id !== id) })
+  },
 }

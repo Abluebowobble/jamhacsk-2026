@@ -1,17 +1,19 @@
 import { Link } from 'react-router-dom'
-import { Flame, Power, Wifi, WifiOff, Timer, ChevronRight, UserCheck, UserX } from 'lucide-react'
+import { Wifi, WifiOff, Timer, ChevronRight } from 'lucide-react'
 import { Card } from './ui/Card'
 import { StatusBadge } from './StatusBadge'
-import { CountdownReadout } from './CountdownReadout'
-import { computePhase, activeCountdown, PHASE } from '../lib/deviceState'
+import { StatusPanel } from './StatusPanel'
+import { computePhase, stovePanel, presencePanel, PHASE } from '../lib/deviceState'
 import { formatCountdown } from '../lib/format'
 import { cx } from '../lib/cx'
 
-// Overview grid primitive. The whole card is the link to the device page.
+// Overview grid primitive. The whole card links to the device page, and the
+// two compact tiles speak the same stove/presence language as the detail hero
+// — scan a wall of these and the amber/red ones jump out.
 export function DeviceCard({ device }) {
   const phase = computePhase(device)
-  const countdown = activeCountdown(device, phase)
-  const isAlarm = phase === PHASE.WARNING || phase === PHASE.SHUTOFF
+  const stove = stovePanel(device)
+  const presence = presencePanel(device, phase)
 
   return (
     <Card
@@ -19,7 +21,7 @@ export function DeviceCard({ device }) {
       to={`/devices/${device.id}`}
       interactive
       className={cx(
-        'group flex flex-col gap-4 p-5 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
+        'group flex flex-col gap-4 p-4 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
         phase === PHASE.WARNING && 'hestia-pulse-warn border-warn/50',
         phase === PHASE.SHUTOFF && 'border-danger/40',
       )}
@@ -42,32 +44,23 @@ export function DeviceCard({ device }) {
         <StatusBadge device={device} phase={phase} />
       </div>
 
-      {/* The half-second answer: countdown when it matters, facts otherwise. */}
-      {countdown ? (
-        <CountdownReadout
-          secs={countdown.secs}
-          label={countdown.label}
-          tone={isAlarm ? 'warn' : 'warn'}
-          size="md"
+      <div className="grid grid-cols-2 gap-2.5">
+        <StatusPanel
+          size="sm"
+          label="Stove"
+          tone={stove.tone}
+          icon={stove.icon}
+          value={stove.value}
         />
-      ) : (
-        <dl className="flex items-center gap-5">
-          <Fact
-            icon={device.stoveOn ? Flame : Power}
-            tone={device.stoveOn ? 'primary' : 'muted'}
-            label="Stove"
-            value={device.stoveOn ? 'On' : 'Off'}
-          />
-          {device.stoveOn && (
-            <Fact
-              icon={device.presence ? UserCheck : UserX}
-              tone={device.presence ? 'success' : 'warn'}
-              label="Presence"
-              value={device.presence ? 'Detected' : 'Absent'}
-            />
-          )}
-        </dl>
-      )}
+        <StatusPanel
+          size="sm"
+          label="Presence"
+          tone={presence.tone}
+          icon={presence.icon}
+          value={presence.value}
+          pulse={presence.pulse}
+        />
+      </div>
 
       <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs text-ink-muted">
         {device.timer ? (
@@ -83,28 +76,12 @@ export function DeviceCard({ device }) {
         )}
         <span className="inline-flex items-center gap-0.5 font-medium text-ink-body transition-colors group-hover:text-primary">
           View
-          <ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          <ChevronRight
+            className="size-4 transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
         </span>
       </div>
     </Card>
-  )
-}
-
-const TONE = {
-  primary: 'text-primary',
-  success: 'text-success',
-  warn: 'text-warn-fg',
-  muted: 'text-ink-faint',
-}
-
-function Fact({ icon: Icon, tone, label, value }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-xs text-ink-muted">{label}</dt>
-      <dd className={cx('inline-flex items-center gap-1.5 text-sm font-medium text-ink')}>
-        <Icon className={cx('size-4', TONE[tone])} aria-hidden="true" />
-        {value}
-      </dd>
-    </div>
   )
 }

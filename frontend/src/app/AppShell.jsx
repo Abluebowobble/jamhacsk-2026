@@ -1,18 +1,17 @@
-import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { HouseholdSwitcher } from '../components/HouseholdSwitcher'
-import { useHouseholds } from '../lib/store'
+import { AccountMenu } from '../components/AccountMenu'
+import { useSession } from '../lib/sessionContext'
 import { HouseholdContext } from '../lib/householdContext'
 import { RoleContext } from '../lib/roles'
 
 export function AppShell() {
-  const households = useHouseholds()
-  const [householdId, setHouseholdId] = useState(households[0].id)
-  const role = households.find((h) => h.id === householdId)?.role ?? 'member'
+  const { activeId, activeHousehold, setActiveHousehold } = useSession()
+  const role = activeHousehold?.role ?? 'member'
 
   return (
-    <HouseholdContext.Provider value={{ householdId, setHouseholdId }}>
+    <HouseholdContext.Provider value={{ householdId: activeId, setHouseholdId: setActiveHousehold }}>
       <RoleContext.Provider value={role}>
         <div className="flex min-h-svh flex-col bg-bg">
           <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-bg/85 backdrop-blur-md">
@@ -20,13 +19,7 @@ export function AppShell() {
               <Logo />
               <div className="ml-auto flex items-center gap-2 sm:gap-3">
                 <HouseholdSwitcher />
-                <span
-                  className="grid size-9 place-items-center rounded-full bg-surface-sunken text-sm font-semibold text-ink-body"
-                  title={`Signed in (${role})`}
-                  aria-label={`Account, role ${role}`}
-                >
-                  Y
-                </span>
+                <AccountMenu />
               </div>
             </div>
           </header>

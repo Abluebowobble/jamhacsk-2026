@@ -22,24 +22,37 @@ import { Toggle } from '../components/ui/Toggle'
 import { Field } from '../components/ui/Field'
 import { Modal } from '../components/ui/Modal'
 import { Stat } from '../components/ui/Stat'
-import { StatusBadge } from '../components/StatusBadge'
-import { StatusBlock } from '../components/StatusBlock'
+import { DeviceSummaryCard } from '../components/DeviceSummaryCard'
 import { TimerControls } from '../components/TimerControls'
 import { SafetySettings } from '../components/SafetySettings'
-import { StateSimulator } from '../components/StateSimulator'
 import { EventList } from '../components/EventList'
 import { EmptyState } from '../components/EmptyState'
-import { useDevice, useDeviceEvents, useHouseholds, actions } from '../lib/store'
+import { Skeleton } from '../components/ui/Skeleton'
+import { useDevice, useDeviceLoading, useDeviceEvents, useHouseholds, actions } from '../lib/store'
 import { useCan, RoleContext } from '../lib/roles'
 import { formatDuration } from '../lib/format'
 
 export function DeviceDetailPage() {
   const { deviceId } = useParams()
   const device = useDevice(deviceId)
+  const loading = useDeviceLoading(deviceId)
   const events = useDeviceEvents(deviceId, 8)
   const households = useHouseholds()
 
   if (!device) {
+    if (loading) {
+      return (
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-9 w-48" />
+          <Skeleton className="h-28 w-full rounded-lg" />
+          <div className="grid gap-5 lg:grid-cols-3">
+            <Skeleton className="h-64 w-full rounded-md lg:col-span-2" />
+            <Skeleton className="h-64 w-full rounded-md" />
+          </div>
+        </div>
+      )
+    }
     return (
       <EmptyState
         icon={History}
@@ -72,17 +85,25 @@ export function DeviceDetailPage() {
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-ink sm:text-3xl">{device.name}</h1>
-            <StatusBadge device={device} />
-          </div>
-          <p className="mt-1 text-sm text-ink-body">{household?.name}</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold text-ink sm:text-3xl">{device.name}</h1>
+          <p className="mt-1 flex items-center gap-2 text-sm text-ink-body">
+            <span className="inline-flex items-center gap-1.5">
+              {device.online ? (
+                <Wifi className="size-3.5 text-success" aria-hidden="true" />
+              ) : (
+                <WifiOff className="size-3.5 text-danger" aria-hidden="true" />
+              )}
+              {device.online ? 'Online' : 'Offline'}
+            </span>
+            <span className="text-ink-faint" aria-hidden="true">·</span>
+            {household?.name}
+          </p>
         </div>
         <AdminMenu device={device} />
       </div>
 
-      <StatusBlock device={device} />
+      <DeviceSummaryCard device={device} />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="flex flex-col gap-5 lg:col-span-2">
@@ -135,8 +156,6 @@ export function DeviceDetailPage() {
         </div>
 
         <div className="flex flex-col gap-5">
-          <StateSimulator device={device} />
-
           <Section title="Camera" action={<CameraBadge online={device.online} />}>
             <CameraStream device={device} />
           </Section>
@@ -325,8 +344,8 @@ function RemoveModal({ device, open, onClose }) {
         </Button>
         <Button
           variant="danger"
-          onClick={() => {
-            actions.removeDevice(device.id)
+          onClick={async () => {
+            await actions.removeDevice(device.id)
             onClose()
             navigate('/')
           }}
