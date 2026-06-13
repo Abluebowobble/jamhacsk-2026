@@ -8,8 +8,8 @@ Per the PRD, **critical safety logic runs locally** — the Pi decides on shutof
 even when the cloud is unreachable. The cloud backend is only for remote
 visibility, configuration, notifications, and history.
 
-> Status: **MQTT communication is implemented.** Camera presence detection,
-> the safety state machine, the buzzer, and stove control are **stubs** — ready
+> Status: **MQTT communication and camera presence detection are implemented.**
+> The safety state machine, the buzzer, and stove control are **stubs** — ready
 > to implement, not done yet.
 
 ## Layout
@@ -23,7 +23,7 @@ firmware/
 └── src/
     ├── mqtt_client.py # MQTT client (COMPLETE)
     ├── messages.py    # topic + payload contract (shared shape w/ backend)
-    ├── presence.py    # camera presence detection (STUB)
+    ├── presence.py    # camera presence detection (COMPLETE)
     ├── safety.py      # absence/warning/shutoff state machine (STUB)
     ├── buzzer.py      # warning buzzer GPIO (STUB)
     └── stove.py       # stove relay / ESP32 control (STUB)
@@ -82,11 +82,40 @@ Both sides need a running MQTT broker (e.g. Mosquitto).
    as `off`).
 4. Run the backend, then `python main.py` here.
 
+## Presence detection (vision)
+
+`presence.py` decides whether a **person** (not a pet — animal classes are
+ignored) is near the stove and publishes it over MQTT (`presence` topic), and
+feeds `safety.on_presence()` for the future safety loop. **Presence-only for
+now**, but built to extend.
+
+- **Detector:** OpenCV DNN MobileNet-SSD ("person" class). Falls back to OpenCV
+  HOG automatically if the model files are absent — see
+  [models/README.md](models/README.md) to download the model for full accuracy.
+- **Camera:** picamera2 on the Pi; OpenCV `VideoCapture` fallback so you can dev
+  against a laptop webcam.
+- **Debounced:** a presence change must persist for N frames before it's trusted
+  (avoids flicker / event spam). Publishes presence only on a stable flip, plus
+  a periodic retained `status` heartbeat.
+- **Graceful:** if no camera / vision libs are available, the firmware logs a
+  warning and keeps MQTT running (commands/settings still work).
+- **Tunable** via env (confidence, ROI, min box size, debounce) — see
+  `.env.example`.
+
+### Verify the vision (no MQTT broker needed)
+
+```bash
+pip install opencv-python numpy        # vision deps
+python -m src.presence                 # live webcam: draws boxes + prints state
+python -m src.presence --image cat.jpg # person vs pet check (deterministic)
+```
+
 ## TODO (feature implementation)
 
-- [ ] `presence.py` — camera person detection (picamera2 + OpenCV)
+- [x] `presence.py` — camera person detection (OpenCV DNN MobileNet-SSD / HOG)
 - [ ] `safety.py` — absence-timeout → warning-delay → auto-shutoff state machine
+      (hook ready: `safety.on_presence()`)
 - [ ] `buzzer.py` — buzzer GPIO on/off
 - [ ] `stove.py` — relay / ESP32 stove power control
-- [ ] Periodic `publish_status` heartbeat from the main loop
+- [x] Periodic `publish_status` heartbeat from the main loop
 - [ ] Camera stream endpoint (PRD section 13)
