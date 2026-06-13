@@ -28,32 +28,14 @@ services:
       - ./backend/.env
     environment:
       PORT: "3000"
-    # Not published to the host: the backend is reached only through Caddy
-    # (api.hestia.my). Caddy talks to it internally as `backend:3000`.
-    expose:
-      - "3000"
+    # Published on loopback only: HTTPS for api.hestia.my is handled by the
+    # Cloudflare Tunnel (cloudflared runs on the host and forwards to
+    # http://localhost:3000), so the port never needs to face the public net.
+    ports:
+      - "127.0.0.1:3000:3000"
     depends_on:
       - mqtt
-
-  # Reverse proxy: terminates HTTPS for api.hestia.my and forwards to backend.
-  # Auto-provisions + renews a Let's Encrypt cert (needs ports 80/443 open and
-  # the api.hestia.my DNS record pointing here). Config: ./caddy/Caddyfile.
-  caddy:
-    image: caddy:2
-    container_name: hestia-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - backend
 
 volumes:
   mqtt-data:
   mqtt-log:
-  caddy-data:
-  caddy-config:
