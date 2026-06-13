@@ -1,29 +1,40 @@
 import { Link } from 'react-router-dom'
 import { Wifi, WifiOff, Timer, ChevronRight } from 'lucide-react'
-import { Card } from './ui/Card'
 import { StatusBadge } from './StatusBadge'
 import { StatusPanel } from './StatusPanel'
 import { computePhase, stovePanel, presencePanel, PHASE } from '../lib/deviceState'
 import { formatCountdown } from '../lib/format'
 import { cx } from '../lib/cx'
 
-// Overview grid primitive. The whole card links to the device page, and the
-// two compact tiles speak the same stove/presence language as the detail hero
-// — scan a wall of these and the amber/red ones jump out.
+// Overview grid primitive. The two compact tiles speak the same stove/presence
+// language as the detail hero, and the WHOLE card washes a color the moment a
+// stove is unattended — amber while it's counting down / buzzing, red once it's
+// shut off or gone offline. Scan a wall of these and trouble jumps out.
+const SURFACE = {
+  calm: 'border-border bg-surface hover:border-border-strong hover:bg-surface-sunken',
+  warn: 'border-warn/40 bg-warn-subtle hover:border-warn/60',
+  danger: 'border-danger/40 bg-danger-subtle hover:border-danger/60',
+}
+
+function surfaceFor(phase) {
+  if (phase === PHASE.UNATTENDED || phase === PHASE.WARNING) return 'warn'
+  if (phase === PHASE.SHUTOFF || phase === PHASE.OFFLINE) return 'danger'
+  return 'calm'
+}
+
 export function DeviceCard({ device }) {
   const phase = computePhase(device)
   const stove = stovePanel(device)
   const presence = presencePanel(device, phase)
 
   return (
-    <Card
-      as={Link}
+    <Link
       to={`/devices/${device.id}`}
-      interactive
       className={cx(
-        'group flex flex-col gap-4 p-4 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
-        phase === PHASE.WARNING && 'hestia-pulse-warn border-warn/50',
-        phase === PHASE.SHUTOFF && 'border-danger/40',
+        'group flex flex-col gap-4 rounded-md border p-4 transition-colors duration-[120ms] ease-out',
+        'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
+        SURFACE[surfaceFor(phase)],
+        phase === PHASE.WARNING && 'hestia-pulse-warn',
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -82,6 +93,6 @@ export function DeviceCard({ device }) {
           />
         </span>
       </div>
-    </Card>
+    </Link>
   )
 }

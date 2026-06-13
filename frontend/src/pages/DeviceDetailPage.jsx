@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
-import { Toggle } from '../components/ui/Toggle'
 import { Field } from '../components/ui/Field'
 import { Modal } from '../components/ui/Modal'
 import { Stat } from '../components/ui/Stat'
@@ -29,7 +28,7 @@ import { EventList } from '../components/EventList'
 import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
 import { useDevice, useDeviceLoading, useDeviceEvents, useHouseholds, actions } from '../lib/store'
-import { useCan, RoleContext } from '../lib/roles'
+import { useCan, can, RoleContext } from '../lib/roles'
 import { formatDuration } from '../lib/format'
 
 export function DeviceDetailPage() {
@@ -38,6 +37,7 @@ export function DeviceDetailPage() {
   const loading = useDeviceLoading(deviceId)
   const events = useDeviceEvents(deviceId, 8)
   const households = useHouseholds()
+  const [cameraOpen, setCameraOpen] = useState(false)
 
   if (!device) {
     if (loading) {
@@ -103,28 +103,17 @@ export function DeviceDetailPage() {
         <AdminMenu device={device} />
       </div>
 
-      <DeviceSummaryCard device={device} />
+      <DeviceSummaryCard
+        device={device}
+        onToggleStove={() => actions.toggleStove(device.id)}
+        onOpenCamera={() => setCameraOpen(true)}
+        canViewCamera={can('viewCamera', role)}
+      />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="flex flex-col gap-5 lg:col-span-2">
-          <Section title="Controls">
-            <div className="flex items-center justify-between gap-4 pb-4">
-              <div>
-                <p className="text-sm font-medium text-ink">Stove power</p>
-                <p className="text-xs text-ink-muted">
-                  {device.stoveOn ? 'Burner is on' : 'Burner is off'}
-                </p>
-              </div>
-              <Toggle
-                checked={device.stoveOn}
-                onChange={() => actions.toggleStove(device.id)}
-                disabled={!device.online}
-                label="Stove power"
-              />
-            </div>
-            <div className="border-t border-border pt-4">
-              <TimerControls device={device} />
-            </div>
+          <Section title="Timer">
+            <TimerControls device={device} />
           </Section>
 
           <Section title="Safety settings">
@@ -156,15 +145,20 @@ export function DeviceDetailPage() {
         </div>
 
         <div className="flex flex-col gap-5">
-          <Section title="Camera" action={<CameraBadge online={device.online} />}>
-            <CameraStream device={device} />
-          </Section>
-
           <Section title="Recent activity">
             <EventList events={events} />
           </Section>
         </div>
       </div>
+
+      <Modal
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        title="Camera"
+        description="Processed on the device. Visible only to authorized household members."
+      >
+        <CameraStream device={device} />
+      </Modal>
     </div>
     </RoleContext.Provider>
   )
@@ -179,18 +173,6 @@ function Section({ title, action, children }) {
       </div>
       {children}
     </Card>
-  )
-}
-
-function CameraBadge({ online }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
-      <span
-        className={`size-1.5 rounded-full ${online ? 'bg-success' : 'bg-neutral'}`}
-        aria-hidden="true"
-      />
-      {online ? 'Live' : 'Unavailable'}
-    </span>
   )
 }
 

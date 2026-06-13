@@ -1,60 +1,44 @@
 import { cx } from '../lib/cx'
 
-// The dashboard's anchor: a big, solid, half-second-legible panel. Two of
-// these (Stove / Presence) carry the device view. The panel FILLS with its
-// state color — bold, flat, no glow, no concentric rings, no nested cards.
+// The dashboard's anchor: a bold, solid, half-second-legible panel. The device
+// hero is a row of three (Stove / Presence / Camera). The panel FILLS with its
+// state color — flat, no glow, no rings, no nested cards. Every panel is color
+// + icon + text, never color alone (a11y).
 //
-// Active states get a saturated fill with high-contrast text. The calm/off
-// state stays a light hairline panel: "nothing happening" must not shout.
-// Every panel is color + icon + text, never color alone (a11y).
-//
-// size="lg" is the hero (device detail). size="sm" is the compact tile the
-// overview grid uses, so a glance reads the same visual language at any scale.
+// When `onClick` is given the panel becomes a real button — the stove tile IS
+// the on/off control, the camera tile opens the stream. size="lg" is the hero
+// (kept short and space-efficient); size="sm" is the compact overview tile.
 
 const TONE = {
-  primary: {
-    fill: 'bg-primary text-primary-fg',
-    sub: 'text-primary-fg/75',
-    label: 'text-primary-fg/70',
-  },
-  success: {
-    // deepened one step from --color-success so white text clears contrast
-    fill: 'bg-success-fg text-primary-fg',
-    sub: 'text-primary-fg/80',
-    label: 'text-primary-fg/70',
-  },
-  warn: {
-    // amber is light → dark ink, not white
-    fill: 'bg-warn text-ink',
-    sub: 'text-ink/65',
-    label: 'text-ink/60',
-  },
-  danger: {
-    fill: 'bg-danger text-primary-fg',
-    sub: 'text-primary-fg/80',
-    label: 'text-primary-fg/70',
-  },
-  neutral: {
-    // calm/off: light hairline panel, dark ink — quiet by design
-    fill: 'bg-surface-sunken text-ink ring-1 ring-inset ring-border',
-    sub: 'text-ink-muted',
-    label: 'text-ink-muted',
-  },
+  primary: { fill: 'bg-primary text-primary-fg', sub: 'text-primary-fg/75', label: 'text-primary-fg/70' },
+  // deepened one step from --color-success so white text clears contrast
+  success: { fill: 'bg-success-fg text-primary-fg', sub: 'text-primary-fg/80', label: 'text-primary-fg/70' },
+  // amber is light → dark ink at full strength. Dimmed ink on amber fails AA,
+  // and a warning state must stay maximally legible under stress; size + weight
+  // carry the hierarchy instead of opacity.
+  warn: { fill: 'bg-warn text-ink', sub: 'text-ink/90', label: 'text-ink' },
+  danger: { fill: 'bg-danger text-primary-fg', sub: 'text-primary-fg/80', label: 'text-primary-fg/70' },
+  // calm/off: light hairline panel, dark ink — quiet by design
+  neutral: { fill: 'bg-surface-sunken text-ink ring-1 ring-inset ring-border', sub: 'text-ink-muted', label: 'text-ink-muted' },
+  // camera "screen": reads as a video surface, distinct from the status tiles
+  dark: { fill: 'bg-ink text-primary-fg', sub: 'text-primary-fg/60', label: 'text-primary-fg/55' },
 }
 
 const SIZE = {
   lg: {
-    box: 'min-h-[208px] rounded-xl p-5 sm:min-h-[248px] sm:p-6',
-    label: 'text-xs tracking-[0.14em]',
-    icon: 'size-7 sm:size-9',
-    value: 'text-[2rem] sm:text-[2.75rem]',
-    foot: 'gap-1.5',
+    box: 'min-h-[116px] rounded-xl p-4 sm:min-h-[132px] sm:p-5',
+    label: 'text-[0.625rem] tracking-[0.12em] sm:text-xs sm:tracking-[0.14em]',
+    icon: 'size-5 sm:size-6',
+    value: 'text-[1.75rem] leading-none sm:text-3xl',
+    hint: 'text-[0.6875rem]',
+    foot: 'gap-1',
   },
   sm: {
-    box: 'min-h-[92px] rounded-lg p-3',
+    box: 'min-h-[88px] rounded-lg p-3',
     label: 'text-[0.625rem] tracking-[0.12em]',
     icon: 'size-5',
-    value: 'text-xl',
+    value: 'text-xl leading-none',
+    hint: 'text-[0.625rem]',
     foot: 'gap-0.5',
   },
 }
@@ -64,18 +48,29 @@ export function StatusPanel({
   tone = 'neutral',
   icon: Icon,
   value,
-  detail,
+  hint,
   pulse = false,
   size = 'lg',
+  onClick,
+  disabled = false,
+  ariaLabel,
 }) {
   const t = TONE[tone]
   const s = SIZE[size]
+  const interactive = Boolean(onClick) && !disabled
+  const Tag = interactive ? 'button' : 'div'
+
   return (
-    <div
+    <Tag
+      type={interactive ? 'button' : undefined}
+      onClick={interactive ? onClick : undefined}
+      aria-label={interactive ? ariaLabel : undefined}
       className={cx(
-        'relative flex flex-col overflow-hidden transition-colors duration-[180ms]',
+        'relative flex flex-col overflow-hidden text-left transition duration-[150ms]',
         s.box,
         t.fill,
+        interactive &&
+          'cursor-pointer hover:brightness-[0.97] active:brightness-95 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
         pulse && 'hestia-pulse-warn',
       )}
     >
@@ -85,13 +80,11 @@ export function StatusPanel({
       </div>
 
       <div className={cx('mt-auto flex min-w-0 flex-col', s.foot)}>
-        <span className={cx('font-bold leading-none tracking-[-0.02em]', s.value)}>{value}</span>
-        {detail && (
-          <span className={cx('line-clamp-2 text-sm font-medium leading-snug', t.sub)}>
-            {detail}
-          </span>
+        <span className={cx('font-bold tracking-[-0.02em]', s.value)}>{value}</span>
+        {hint && size === 'lg' && (
+          <span className={cx('truncate font-medium', s.hint, t.sub)}>{hint}</span>
         )}
       </div>
-    </div>
+    </Tag>
   )
 }

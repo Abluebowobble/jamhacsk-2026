@@ -7,7 +7,6 @@ import { CenteredScreen } from '../app/CenteredScreen'
 import { Card } from '../components/ui/Card'
 import { Field } from '../components/ui/Field'
 import { Button } from '../components/ui/Button'
-import { cx } from '../lib/cx'
 
 const MODES = {
   login: {
@@ -116,31 +115,6 @@ export function AuthPage() {
       <div className="mb-6 text-center">
         <h1 className="text-2xl font-semibold text-ink">{copy.title}</h1>
         <p className="mt-1.5 text-sm text-ink-body">{copy.subtitle}</p>
-      </div>
-
-      {/* Segmented login / create-account switch */}
-      <div
-        role="tablist"
-        aria-label="Sign in or create an account"
-        className="mb-5 grid grid-cols-2 gap-1 rounded-md border border-border bg-surface-sunken p-1"
-      >
-        {['login', 'signup'].map((m) => (
-          <button
-            key={m}
-            role="tab"
-            aria-selected={mode === m}
-            type="button"
-            onClick={() => switchMode(m)}
-            className={cx(
-              'h-9 rounded-sm text-sm font-medium transition-colors duration-[120ms] ease-out',
-              mode === m
-                ? 'bg-surface text-ink shadow-pop'
-                : 'text-ink-muted hover:text-ink-body',
-            )}
-          >
-            {m === 'login' ? 'Log in' : 'Create account'}
-          </button>
-        ))}
       </div>
 
       <Card as="form" onSubmit={onSubmit} className="flex flex-col gap-4 p-6" noValidate>

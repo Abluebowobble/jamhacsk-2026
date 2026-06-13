@@ -61,7 +61,12 @@ export function SummaryPreview() {
             {variants.map((v) => (
               <div key={v.title} className="flex flex-col gap-3">
                 <p className="text-xs font-medium text-ink-faint">{v.title}</p>
-                <DeviceSummaryCard device={v.d} />
+                <DeviceSummaryCard
+                  device={v.d}
+                  canViewCamera
+                  onToggleStove={() => {}}
+                  onOpenCamera={() => {}}
+                />
               </div>
             ))}
           </div>
