@@ -1,5 +1,7 @@
 # Hestia backend (Fastify) container image.
-FROM node:20-alpine
+# Node 22 (not 20): @supabase/supabase-js needs a native global WebSocket,
+# which only exists from Node 22 onward.
+FROM node:22-alpine
 
 WORKDIR /app
 
