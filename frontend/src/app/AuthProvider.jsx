@@ -6,8 +6,8 @@ import { DEMO } from '../lib/demo'
 // DEMO: skip Supabase entirely and report a signed-in user so the app shell
 // renders. Flip DEMO in ../lib/demo.js to restore the real auth path.
 const DEMO_VALUE = {
-  session: { user: { email: 'demo@hestia.app' } },
-  user: { email: 'demo@hestia.app' },
+  session: { user: { id: 'usr_demo', email: 'demo@hestia.app' } },
+  user: { id: 'usr_demo', email: 'demo@hestia.app' },
   status: 'authed',
   signOut: () => {},
 }

@@ -5,6 +5,7 @@ import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 
+import supabaseAdmin from './lib/supabase.js'
 import authPlugin from './plugins/auth.js'
 import healthRoutes from './routes/health.js'
 import householdsRoutes from './routes/households.js'
@@ -26,8 +27,38 @@ export async function buildApp() {
   // Health API (public): /health (liveness) + /health/ready (readiness)
   await app.register(healthRoutes)
 
-  // Current user (authenticated)
-  app.get('/api/me', { preHandler: [app.authenticate] }, async (request) => ({ user: request.user }))
+  // Current user (authenticated) — auth identity joined with the editable profile.
+  app.get('/api/me', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .select('full_name')
+      .eq('id', request.user.id)
+      .maybeSingle()
+    if (error) return reply.code(500).send({ error: error.message })
+    return { user: { ...request.user, full_name: data?.full_name ?? null } }
+  })
+
+  // Update the signed-in user's profile (display name). Upsert so a first-time
+  // edit creates the row if onboarding never did.
+  app.patch('/api/me', {
+    preHandler: [app.authenticate],
+    schema: {
+      body: {
+        type: 'object',
+        required: ['full_name'],
+        properties: { full_name: { type: 'string', minLength: 1, maxLength: 100 } },
+      },
+    },
+  }, async (request, reply) => {
+    const full_name = request.body.full_name.trim()
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .upsert({ id: request.user.id, full_name }, { onConflict: 'id' })
+      .select('full_name')
+      .single()
+    if (error) return reply.code(500).send({ error: error.message })
+    return { user: { ...request.user, full_name: data.full_name } }
+  })
 
   // Feature routes. Prefixes chosen so each file's paths resolve to the PRD's URLs.
   await app.register(householdsRoutes, { prefix: '/api/households' })

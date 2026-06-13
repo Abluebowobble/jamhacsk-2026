@@ -18,12 +18,13 @@ export default async function pushRoutes(app) {
     },
   }, async (request, reply) => {
     const { endpoint, p256dh, auth } = request.body
+    // Re-subscribe (and ownership change) without relying on an ON CONFLICT
+    // target: drop any prior row for this endpoint, then insert a fresh one.
+    // Avoids depending on a unique constraint that may not exist in every DB.
+    await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', endpoint)
     const { data, error } = await supabaseAdmin
       .from('push_subscriptions')
-      .upsert(
-        { user_id: request.user.id, endpoint, p256dh, auth },
-        { onConflict: 'endpoint' }
-      )
+      .insert({ user_id: request.user.id, endpoint, p256dh, auth })
       .select()
       .single()
     if (error) return reply.code(500).send({ error: error.message })

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { LogOut, Settings } from 'lucide-react'
 import { useAuth } from '../lib/authContext'
 import { cx } from '../lib/cx'
 
@@ -7,6 +8,7 @@ import { cx } from '../lib/cx'
 // HouseholdSwitcher's dropdown pattern (click-away + Escape, shadow-pop panel).
 export function AccountMenu() {
   const { user, signOut } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -54,6 +56,18 @@ export function AccountMenu() {
               {email}
             </p>
           </div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              navigate('/settings')
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-ink transition-colors hover:bg-surface-sunken"
+          >
+            <Settings className="size-4 text-ink-muted" aria-hidden="true" />
+            Settings
+          </button>
           <button
             type="button"
             role="menuitem"

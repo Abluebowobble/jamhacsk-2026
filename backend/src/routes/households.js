@@ -83,6 +83,47 @@ export default async function householdsRoutes(app) {
     return { household: data }
   })
 
+  // POST /api/households/:householdId/leave — the signed-in user leaves the
+  // household. Any member may leave; the last remaining admin may not (it would
+  // orphan the household) and is told to promote someone or delete it instead.
+  app.post('/:householdId/leave', {
+    preHandler: [makeRoleCheck('admin', 'member')],
+    schema: {
+      params: { type: 'object', properties: { householdId: { type: 'string', format: 'uuid' } } },
+    },
+  }, async (request, reply) => {
+    const { householdId } = request.params
+    const userId = request.user.id
+
+    if (request.membership.role === 'admin') {
+      const { count, error: countError } = await supabaseAdmin
+        .from('household_members')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('household_id', householdId)
+        .eq('role', 'admin')
+      if (countError) return reply.code(500).send({ error: countError.message })
+      if ((count ?? 0) <= 1) {
+        return reply.code(400).send({ error: 'You’re the only admin. Promote another member, or delete the household instead.' })
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from('household_members')
+      .delete()
+      .eq('household_id', householdId)
+      .eq('user_id', userId)
+    if (error) return reply.code(500).send({ error: error.message })
+
+    await logEvent({
+      householdId,
+      userId,
+      eventType: 'MEMBER_LEFT',
+      metadata: {},
+    }, request.log)
+
+    return reply.code(204).send()
+  })
+
   // DELETE /api/households/:householdId — delete (admin only)
   app.delete('/:householdId', {
     preHandler: [makeRoleCheck('admin')],

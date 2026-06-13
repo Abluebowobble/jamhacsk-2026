@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppProviders } from './AppProviders'
 import { RequireAuth, RequireOnboarded } from './guards'
 import { AppShell } from './AppShell'
@@ -7,6 +7,11 @@ import { OnboardingPage } from '../pages/OnboardingPage'
 import { PairPage } from '../pages/PairPage'
 import { OverviewPage } from '../pages/OverviewPage'
 import { DeviceDetailPage } from '../pages/DeviceDetailPage'
+import { SettingsPage } from '../pages/SettingsPage'
+import { AccountSection } from '../pages/settings/AccountSection'
+import { NotificationsSection } from '../pages/settings/NotificationsSection'
+import { HouseholdSection } from '../pages/settings/HouseholdSection'
+import { AboutSection } from '../pages/settings/AboutSection'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 import { SummaryPreview } from '../pages/SummaryPreview'
@@ -40,6 +45,17 @@ export const router = createBrowserRouter([
                 children: [
                   { index: true, element: <OverviewPage /> },
                   { path: 'devices/:deviceId', element: <DeviceDetailPage /> },
+                  {
+                    path: 'settings',
+                    element: <SettingsPage />,
+                    children: [
+                      { index: true, element: <Navigate to="account" replace /> },
+                      { path: 'account', element: <AccountSection /> },
+                      { path: 'notifications', element: <NotificationsSection /> },
+                      { path: 'household', element: <HouseholdSection /> },
+                      { path: 'about', element: <AboutSection /> },
+                    ],
+                  },
                   { path: '*', element: <NotFoundPage /> },
                 ],
               },

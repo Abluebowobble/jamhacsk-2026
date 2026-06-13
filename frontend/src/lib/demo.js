@@ -12,7 +12,7 @@ export const DEMO = false
 
 const iso = (msFromNow) => new Date(Date.now() + msFromNow).toISOString()
 
-const households = [
+let households = [
   { id: 'hh_home', name: 'Home', role: 'admin' },
   { id: 'hh_cabin', name: "Mom's Cabin", role: 'member' },
 ]
@@ -53,6 +53,22 @@ let events = {
   ],
 }
 
+const DEMO_USER_ID = 'usr_demo'
+let profile = { id: DEMO_USER_ID, email: 'demo@hestia.app', full_name: 'Demo User' }
+
+// Backend-shaped member rows (user_id, role, profiles.full_name) per household.
+let members = {
+  hh_home: [
+    { user_id: DEMO_USER_ID, role: 'admin', created_at: iso(-90 * 86_400_000), profiles: { full_name: 'Demo User' } },
+    { user_id: 'usr_sam', role: 'member', created_at: iso(-40 * 86_400_000), profiles: { full_name: 'Sam Rivera' } },
+    { user_id: 'usr_jo', role: 'member', created_at: iso(-12 * 86_400_000), profiles: { full_name: 'Jo Park' } },
+  ],
+  hh_cabin: [
+    { user_id: 'usr_mom', role: 'admin', created_at: iso(-200 * 86_400_000), profiles: { full_name: 'Mom' } },
+    { user_id: DEMO_USER_ID, role: 'member', created_at: iso(-30 * 86_400_000), profiles: { full_name: 'Demo User' } },
+  ],
+}
+
 function row(id, name, householdId, { online, stove, presence }) {
   return {
     id,
@@ -75,7 +91,13 @@ const wait = (v) => new Promise((r) => setTimeout(() => r(v), 180)) // tiny late
 
 // Mirrors the *resolved* return shapes of each `api` method (already unwrapped).
 export const demoApi = {
-  me: () => wait({ id: 'usr_demo', email: 'demo@hestia.app' }),
+  me: () => wait({ ...profile }),
+
+  getProfile: () => wait({ ...profile }),
+  updateProfile: (fullName) => {
+    profile = { ...profile, full_name: fullName }
+    return wait({ ...profile })
+  },
 
   listHouseholds: () => wait(households),
   createHousehold: (name) => {
@@ -83,6 +105,35 @@ export const demoApi = {
     households.push(h)
     return wait(h)
   },
+  renameHousehold: (householdId, name) => {
+    const h = households.find((x) => x.id === householdId)
+    if (h) h.name = name
+    return wait(h)
+  },
+  deleteHousehold: (householdId) => {
+    households = households.filter((h) => h.id !== householdId)
+    delete members[householdId]
+    return wait(null)
+  },
+  leaveHousehold: (householdId) => {
+    households = households.filter((h) => h.id !== householdId)
+    if (members[householdId]) members[householdId] = members[householdId].filter((m) => m.user_id !== DEMO_USER_ID)
+    return wait(null)
+  },
+
+  listMembers: (householdId) => wait((members[householdId] ?? []).map((m) => ({ ...m }))),
+  updateMemberRole: (householdId, userId, role) => {
+    const m = (members[householdId] ?? []).find((x) => x.user_id === userId)
+    if (m) m.role = role
+    return wait(m ? { user_id: m.user_id, role: m.role } : null)
+  },
+  removeMember: (householdId, userId) => {
+    if (members[householdId]) members[householdId] = members[householdId].filter((m) => m.user_id !== userId)
+    return wait(null)
+  },
+
+  pushSubscribe: () => wait({ subscription: { id: 'sub_demo' } }),
+  pushUnsubscribe: () => wait(null),
 
   listDevices: (householdId) => wait(devices.filter((d) => d.household_id === householdId)),
   getDevice: (deviceId) => wait(find(deviceId)),

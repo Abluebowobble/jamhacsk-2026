@@ -10,6 +10,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      // Fold Hestia's push + notificationclick handlers into the generated SW.
+      workbox: { importScripts: ['push-sw.js'] },
       manifest: {
         name: 'Hestia',
         short_name: 'Hestia',

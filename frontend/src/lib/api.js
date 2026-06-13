@@ -59,10 +59,40 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
 const realApi = {
   me: () => request('/api/me'),
 
+  // Profile (settings → account)
+  getProfile: () => request('/api/me').then((r) => r.user),
+  updateProfile: (fullName) =>
+    request('/api/me', { method: 'PATCH', body: { full_name: fullName } }).then((r) => r.user),
+
   // Households
   listHouseholds: () => request('/api/households').then((r) => r.households ?? []),
   createHousehold: (name) =>
     request('/api/households', { method: 'POST', body: { name } }).then((r) => r.household),
+  renameHousehold: (householdId, name) =>
+    request(`/api/households/${householdId}`, { method: 'PATCH', body: { name } }).then(
+      (r) => r.household,
+    ),
+  deleteHousehold: (householdId) =>
+    request(`/api/households/${householdId}`, { method: 'DELETE' }),
+  leaveHousehold: (householdId) =>
+    request(`/api/households/${householdId}/leave`, { method: 'POST' }),
+
+  // Members (settings → household)
+  listMembers: (householdId) =>
+    request(`/api/households/${householdId}/members`).then((r) => r.members ?? []),
+  updateMemberRole: (householdId, userId, role) =>
+    request(`/api/households/${householdId}/members/${userId}`, {
+      method: 'PATCH',
+      body: { role },
+    }).then((r) => r.member),
+  removeMember: (householdId, userId) =>
+    request(`/api/households/${householdId}/members/${userId}`, { method: 'DELETE' }),
+
+  // Web Push (settings → notifications)
+  pushSubscribe: ({ endpoint, p256dh, auth }) =>
+    request('/api/push/subscribe', { method: 'POST', body: { endpoint, p256dh, auth } }),
+  pushUnsubscribe: (endpoint) =>
+    request('/api/push/unsubscribe', { method: 'DELETE', body: { endpoint } }),
 
   // Devices
   listDevices: (householdId) =>

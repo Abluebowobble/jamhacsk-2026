@@ -20,7 +20,9 @@ import { useSession } from './sessionContext'
 let state = {
   devices: [], // adapted devices across loaded households
   events: {}, // deviceId -> adapted events
+  members: {}, // householdId -> adapted members
   loadingHouseholds: {}, // householdId -> bool
+  loadingMembers: {}, // householdId -> bool
   attempted: {}, // deviceId -> bool (a single-device fetch has settled at least once)
 }
 const listeners = new Set()
@@ -60,6 +62,10 @@ function adaptDevice(d, timers = []) {
 
 function adaptEvent(e) {
   return { id: e.id, deviceId: e.device_id, type: e.event_type, meta: e.metadata ?? {}, at: e.created_at }
+}
+
+function adaptMember(m) {
+  return { userId: m.user_id, role: m.role, name: m.profiles?.full_name ?? null, joinedAt: m.created_at }
 }
 
 /** Recompute the live `remainingSecs` of a timer from its end time. */
@@ -116,6 +122,21 @@ async function refreshDevice(id) {
     // Mark that we've at least tried — lets useDeviceLoading distinguish
     // "still loading" from "genuinely not found / no access".
     if (!state.attempted[id]) emit({ ...state, attempted: { ...state.attempted, [id]: true } })
+  }
+}
+
+async function loadMembers(householdId) {
+  if (!householdId) return
+  emit({ ...state, loadingMembers: { ...state.loadingMembers, [householdId]: true } })
+  try {
+    const rows = await api.listMembers(householdId)
+    emit({
+      ...state,
+      members: { ...state.members, [householdId]: rows.map(adaptMember) },
+      loadingMembers: { ...state.loadingMembers, [householdId]: false },
+    })
+  } catch {
+    emit({ ...state, loadingMembers: { ...state.loadingMembers, [householdId]: false } })
   }
 }
 
@@ -201,6 +222,18 @@ export function useDeviceEvents(id, limit = 8) {
   return useMemo(() => (s.events[id] ?? []).slice(0, limit), [s.events, id, limit])
 }
 
+/** Members of a household (settings → household). Loads on first use. */
+export function useMembers(householdId) {
+  const s = useStore()
+  useEffect(() => {
+    if (householdId) loadMembers(householdId)
+  }, [householdId])
+  const members = useMemo(() => s.members[householdId] ?? [], [s.members, householdId])
+  // Undefined (never fetched) reads as loading so the first paint shows skeletons.
+  const loading = s.loadingMembers[householdId] !== false
+  return { members, loading }
+}
+
 // ---- actions (real, awaited mutations + targeted refetch) -----------------
 
 export const actions = {
@@ -231,5 +264,13 @@ export const actions = {
   async removeDevice(id) {
     await api.removeDevice(id)
     emit({ ...state, devices: state.devices.filter((d) => d.id !== id) })
+  },
+  async updateMemberRole(householdId, userId, role) {
+    await api.updateMemberRole(householdId, userId, role)
+    await loadMembers(householdId)
+  },
+  async removeMember(householdId, userId) {
+    await api.removeMember(householdId, userId)
+    await loadMembers(householdId)
   },
 }
