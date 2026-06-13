@@ -1,11 +1,13 @@
 import { Camera } from 'lucide-react'
 import { StatusPanel } from './StatusPanel'
 import { CountdownReadout } from './CountdownReadout'
+import { ShutoffCountdown } from './ShutoffCountdown'
 import {
   computePhase,
   activeCountdown,
   stovePanel,
   presencePanel,
+  PHASE,
   PHASE_META,
 } from '../lib/deviceState'
 import { cx } from '../lib/cx'
@@ -36,6 +38,8 @@ export function DeviceSummaryCard({
   onToggleStove,
   onOpenCamera,
   canViewCamera = false,
+  unattendedSince = null,
+  onAutoShutoff,
 }) {
   const phase = computePhase(device)
   const meta = PHASE_META[phase]
@@ -116,6 +120,11 @@ export function DeviceSummaryCard({
           }
         />
       </div>
+
+      {/* Live shut-off countdown — only while a lit stove is unattended. */}
+      {(phase === PHASE.UNATTENDED || phase === PHASE.WARNING) && (
+        <ShutoffCountdown device={device} since={unattendedSince} onExpire={onAutoShutoff} />
+      )}
     </section>
   )
 }

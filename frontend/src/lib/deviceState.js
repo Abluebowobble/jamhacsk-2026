@@ -87,6 +87,28 @@ export function presencePanel(d, phase = computePhase(d)) {
   }
 }
 
+/**
+ * When the current unattended window began, in epoch ms — the anchor a live
+ * "time until shut-off" countdown ticks from. The snapshot API doesn't expose
+ * elapsed escalation, so we read it from the event log: the most recent
+ * NO_PRESENCE_DETECTED (presence was lost), falling back to STOVE_TURNED_ON,
+ * then null when neither is known.
+ */
+export function unattendedAnchor(events = []) {
+  const latestOf = (type) =>
+    events.reduce((acc, e) => {
+      if (e.type !== type) return acc
+      const t = new Date(e.at).getTime()
+      return Number.isFinite(t) && t > acc ? t : acc
+    }, -Infinity)
+
+  const lost = latestOf('NO_PRESENCE_DETECTED')
+  if (lost > -Infinity) return lost
+  const lit = latestOf('STOVE_TURNED_ON')
+  if (lit > -Infinity) return lit
+  return null
+}
+
 /** Is anything time-evolving on this device right now? */
 export function isDynamic(d) {
   if (!d.online) return false

@@ -29,6 +29,7 @@ import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
 import { useDevice, useDeviceLoading, useDeviceEvents, useHouseholds, actions } from '../lib/store'
 import { useCan, can, RoleContext } from '../lib/roles'
+import { unattendedAnchor } from '../lib/deviceState'
 import { formatDuration } from '../lib/format'
 
 export function DeviceDetailPage() {
@@ -108,6 +109,8 @@ export function DeviceDetailPage() {
         onToggleStove={() => actions.toggleStove(device.id)}
         onOpenCamera={() => setCameraOpen(true)}
         canViewCamera={can('viewCamera', role)}
+        unattendedSince={unattendedAnchor(events)}
+        onAutoShutoff={() => actions.autoShutoff(device.id)}
       />
 
       <div className="grid gap-5 lg:grid-cols-3">

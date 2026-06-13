@@ -8,7 +8,7 @@
 // toggling the stove / starting a timer / editing settings persists for the
 // session.
 
-export const DEMO = true
+export const DEMO = false
 
 const iso = (msFromNow) => new Date(Date.now() + msFromNow).toISOString()
 
@@ -149,9 +149,13 @@ export const demoApi = {
     if (d) d.stove_status = 'on'
     return wait(null)
   },
+  // Models the hardware round-trip: the command is *accepted* immediately, but
+  // the stove only *reports* OFF once the Pi actuates the relay (~700ms) and
+  // pushes its new state back. Callers re-fetch until they observe it, so the
+  // UI never shows OFF on the strength of the command alone.
   turnOff: (deviceId) => {
     const d = find(deviceId)
-    if (d) d.stove_status = 'off'
+    if (d) setTimeout(() => { d.stove_status = 'off' }, 700)
     return wait(null)
   },
 
