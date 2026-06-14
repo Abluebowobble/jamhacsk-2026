@@ -81,26 +81,3 @@ class Buzzer(Actuator):
     def stop(self):
         """Silence the buzzer (idempotent)."""
         self._apply(False)
-
-
-# --- self-test --------------------------------------------------------------
-def _main():
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-    )
-    buzzer = Buzzer()
-    log.info("Buzzer self-test: 3 beeps (1s on / 1s off). Ctrl+C to stop.")
-    try:
-        for _ in range(3):
-            buzzer.start()
-            time.sleep(1.0)
-            buzzer.stop()
-            time.sleep(1.0)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        buzzer.close()
-
-
-if __name__ == "__main__":
-    _main()

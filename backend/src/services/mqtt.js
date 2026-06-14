@@ -109,13 +109,39 @@ async function loadDeviceHousehold(deviceId) {
 }
 
 async function handleStatus(deviceId, payload) {
-  const update = {}
+  // Load current state first so we can detect an online <-> offline transition.
+  const { data: device } = await supabaseAdmin
+    .from('devices')
+    .select('id, household_id, device_name, online_status')
+    .eq('id', deviceId)
+    .maybeSingle()
+  if (!device) return // unknown device — ignore
+
+  const update = { updated_at: new Date().toISOString() }
   if (typeof payload.online === 'boolean') update.online_status = payload.online
   if (payload.stoveStatus) update.stove_status = payload.stoveStatus
   if (payload.presence) update.presence_status = payload.presence
-  update.updated_at = new Date().toISOString()
-
   await supabaseAdmin.from('devices').update(update).eq('id', deviceId)
+
+  // Notify + log ONLY on an online <-> offline transition (PRD §16) — never on
+  // every heartbeat. The offline edge arrives via the Pi's MQTT Last Will.
+  const wentOffline = payload.online === false && device.online_status === true
+  const cameOnline = payload.online === true && device.online_status === false
+  if ((wentOffline || cameOnline) && device.household_id) {
+    const name = device.device_name || 'A Hestia device'
+    await logEvent({
+      householdId: device.household_id,
+      deviceId,
+      eventType: wentOffline ? 'DEVICE_OFFLINE' : 'DEVICE_ONLINE',
+    }, logger)
+    await sendToHouseholdMembers(device.household_id, {
+      title: 'Hestia',
+      body: wentOffline
+        ? `${name} went offline — it can no longer protect that stove.`
+        : `${name} is back online.`,
+      tag: `device-online-${deviceId}`, // coalesce repeated online/offline alerts
+    }, logger)
+  }
 }
 
 async function handlePresence(deviceId, payload) {
@@ -138,10 +164,11 @@ async function handlePresence(deviceId, payload) {
   }, logger)
 }
 
-// Safety events the device reports that warrant a push notification.
+// Safety events the device reports that warrant a push notification (PRD §16).
 const NOTIFY_EVENTS = {
   WARNING_BUZZER_STARTED: 'Hestia Alert: warning buzzer started — no one detected near the stove.',
   AUTO_SHUTOFF_TRIGGERED: 'Hestia Alert: stove was turned off automatically because no one was detected nearby.',
+  WARNING_CANCELLED: 'Hestia: someone returned to the stove — the warning was cancelled.',
 }
 
 async function handleDeviceEvent(deviceId, payload) {
