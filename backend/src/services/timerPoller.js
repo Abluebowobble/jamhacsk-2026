@@ -1,7 +1,7 @@
 import supabaseAdmin from '../lib/supabase.js'
 import { logEvent } from '../lib/events.js'
 import { publishToDevice } from './mqtt.js'
-import { sendToUser } from './push.js'
+import { sendToHouseholdMembers } from './push.js'
 
 const POLL_INTERVAL_MS = 10_000
 
@@ -55,13 +55,19 @@ async function tick(logger) {
     await logEvent({
       householdId: timer.household_id,
       deviceId: timer.device_id,
-      userId: timer.created_by,
       eventType: 'TIMER_COMPLETED',
-      metadata: { timerId: timer.id },
+      // The backend job — not a person — completes the timer and turns the
+      // stove off, so attribute it to the system, not timer.created_by.
+      actorType: 'system',
+      source: 'system',
+      resourceType: 'timer',
+      resourceId: timer.id,
+      metadata: { timerId: timer.id, createdBy: timer.created_by },
     }, logger)
 
-    if (timer.created_by) {
-      await sendToUser(timer.created_by, {
+    // PRD §16: notify the whole household — timer completion turns the stove off.
+    if (timer.household_id) {
+      await sendToHouseholdMembers(timer.household_id, {
         title: 'Hestia',
         body: 'Timer finished — stove turned off.',
       }, logger)

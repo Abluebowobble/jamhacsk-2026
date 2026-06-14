@@ -1,4 +1,4 @@
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { mintCameraToken, cameraStreamConfigured } from '../lib/cameraToken.js'
 
@@ -22,10 +22,12 @@ export default async function cameraRoutes(app) {
     const { token, expiresAt } = mintCameraToken(request.params.deviceId)
 
     await logEvent({
+      ...auditContext(request),
       householdId: request.device.household_id,
       deviceId: request.params.deviceId,
-      userId: request.user.id,
       eventType: 'CAMERA_STREAM_VIEWED',
+      resourceType: 'device',
+      resourceId: request.params.deviceId,
     }, request.log)
 
     return {

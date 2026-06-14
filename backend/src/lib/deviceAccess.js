@@ -1,4 +1,5 @@
 import supabaseAdmin from './supabase.js'
+import { logEvent, auditContext } from './events.js'
 
 /**
  * Builds a Fastify preHandler for /api/devices/:deviceId routes. Loads the
@@ -42,13 +43,29 @@ export function requireDeviceAccess(...allowedRoles) {
       return reply.code(500).send({ error: 'Failed to check membership' })
     }
     if (!membership) {
+      await logDeviceDenied(request, device, { required: allowedRoles, reason: 'not_a_member' })
       return reply.code(403).send({ error: 'You are not a member of this device\'s household' })
     }
     if (allowedRoles.length && !allowedRoles.includes(membership.role)) {
+      await logDeviceDenied(request, device, { required: allowedRoles, actual: membership.role, reason: 'wrong_role' })
       return reply.code(403).send({ error: `Requires role: ${allowedRoles.join(' or ')}` })
     }
 
     request.device = device
     request.membership = membership
   }
+}
+
+// Audit a blocked device-scoped authorization attempt.
+async function logDeviceDenied(request, device, metadata) {
+  await logEvent({
+    ...auditContext(request),
+    householdId: device.household_id,
+    deviceId: device.id,
+    eventType: 'PERMISSION_DENIED',
+    outcome: 'denied',
+    resourceType: 'device',
+    resourceId: device.id,
+    metadata: { route: request.routeOptions?.url ?? request.url, method: request.method, ...metadata },
+  }, request.log)
 }

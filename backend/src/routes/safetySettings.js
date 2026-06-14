@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { publishToDevice } from '../services/mqtt.js'
 
@@ -49,11 +49,17 @@ export default async function safetySettingsRoutes(app) {
     }, 'settings')
 
     await logEvent({
+      ...auditContext(request),
       householdId: current.household_id,
       deviceId: request.params.deviceId,
-      userId: request.user.id,
       eventType: 'SAFETY_SETTINGS_UPDATED',
-      metadata: { absence_timeout_seconds: absence, warning_delay_seconds: warning },
+      resourceType: 'device',
+      resourceId: request.params.deviceId,
+      before: {
+        absence_timeout_seconds: current.absence_timeout_seconds,
+        warning_delay_seconds: current.warning_delay_seconds,
+      },
+      after: { absence_timeout_seconds: absence, warning_delay_seconds: warning },
     }, request.log)
 
     return { device: data }

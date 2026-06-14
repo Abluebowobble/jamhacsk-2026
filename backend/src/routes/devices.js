@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { sendToHouseholdMembers } from '../services/push.js'
@@ -89,11 +89,13 @@ export default async function devicesRoutes(app) {
     await publishAssignment(deviceId, householdId)
 
     await logEvent({
+      ...auditContext(request),
       householdId,
       deviceId,
-      userId: request.user.id,
       eventType: 'DEVICE_PAIRED',
-      metadata: {},
+      resourceType: 'device',
+      resourceId: deviceId,
+      after: { household_id: householdId, is_paired: true },
     }, request.log)
 
     // PRD §16: notify the household that a device was paired.
@@ -145,11 +147,14 @@ export default async function devicesRoutes(app) {
 
     if (patch.device_name !== undefined) {
       await logEvent({
+        ...auditContext(request),
         householdId: request.device.household_id,
         deviceId: request.params.deviceId,
-        userId: request.user.id,
         eventType: 'DEVICE_RENAMED',
-        metadata: { device_name: patch.device_name },
+        resourceType: 'device',
+        resourceId: request.params.deviceId,
+        before: { device_name: request.device.device_name },
+        after: { device_name: patch.device_name },
       }, request.log)
     }
 
@@ -173,11 +178,13 @@ export default async function devicesRoutes(app) {
     await publishAssignment(request.params.deviceId, null)
 
     await logEvent({
+      ...auditContext(request),
       householdId,
       deviceId: request.params.deviceId,
-      userId: request.user.id,
       eventType: 'DEVICE_REMOVED',
-      metadata: {},
+      resourceType: 'device',
+      resourceId: request.params.deviceId,
+      before: { household_id: householdId, is_paired: true },
     }, request.log)
 
     return reply.code(204).send()

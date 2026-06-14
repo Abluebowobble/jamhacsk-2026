@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
 
 export default async function householdsRoutes(app) {
@@ -43,10 +43,12 @@ export default async function householdsRoutes(app) {
     if (memberError) return reply.code(500).send({ error: memberError.message })
 
     await logEvent({
+      ...auditContext(request),
       householdId: household.id,
-      userId: request.user.id,
       eventType: 'HOUSEHOLD_CREATED',
-      metadata: { name },
+      resourceType: 'household',
+      resourceId: household.id,
+      after: { name },
     }, request.log)
 
     return reply.code(201).send({ household: { ...household, role: 'admin' } })
@@ -74,10 +76,12 @@ export default async function householdsRoutes(app) {
     if (error) return reply.code(500).send({ error: error.message })
 
     await logEvent({
+      ...auditContext(request),
       householdId,
-      userId: request.user.id,
       eventType: 'HOUSEHOLD_RENAMED',
-      metadata: { name: request.body.name },
+      resourceType: 'household',
+      resourceId: householdId,
+      after: { name: request.body.name },
     }, request.log)
 
     return { household: data }
@@ -115,10 +119,11 @@ export default async function householdsRoutes(app) {
     if (error) return reply.code(500).send({ error: error.message })
 
     await logEvent({
+      ...auditContext(request),
       householdId,
-      userId,
       eventType: 'MEMBER_LEFT',
-      metadata: {},
+      resourceType: 'member',
+      resourceId: userId,
     }, request.log)
 
     return reply.code(204).send()
@@ -131,10 +136,23 @@ export default async function householdsRoutes(app) {
       params: { type: 'object', properties: { householdId: { type: 'string', format: 'uuid' } } },
     },
   }, async (request, reply) => {
+    const { householdId } = request.params
+
+    // The events audit log is decoupled from households (migration 004 drops the
+    // FK), so these rows survive the delete; household_id stays as the (now
+    // dangling) id and resource_id keeps it for attribution.
+    await logEvent({
+      ...auditContext(request),
+      householdId,
+      eventType: 'HOUSEHOLD_DELETED',
+      resourceType: 'household',
+      resourceId: householdId,
+    }, request.log)
+
     const { error } = await supabaseAdmin
       .from('households')
       .delete()
-      .eq('id', request.params.householdId)
+      .eq('id', householdId)
     if (error) return reply.code(500).send({ error: error.message })
     return reply.code(204).send()
   })
