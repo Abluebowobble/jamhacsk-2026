@@ -15,6 +15,12 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'mask-icon.svg'],
       // Fold Hestia's push + notificationclick handlers into the generated SW.
       workbox: { importScripts: ['push-sw.js'] },
+      // Generate + register the SW in `npm run dev` too. Without this,
+      // vite-plugin-pwa serves no SW in dev, so `serviceWorker.ready` never
+      // resolves — the notifications toggle can't subscribe and the About
+      // page's "Send test" then 409s with "No subscribed device". 'classic'
+      // type is required for the importScripts('push-sw.js') above to load.
+      devOptions: { enabled: true, type: 'classic' },
       manifest: {
         name: 'Hestia',
         short_name: 'Hestia',
