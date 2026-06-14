@@ -109,6 +109,14 @@ const realApi = {
       (r) => r.joinRequest,
     ),
 
+  // Join requests — admin review side (list pending, approve, deny)
+  listJoinRequests: (householdId) =>
+    request(`/api/households/${householdId}/join-requests`).then((r) => r.joinRequests ?? []),
+  approveJoinRequest: (requestId) =>
+    request(`/api/join-requests/${requestId}/approve`, { method: 'POST' }),
+  denyJoinRequest: (requestId) =>
+    request(`/api/join-requests/${requestId}/deny`, { method: 'POST' }),
+
   // Single device + its live data
   getDevice: (deviceId) => request(`/api/devices/${deviceId}`).then((r) => r.device),
   listTimers: (deviceId) =>

@@ -21,8 +21,10 @@ let state = {
   devices: [], // adapted devices across loaded households
   events: {}, // deviceId -> adapted events
   members: {}, // householdId -> adapted members
+  joinRequests: {}, // householdId -> adapted pending access requests
   loadingHouseholds: {}, // householdId -> bool
   loadingMembers: {}, // householdId -> bool
+  loadingJoinRequests: {}, // householdId -> bool
   attempted: {}, // deviceId -> bool (a single-device fetch has settled at least once)
 }
 const listeners = new Set()
@@ -66,6 +68,17 @@ function adaptEvent(e) {
 
 function adaptMember(m) {
   return { userId: m.user_id, role: m.role, name: m.profiles?.full_name ?? null, joinedAt: m.created_at }
+}
+
+function adaptJoinRequest(r) {
+  return {
+    id: r.id,
+    householdId: r.household_id,
+    userId: r.user_id,
+    name: r.profiles?.full_name ?? null,
+    status: r.status,
+    at: r.created_at,
+  }
 }
 
 /** Recompute the live `remainingSecs` of a timer from its end time. */
@@ -156,6 +169,26 @@ async function loadMembers(householdId) {
     })
   } catch {
     emit({ ...state, loadingMembers: { ...state.loadingMembers, [householdId]: false } })
+  }
+}
+
+async function loadJoinRequests(householdId) {
+  if (!householdId) return
+  emit({ ...state, loadingJoinRequests: { ...state.loadingJoinRequests, [householdId]: true } })
+  try {
+    const rows = await api.listJoinRequests(householdId)
+    emit({
+      ...state,
+      joinRequests: { ...state.joinRequests, [householdId]: rows.map(adaptJoinRequest) },
+      loadingJoinRequests: { ...state.loadingJoinRequests, [householdId]: false },
+    })
+  } catch {
+    // Non-admins get 403 — treat as "nothing to review" rather than an error.
+    emit({
+      ...state,
+      joinRequests: { ...state.joinRequests, [householdId]: state.joinRequests[householdId] ?? [] },
+      loadingJoinRequests: { ...state.loadingJoinRequests, [householdId]: false },
+    })
   }
 }
 
@@ -253,6 +286,48 @@ export function useMembers(householdId) {
   return { members, loading }
 }
 
+/** Pending access requests for one household (admin review). Loads on first use. */
+export function useJoinRequests(householdId) {
+  const s = useStore()
+  useEffect(() => {
+    if (householdId) loadJoinRequests(householdId)
+  }, [householdId])
+  const requests = useMemo(() => s.joinRequests[householdId] ?? [], [s.joinRequests, householdId])
+  const loading = s.loadingJoinRequests[householdId] !== false
+  return { requests, loading }
+}
+
+/**
+ * Pending access requests aggregated across every household the user *admins*
+ * (the notifications bell). Polls so requests surface without a manual refresh.
+ * `households` is the session list ([{ id, name, role }]); each request carries
+ * the originating household's name for display.
+ */
+export function usePendingRequests(households) {
+  const s = useStore()
+  const adminIds = useMemo(
+    () => households.filter((h) => h.role === 'admin').map((h) => h.id),
+    [households],
+  )
+  const key = adminIds.join(',')
+
+  useEffect(() => {
+    if (!adminIds.length) return undefined
+    adminIds.forEach(loadJoinRequests)
+    const t = setInterval(() => adminIds.forEach(loadJoinRequests), 60_000)
+    return () => clearInterval(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
+
+  return useMemo(() => {
+    const nameById = Object.fromEntries(households.map((h) => [h.id, h.name]))
+    return adminIds
+      .flatMap((id) => (s.joinRequests[id] ?? []).map((r) => ({ ...r, householdName: nameById[id] ?? null })))
+      .sort((a, b) => new Date(b.at) - new Date(a.at))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.joinRequests, key, households])
+}
+
 // ---- actions (real, awaited mutations + targeted refetch) -----------------
 
 export const actions = {
@@ -305,5 +380,13 @@ export const actions = {
   async removeMember(householdId, userId) {
     await api.removeMember(householdId, userId)
     await loadMembers(householdId)
+  },
+  // Approve or deny a pending access request. On approval the requester becomes
+  // a member, so refresh both lists; the reviewed request drops off either way.
+  async reviewJoinRequest(householdId, requestId, decision) {
+    if (decision === 'approved') await api.approveJoinRequest(requestId)
+    else await api.denyJoinRequest(requestId)
+    await loadJoinRequests(householdId)
+    if (decision === 'approved') await loadMembers(householdId)
   },
 }

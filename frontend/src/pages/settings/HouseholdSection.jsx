@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, AlertCircle, Trash2, LogOut, ShieldCheck, User } from 'lucide-react'
+import { Check, X, AlertCircle, Trash2, LogOut, ShieldCheck, User, UserPlus, Inbox } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Field } from '../../components/ui/Field'
 import { Button } from '../../components/ui/Button'
@@ -10,16 +10,18 @@ import { Skeleton } from '../../components/ui/Skeleton'
 import { EmptyState } from '../../components/EmptyState'
 import { SettingsGroup } from '../SettingsPage'
 import { api } from '../../lib/api'
-import { actions, useMembers } from '../../lib/store'
+import { actions, useMembers, useJoinRequests } from '../../lib/store'
 import { useSession } from '../../lib/sessionContext'
 import { useAuth } from '../../lib/authContext'
 import { useCan } from '../../lib/roles'
+import { relativeTime } from '../../lib/format'
 
 export function HouseholdSection() {
   const { activeHousehold, refetchHouseholds, setActiveHousehold } = useSession()
   const householdId = activeHousehold?.id ?? null
   const canRename = useCan('renameHousehold')
   const canDelete = useCan('deleteHousehold')
+  const canManage = useCan('changeRole') // admin — gates the access-requests queue
 
   if (!householdId) {
     return (
@@ -35,6 +37,7 @@ export function HouseholdSection() {
     <div className="flex flex-col gap-8">
       {/* key on householdId so switching households re-seeds the name field. */}
       <RenameGroup key={householdId} householdId={householdId} name={activeHousehold.name} canRename={canRename} refetch={refetchHouseholds} />
+      {canManage && <RequestsGroup householdId={householdId} />}
       <MembersGroup householdId={householdId} />
       <DangerGroup
         householdId={householdId}
@@ -110,6 +113,102 @@ function RenameGroup({ householdId, name, canRename, refetch }) {
         </form>
       </Card>
     </SettingsGroup>
+  )
+}
+
+// ---- Access requests (admin approval queue) ------------------------------
+
+function RequestsGroup({ householdId }) {
+  const { requests, loading } = useJoinRequests(householdId)
+  const [pendingId, setPendingId] = useState(null) // requestId currently reviewing
+  const [actionError, setActionError] = useState(null)
+
+  const onReview = async (req, decision) => {
+    setPendingId(req.id)
+    setActionError(null)
+    try {
+      await actions.reviewJoinRequest(householdId, req.id, decision)
+    } catch (e) {
+      setActionError(e?.message || 'Couldn’t update that request. Try again.')
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  return (
+    <SettingsGroup
+      title="Access requests"
+      description="People asking to join this household. Approve to add them as a member, or deny to dismiss."
+    >
+      {actionError && (
+        <p className="inline-flex items-center gap-1.5 text-sm text-danger-fg" role="alert">
+          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+          {actionError}
+        </p>
+      )}
+
+      <Card className="divide-y divide-border">
+        {loading ? (
+          Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-4">
+              <Skeleton className="size-9 rounded-full" />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-9 w-44 rounded-md" />
+            </div>
+          ))
+        ) : requests.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 px-6 py-9 text-center">
+            <span className="grid size-10 place-items-center rounded-full bg-surface-sunken text-ink-muted">
+              <Inbox className="size-5" aria-hidden="true" />
+            </span>
+            <p className="text-sm font-medium text-ink">No pending requests</p>
+            <p className="max-w-xs text-sm text-ink-body">
+              When someone scans a paired device and asks to join, their request appears here.
+            </p>
+          </div>
+        ) : (
+          requests.map((r) => (
+            <RequestRow key={r.id} request={r} busy={pendingId === r.id} onReview={onReview} />
+          ))
+        )}
+      </Card>
+    </SettingsGroup>
+  )
+}
+
+function RequestRow({ request, busy, onReview }) {
+  const initial = (request.name || '?').charAt(0).toUpperCase()
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 p-4">
+      <span
+        className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-subtle text-sm font-semibold text-primary"
+        aria-hidden="true"
+      >
+        {initial}
+      </span>
+      <div className="min-w-[8rem] flex-1">
+        <p className="text-sm font-medium text-ink">{request.name || 'Unknown person'}</p>
+        <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-muted">
+          <UserPlus className="size-3" aria-hidden="true" />
+          Requested {relativeTime(request.at)}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button size="sm" loading={busy} disabled={busy} onClick={() => onReview(request, 'approved')}>
+          <Check className="size-4" aria-hidden="true" />
+          Approve
+        </Button>
+        <Button size="sm" variant="secondary" disabled={busy} onClick={() => onReview(request, 'denied')}>
+          <X className="size-4" aria-hidden="true" />
+          Deny
+        </Button>
+      </div>
+    </div>
   )
 }
 

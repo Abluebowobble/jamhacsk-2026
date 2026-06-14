@@ -69,6 +69,12 @@ let members = {
   ],
 }
 
+// Pending access requests awaiting an admin's review (settings + bell).
+let joinRequests = [
+  { id: 'jr_alex', household_id: 'hh_home', user_id: 'usr_alex', status: 'pending', created_at: iso(-22 * 60_000), profiles: { full_name: 'Alex Kim' } },
+  { id: 'jr_riley', household_id: 'hh_home', user_id: 'usr_riley', status: 'pending', created_at: iso(-3 * 3_600_000), profiles: { full_name: 'Riley Chen' } },
+]
+
 function row(id, name, householdId, { online, stove, presence }) {
   return {
     id,
@@ -143,6 +149,25 @@ export const demoApi = {
   pairingStatus: () => wait({ status: 'unpaired' }),
   pairDevice: (deviceId) => wait(find(deviceId)),
   requestJoin: () => wait({ id: 'jr_1', status: 'pending' }),
+
+  listJoinRequests: (householdId) =>
+    wait(joinRequests.filter((j) => j.household_id === householdId && j.status === 'pending').map((j) => ({ ...j }))),
+  approveJoinRequest: (requestId) => {
+    const j = joinRequests.find((x) => x.id === requestId)
+    if (j && j.status === 'pending') {
+      j.status = 'approved'
+      const list = members[j.household_id] ?? (members[j.household_id] = [])
+      if (!list.some((m) => m.user_id === j.user_id)) {
+        list.push({ user_id: j.user_id, role: 'member', created_at: iso(0), profiles: { full_name: j.profiles?.full_name } })
+      }
+    }
+    return wait({ status: 'approved' })
+  },
+  denyJoinRequest: (requestId) => {
+    const j = joinRequests.find((x) => x.id === requestId)
+    if (j && j.status === 'pending') j.status = 'denied'
+    return wait({ status: 'denied' })
+  },
 
   turnOn: (deviceId) => {
     const d = find(deviceId)
