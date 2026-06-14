@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Nfc, ShieldCheck, Users, AlertTriangle, Clock, ArrowLeft } from 'lucide-react'
+import { Nfc, ShieldCheck, Users, AlertTriangle, Clock, ArrowLeft, Flame } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useSession } from '../lib/sessionContext'
+import { useDevice, useDeviceLoading, actions } from '../lib/store'
 import { readSafetyDefaults } from '../lib/preferences'
 import { CenteredScreen } from '../app/CenteredScreen'
 import { Card } from '../components/ui/Card'
@@ -19,6 +20,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export function PairPage() {
   const [params] = useSearchParams()
   const deviceParam = params.get('device_id')
+  const { households, householdsLoading } = useSession()
 
   const [deviceId, setDeviceId] = useState(deviceParam ?? '')
   const [status, setStatus] = useState(null) // pairing-status payload
@@ -64,7 +66,22 @@ export function PairPage() {
         </PairCard>
       ) : status ? (
         status.paired ? (
-          <CaseAlreadyPaired status={status} onBack={reset} />
+          householdsLoading ? (
+            <PairCard>
+              <PairIcon pulse />
+              <p className="text-center text-sm text-ink-body">Checking the device…</p>
+            </PairCard>
+          ) : households.some((h) => h.id === status.householdId) ? (
+            // The user already belongs to this device's household → let them
+            // control the stove straight from the NFC tap, no access request.
+            <CaseControl
+              deviceId={deviceId}
+              householdName={status.householdName}
+              onBack={reset}
+            />
+          ) : (
+            <CaseAlreadyPaired status={status} onBack={reset} />
+          )
         ) : (
           <CaseUnpaired deviceId={deviceId} onBack={reset} />
         )
@@ -308,6 +325,114 @@ function CaseAlreadyPaired({ status, onBack }) {
         <Button onClick={requestAccess} loading={submitting} className="w-full">
           Request access
         </Button>
+      </Card>
+
+      <BackLink onBack={onBack} />
+    </>
+  )
+}
+
+// ---- Case C: device is paired and you're a member → control the stove ------
+
+function CaseControl({ deviceId, householdName, onBack }) {
+  const navigate = useNavigate()
+  const device = useDevice(deviceId)
+  const loading = useDeviceLoading(deviceId)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function toggle() {
+    setBusy(true)
+    setError(null)
+    try {
+      // Reuses the dashboard's toggle: fires the command, then waits for the Pi
+      // to report its real state — never an optimistic flip (it's a stove).
+      await actions.toggleStove(deviceId)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Couldn’t reach the stove. Try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // First resolve of the device snapshot (getDevice on mount).
+  if (loading && !device) {
+    return (
+      <PairCard>
+        <PairIcon pulse />
+        <p className="text-center text-sm text-ink-body">Checking the device…</p>
+      </PairCard>
+    )
+  }
+
+  // Membership said yes but the snapshot didn't load (transient / lost access).
+  if (!device) {
+    return (
+      <>
+        <PairCard>
+          <PairIcon tone="warn" icon={AlertTriangle} />
+          <h1 className="mt-1 text-center text-xl font-semibold text-ink">Can’t reach this device</h1>
+          <p className="text-center text-sm text-ink-body">
+            We couldn’t load the stove’s status. Check your connection and try again.
+          </p>
+        </PairCard>
+        <BackLink onBack={onBack} />
+      </>
+    )
+  }
+
+  const { stoveOn, online } = device
+
+  return (
+    <>
+      <div className="mb-6 text-center">
+        <PairIcon tone={stoveOn ? 'warn' : 'primary'} icon={Flame} />
+        <h1 className="mt-4 text-2xl font-semibold text-ink">{device.name}</h1>
+        <p className="mt-1.5 text-sm text-ink-body">
+          {householdName && (
+            <>
+              In <span className="font-medium text-ink">{householdName}</span> ·{' '}
+            </>
+          )}
+          Stove is{' '}
+          <span className={stoveOn ? 'font-medium text-warn-fg' : 'font-medium text-ink'}>
+            {stoveOn ? 'on' : 'off'}
+          </span>
+        </p>
+      </div>
+
+      <Card className="flex flex-col gap-4 p-6">
+        {error && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-md bg-danger-subtle px-3 py-2.5 text-sm text-danger-fg"
+          >
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <Button
+          onClick={toggle}
+          loading={busy}
+          disabled={!online}
+          variant={stoveOn ? 'danger' : 'primary'}
+          className="w-full"
+        >
+          {stoveOn ? 'Turn stove off' : 'Turn stove on'}
+        </Button>
+
+        {!online && (
+          <p className="text-center text-sm text-ink-muted">This device is offline.</p>
+        )}
+
+        <button
+          type="button"
+          onClick={() => navigate(`/devices/${deviceId}`)}
+          className="mx-auto text-sm text-ink-muted hover:text-ink-body"
+        >
+          Open full controls
+        </button>
       </Card>
 
       <BackLink onBack={onBack} />
