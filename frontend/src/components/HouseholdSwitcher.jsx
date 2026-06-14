@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, Check, House } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronDown, Check, House, Plus } from 'lucide-react'
 import { useHouseholds } from '../lib/store'
 import { useHousehold } from '../lib/householdContext'
 import { cx } from '../lib/cx'
@@ -7,6 +8,7 @@ import { cx } from '../lib/cx'
 export function HouseholdSwitcher() {
   const households = useHouseholds()
   const { householdId, setHouseholdId } = useHousehold()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const current = households.find((h) => h.id === householdId) ?? households[0]
@@ -71,6 +73,20 @@ export function HouseholdSwitcher() {
               </li>
             )
           })}
+          <li role="presentation" className="my-1 border-t border-border" />
+          <li role="presentation">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false)
+                navigate('/join')
+              }}
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm font-medium text-primary transition-colors hover:bg-surface-sunken"
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Join another household
+            </button>
+          </li>
         </ul>
       )}
     </div>
