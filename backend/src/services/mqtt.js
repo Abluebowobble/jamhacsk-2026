@@ -221,6 +221,11 @@ async function handleDeviceEvent(deviceId, payload) {
   const eventType = payload.eventType || payload.type
   if (!eventType) return
 
+  // The timer poller (services/timerPoller.js) owns TIMER_COMPLETED: it logs it
+  // once when it marks the DB timer completed. A device-emitted copy (older
+  // firmware that still reports it) would be a duplicate audit row — ignore it.
+  if (eventType === 'TIMER_COMPLETED') return
+
   await logEvent({
     householdId: device.household_id,
     deviceId,

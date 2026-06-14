@@ -8,6 +8,6 @@
 -- Run in the Supabase SQL editor or: supabase db execute --file ...
 -- ============================================================
 
-insert into public.devices (pairing_code)
-values ('ABC123')
+insert into public.devices (id, pairing_code)
+values ('44444444-4444-4444-4444-444444444444', 'ABC123')
 returning id, pairing_code, created_at;

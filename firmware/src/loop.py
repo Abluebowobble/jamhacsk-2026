@@ -249,12 +249,15 @@ class FirmwareLoop:
         self._safety.tick(now)
 
         # Cooking timer: when it elapses, turn the stove off locally (don't wait
-        # on the cloud) and log the completion.
+        # on the cloud). This is the cloud-independent safety backstop — it must
+        # work with the broker down. We deliberately do NOT emit a TIMER_COMPLETED
+        # event here: the backend timer poller owns that audit event and fires it
+        # exactly once (it holds the DB timer's status), so reporting it from here
+        # too would double-log.
         if self._timer_deadline is not None and now >= self._timer_deadline:
             log.info("Cooking timer elapsed — turning stove off")
             self._stove.turn_off()
             self._safety.set_stove(False, source="timer")
-            self._record_event("TIMER_COMPLETED", {"timerId": self._timer_id})
             self._clear_timer()
 
     # --- phase 3: publish (best-effort; broker may be down) -----------------

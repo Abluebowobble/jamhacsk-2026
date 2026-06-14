@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const url = import.meta.env.VITE_SUPABASE_URL?.trim()
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()
 
 if (!url || !anonKey) {
   // Fail loud and clear instead of a cryptic createClient throw on white screen.

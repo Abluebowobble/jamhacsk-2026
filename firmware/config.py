@@ -28,10 +28,8 @@ class Config:
     household_id: Optional[str]
     host: str
     port: int
-    # Shared MQTT login used by ALL devices (defaults: device / hestiadevice).
-    # The deviceId still keys the topics/identity — only the broker auth is shared.
     username: str
-    password: Optional[str]
+    password: str
     keepalive: int
     # Where the learned household assignment is persisted across reboots.
     state_file: str
@@ -87,11 +85,8 @@ def load_config():
         household_id=household_id,
         host=host,
         port=port,
-        # Shared broker login for every device. Defaults match the broker's
-        # DEVICE_MQTT_USERNAME/DEVICE_MQTT_PASSWORD so a device only needs
-        # DEVICE_ID + MQTT_BROKER_URL set to connect.
-        username=os.environ.get("MQTT_USERNAME", "").strip() or "device",
-        password=os.environ.get("MQTT_PASSWORD", "").strip() or "hestiadevice",
+        username=os.environ.get("MQTT_USERNAME", "device"),
+        password=os.environ.get("MQTT_PASSWORD", "hestiadevice"),
         keepalive=int(os.environ.get("MQTT_KEEPALIVE", "60")),
         state_file=os.environ.get("STATE_FILE", "").strip() or "state/device_state.json",
         camera_stream_enabled=_env_bool("CAMERA_STREAM_ENABLED", True),
