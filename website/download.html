@@ -180,7 +180,7 @@
       </nav>
 
       <div class="nav__actions">
-        <a class="btn btn--primary" id="navOpen" href="https://app.hestia.app">Open the app</a>
+        <a class="btn btn--primary" id="navOpen" href="https://app.hestia.my">Open the app</a>
         <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
             <line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/>
@@ -194,7 +194,7 @@
     <a class="nav__link" href="index.html#how">How it works</a>
     <a class="nav__link" href="index.html#features">Features</a>
     <a class="nav__link" href="index.html#faq">FAQ</a>
-    <a class="btn btn--primary btn--block" id="navOpenDrawer" href="https://app.hestia.app">Open the app</a>
+    <a class="btn btn--primary btn--block" id="navOpenDrawer" href="https://app.hestia.my">Open the app</a>
   </div>
 
   <span id="top"></span>
@@ -214,7 +214,7 @@
             Tap the button below to open Hestia. You'll always get the newest version.
           </p>
 
-          <a class="btn btn--primary dl-cta" id="ctaOpen" href="https://app.hestia.app" data-reveal data-reveal-delay="2">
+          <a class="btn btn--primary dl-cta" id="ctaOpen" href="https://app.hestia.my" data-reveal data-reveal-delay="2">
             Open Hestia
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
@@ -243,7 +243,7 @@
         <div class="container">
 
           <div class="dl-install__head" data-reveal>
-            <h2 class="section-title">Keep Hestia one tap away</h2>
+            <h2 class="section-title">Open Hestia, then add it to your home screen</h2>
             <p class="section-lead" style="margin-inline:auto;">
               Add Hestia to your home screen and it opens just like any other app — three taps, on your phone or tablet.
             </p>
@@ -287,7 +287,7 @@
             If you'd like a hand, ask a family member, or read the common questions.
           </p>
           <div class="dl-help__actions" data-reveal data-reveal-delay="2">
-            <a class="btn btn--primary btn--lg" id="ctaOpenBottom" href="https://app.hestia.app">Open Hestia</a>
+            <a class="btn btn--primary btn--lg" id="ctaOpenBottom" href="https://app.hestia.my">Open Hestia</a>
             <a class="btn btn--secondary btn--lg" href="index.html#faq">Read the FAQ</a>
           </div>
         </div>
@@ -317,9 +317,8 @@
         <div>
           <p class="footer__coltitle">Get the app</p>
           <ul class="footer__links">
-            <li><a href="https://app.hestia.app">Open Hestia</a></li>
+            <li><a href="https://app.hestia.my">Open Hestia</a></li>
             <li><a href="#install">Add to home screen</a></li>
-            <li><a href="start.html">Set up a device</a></li>
           </ul>
         </div>
 
@@ -359,7 +358,7 @@
       /* Where the Hestia app lives. The app is a PWA — opening this URL always
          serves the latest version. If a device was tapped (NFC carries
          ?device_id=…), send the visitor straight into pairing. */
-      var APP_BASE = "https://app.hestia.app";
+      var APP_BASE = "https://app.hestia.my";
 
       var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       var params = new URLSearchParams(window.location.search);

@@ -48,7 +48,7 @@ export function HouseholdSwitcher() {
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 top-full z-[var(--z-dropdown)] mt-1.5 w-64 overflow-hidden rounded-md border border-border bg-surface py-1 shadow-pop"
+          className="absolute right-0 top-full z-[var(--z-dropdown)] mt-1.5 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border border-border bg-surface py-1 shadow-pop"
         >
           {households.map((h) => {
             const selected = h.id === current.id
