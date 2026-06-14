@@ -1,8 +1,8 @@
 /* =====================================================================
    HESTIA — marketing site
    Design language: "Clinical Precision" (light only).
-   Cool steel-blue on near-white. Hairline structure. Calm at rest,
-   decisive in a safety event. The resting world is blue/green;
+   Burnt-orange on warm near-white. Hairline structure. Calm at rest,
+   decisive in a safety event. The resting world is orange/green;
    amber and red are EARNED — warning and danger only.
    Tokens mirror frontend/src/index.css (the product's design system).
    ===================================================================== */
@@ -11,29 +11,29 @@
    0. Tokens
    --------------------------------------------------------------------- */
 :root {
-  /* Surfaces — faint cool tint (clinical, not "blue paper") */
-  --color-bg: oklch(0.990 0.004 240);
+  /* Surfaces — faint warm tint (clinical, not "orange paper") */
+  --color-bg: oklch(0.990 0.004 65);
   --color-surface: oklch(1 0 0);
-  --color-surface-sunken: oklch(0.974 0.005 240);
-  --color-panel: oklch(0.982 0.006 245);
+  --color-surface-sunken: oklch(0.974 0.005 65);
+  --color-panel: oklch(0.982 0.006 65);
 
   /* Ink */
-  --color-ink: oklch(0.20 0.012 250);
-  --color-ink-body: oklch(0.32 0.012 250);
-  --color-ink-muted: oklch(0.50 0.015 250);
-  --color-ink-faint: oklch(0.62 0.013 250);
+  --color-ink: oklch(0.20 0.012 65);
+  --color-ink-body: oklch(0.32 0.012 65);
+  --color-ink-muted: oklch(0.50 0.015 65);
+  --color-ink-faint: oklch(0.62 0.013 65);
 
   /* Borders */
-  --color-border: oklch(0.918 0.005 245);
-  --color-border-strong: oklch(0.860 0.006 245);
+  --color-border: oklch(0.918 0.005 65);
+  --color-border-strong: oklch(0.860 0.006 65);
 
-  /* Primary — steel-blue */
-  --color-primary: oklch(0.50 0.12 245);
-  --color-primary-hover: oklch(0.45 0.13 245);
-  --color-primary-active: oklch(0.40 0.13 245);
-  --color-primary-fg: oklch(0.99 0.005 245);
-  --color-primary-subtle: oklch(0.960 0.022 245);
-  --color-primary-border: oklch(0.850 0.040 245);
+  /* Primary — burnt-orange */
+  --color-primary: oklch(0.55 0.16 52);
+  --color-primary-hover: oklch(0.50 0.17 52);
+  --color-primary-active: oklch(0.45 0.17 52);
+  --color-primary-fg: oklch(0.99 0.005 65);
+  --color-primary-subtle: oklch(0.960 0.025 60);
+  --color-primary-border: oklch(0.850 0.050 55);
 
   /* Safe / online / presence — green */
   --color-success: oklch(0.60 0.13 155);
@@ -52,8 +52,8 @@
   --color-danger-fg: oklch(0.45 0.16 25);
 
   /* Neutral / stove-off / inactive (calm gray, NOT red) */
-  --color-neutral: oklch(0.70 0.010 250);
-  --color-neutral-subtle: oklch(0.962 0.004 245);
+  --color-neutral: oklch(0.70 0.010 65);
+  --color-neutral-subtle: oklch(0.962 0.004 65);
 
   /* Type */
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -78,10 +78,10 @@
   --radius-full: 9999px;
 
   /* Elevation — only for things that float / lift on hover */
-  --shadow-pop: 0 4px 12px -2px oklch(0.20 0.02 250 / 0.10);
-  --shadow-modal: 0 16px 40px -8px oklch(0.20 0.02 250 / 0.18);
-  --shadow-card-hover: 0 1px 2px oklch(0.20 0.02 250 / 0.04),
-                       0 8px 24px -12px oklch(0.20 0.02 250 / 0.14);
+  --shadow-pop: 0 4px 12px -2px oklch(0.20 0.02 65 / 0.10);
+  --shadow-modal: 0 16px 40px -8px oklch(0.20 0.02 65 / 0.18);
+  --shadow-card-hover: 0 1px 2px oklch(0.20 0.02 65 / 0.04),
+                       0 8px 24px -12px oklch(0.20 0.02 65 / 0.14);
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -322,7 +322,7 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 .nav {
   position: sticky; top: 0; z-index: var(--z-nav);
   height: var(--nav-h);
-  background: oklch(0.990 0.004 240 / 0.78);
+  background: oklch(0.990 0.004 65 / 0.78);
   backdrop-filter: saturate(140%) blur(10px);
   -webkit-backdrop-filter: saturate(140%) blur(10px);
   border-bottom: 1px solid transparent;
@@ -330,7 +330,7 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 }
 .nav[data-scrolled="true"] {
   border-bottom-color: var(--color-border);
-  background: oklch(0.990 0.004 240 / 0.92);
+  background: oklch(0.990 0.004 65 / 0.92);
 }
 .nav__inner {
   height: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -431,8 +431,8 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 .grid-bg::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background-image:
-    linear-gradient(to right, oklch(0.50 0.05 245 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.50 0.05 245 / 0.045) 1px, transparent 1px);
+    linear-gradient(to right, oklch(0.55 0.05 52 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.55 0.05 52 / 0.045) 1px, transparent 1px);
   background-size: 48px 48px;
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 78%);
           mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 78%);
@@ -460,7 +460,7 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 
 /* ===========================================================
    hero (#hero) — page H1 + live instrument panel
-   Clinical Precision: hairline structure, calm blue/green.
+   Clinical Precision: hairline structure, calm orange/green.
    Scoped: .hs-hero__*
    =========================================================== */
 
@@ -637,7 +637,7 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 
 /* ===========================================================
    stakes (#stakes) — quiet, factual band (NOT alarmist)
-   Sunken/ruled surface, calm steel-blue numerals. No danger red.
+   Sunken/ruled surface, calm burnt-orange numerals. No danger red.
    Scoped: .hs-stakes__*
    =========================================================== */
 
@@ -768,7 +768,7 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 }
 .hs-how__step-icon svg { width: 22px; height: 22px; }
 
-/* current step gets steel-blue emphasis (calm, not alarm) */
+/* current step gets burnt-orange emphasis (calm, not alarm) */
 .hs-how__step[data-current="true"] .hs-how__step-icon {
   color: var(--color-primary);
   background: var(--color-primary-subtle);
@@ -903,7 +903,7 @@ h2.section-title { font-size: var(--text-4xl); letter-spacing: -0.02em; }
 /* attended (rest) — calm green */
 .hs-how__layout[data-loop-state="attended"] .hs-how__ring-fill { stroke: var(--color-success); }
 
-/* unattended — steel-blue (status, not alarm) */
+/* unattended — burnt-orange (status, not alarm) */
 .hs-how__layout[data-loop-state="unattended"] .hs-how__ring-fill { stroke: var(--color-primary); }
 .hs-how__layout[data-loop-state="unattended"] .hs-how__readout-label { color: var(--color-primary); }
 

@@ -65,7 +65,7 @@ export function activeCountdown(d, phase = computePhase(d)) {
 // The two anchor visuals — stove + presence — as a single source of truth for
 // tone, icon, glance-value, and supporting line. Both the device-detail hero
 // and the overview tile render from these so the vocabulary never drifts.
-// Tone follows the state map: stove-on = blue (status, not alarm); presence
+// Tone follows the state map: stove-on = orange (status, not alarm); presence
 // gone while the burner's lit = amber (the warning lives on presence).
 
 export function stovePanel(d) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ShieldAlert, AlertTriangle, WifiOff, AlertCircle, Info } from 'lucide-react'
+import { ShieldAlert, AlertTriangle, WifiOff, AlertCircle, Info, Smartphone, Share, Plus } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Toggle } from '../../components/ui/Toggle'
 import { Skeleton } from '../../components/ui/Skeleton'
@@ -18,7 +18,7 @@ const ALERTS = [
 
 export function NotificationsSection() {
   const [loading, setLoading] = useState(true)
-  const [state, setState] = useState({ supported: false, configured: false, permission: 'default', subscribed: false })
+  const [state, setState] = useState({ supported: false, configured: false, permission: 'default', subscribed: false, needsInstall: false })
   const [busy, setBusy] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
 
@@ -36,13 +36,17 @@ export function NotificationsSection() {
   const unavailable = !state.supported || !state.configured
   const disabled = busy || unavailable || blocked
 
-  const reason = !state.supported
-    ? 'Notifications aren’t supported on this browser or device.'
-    : !state.configured
-      ? 'Notifications aren’t configured for this build yet.'
-      : blocked
-        ? 'Notifications are blocked. Enable them in your browser settings, then reload.'
-        : null
+  // On iOS in a browser tab, the dedicated "Add to Home Screen" block below
+  // explains how to unblock push — so suppress the generic reason there.
+  const reason = state.needsInstall
+    ? null
+    : !state.supported
+      ? 'Notifications aren’t supported on this browser or device.'
+      : !state.configured
+        ? 'Notifications aren’t configured for this build yet.'
+        : blocked
+          ? 'Notifications are blocked. Enable them in your browser settings, then reload.'
+          : null
 
   const onToggle = async (next) => {
     setBusy(true)
@@ -85,6 +89,7 @@ export function NotificationsSection() {
                 />
               </div>
 
+              {state.needsInstall && <AddToHomeScreen />}
               {reason && (
                 <p className="inline-flex items-start gap-1.5 text-sm text-ink-muted">
                   <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -118,6 +123,38 @@ export function NotificationsSection() {
           ))}
         </Card>
       </SettingsGroup>
+    </div>
+  )
+}
+
+// iOS only exposes Web Push to a Home-Screen-installed PWA, never to a Safari
+// tab — so on iPhone/iPad the toggle above can't work until Hestia is installed.
+// Spell out the one-time Add-to-Home-Screen steps instead of a dead end.
+function AddToHomeScreen() {
+  const steps = [
+    <>Tap the Share button <Share className="inline size-4 -translate-y-px text-primary" aria-hidden="true" /> in Safari’s toolbar.</>,
+    <>Choose <span className="font-medium text-ink">“Add to Home Screen”</span> <Plus className="inline size-4 -translate-y-px text-primary" aria-hidden="true" />.</>,
+    <>Open Hestia from your Home Screen, then turn alerts on here.</>,
+  ]
+  return (
+    <div className="rounded-lg bg-surface-sunken p-4">
+      <p className="flex items-start gap-1.5 text-sm font-medium text-ink">
+        <Smartphone className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+        Add Hestia to your Home Screen to get alerts
+      </p>
+      <p className="mt-1 text-sm text-ink-muted">
+        On iPhone &amp; iPad, safety alerts only work from the installed app.
+      </p>
+      <ol className="mt-3 flex flex-col gap-2">
+        {steps.map((step, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-sm text-ink-body">
+            <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-fg">
+              {i + 1}
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

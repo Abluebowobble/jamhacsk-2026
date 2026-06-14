@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#fbfcfd" />
+  <meta name="theme-color" content="#fefbf9" />
   <meta name="color-scheme" content="light" />
 
   <title>Download Hestia — get the app</title>
@@ -86,6 +86,57 @@
 
     /* ---- Install band: one simple, universal flow ---- */
     .dl-install__head { text-align: center; margin-bottom: clamp(28px, 4vw, 40px); }
+
+    /* ---- Video / Instructions toggle ---- */
+    .dl-switch {
+      display: inline-flex;
+      gap: 4px;
+      margin: 0 auto clamp(24px, 4vw, 34px);
+      padding: 5px;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-sunken);
+      border: 1px solid var(--color-border);
+    }
+    .dl-switch__btn {
+      appearance: none;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 11px 24px;
+      border: 0;
+      border-radius: var(--radius-full);
+      background: transparent;
+      color: var(--color-ink-muted);
+      font: inherit; font-size: var(--text-base); font-weight: 600;
+      transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+    .dl-switch__btn svg { width: 18px; height: 18px; }
+    .dl-switch__btn:hover { color: var(--color-ink); }
+    .dl-switch__btn[aria-selected="true"] {
+      background: var(--color-surface);
+      color: var(--color-ink);
+      box-shadow: var(--shadow-card);
+    }
+    .dl-switchwrap { text-align: center; }
+
+    .dl-tab[hidden] { display: none; }
+
+    /* Vertical Short — keep it phone-shaped and centred. */
+    .dl-video {
+      max-width: 340px;
+      margin-inline: auto;
+      aspect-ratio: 9 / 16;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      background: #000;
+      box-shadow: var(--shadow-card);
+    }
+    .dl-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .dl-video__note {
+      max-width: 340px; margin: 16px auto 0;
+      text-align: center;
+      font-size: var(--text-base); color: var(--color-ink-muted);
+    }
 
     /* The steps panel. */
     .dl-panel { max-width: 600px; margin-inline: auto; }
@@ -249,11 +300,39 @@
             </p>
           </div>
 
-          <div class="dl-panel">
+          <div class="dl-switchwrap" data-reveal>
+            <div class="dl-switch" role="tablist" aria-label="How would you like to follow along?">
+              <button class="dl-switch__btn" id="tabVideoBtn" role="tab" aria-selected="true" aria-controls="tabVideo" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                Watch the video
+              </button>
+              <button class="dl-switch__btn" id="tabStepsBtn" role="tab" aria-selected="false" aria-controls="tabSteps" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Read the steps
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab: video walkthrough -->
+          <div class="dl-tab" id="tabVideo" role="tabpanel" aria-labelledby="tabVideoBtn" data-reveal>
+            <div class="dl-video">
+              <iframe
+                src="https://www.youtube.com/embed/YammihP8dfY"
+                title="How to install the Hestia app"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen></iframe>
+            </div>
+            <p class="dl-video__note">A quick walkthrough showing how to add Hestia to your home screen.</p>
+          </div>
+
+          <!-- Tab: written instructions -->
+          <div class="dl-tab dl-panel" id="tabSteps" role="tabpanel" aria-labelledby="tabStepsBtn" hidden>
             <ol class="dl-steps">
               <li class="dl-step">
                 <span class="dl-step__num" aria-hidden="true">1</span>
-                <p class="dl-step__text">Tap the blue <strong>Open Hestia</strong> button above. It opens in your web browser.</p>
+                <p class="dl-step__text">Tap the orange <strong>Open Hestia</strong> button above. It opens in your web browser.</p>
               </li>
               <li class="dl-step">
                 <span class="dl-step__num" aria-hidden="true">2</span>
@@ -376,6 +455,26 @@
          skip the marketing page and go straight to the app. */
       var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       if (standalone) window.location.replace(openUrl);
+
+      /* Install help: switch between the video walkthrough and written steps. */
+      var tabs = [
+        { btn: "tabVideoBtn", panel: "tabVideo" },
+        { btn: "tabStepsBtn", panel: "tabSteps" }
+      ];
+      function selectTab(active) {
+        tabs.forEach(function (t) {
+          var btn = document.getElementById(t.btn);
+          var panel = document.getElementById(t.panel);
+          if (!btn || !panel) return;
+          var on = t.panel === active;
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+          panel.hidden = !on;
+        });
+      }
+      tabs.forEach(function (t) {
+        var btn = document.getElementById(t.btn);
+        if (btn) btn.addEventListener("click", function () { selectTab(t.panel); });
+      });
     })();
   </script>
 </body>

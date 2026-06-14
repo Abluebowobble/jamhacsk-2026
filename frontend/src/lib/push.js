@@ -25,6 +25,25 @@ export function pushConfigured() {
   return Boolean(VAPID_PUBLIC_KEY)
 }
 
+/** True when running as an installed PWA (Home Screen / standalone display mode). */
+export function isStandalone() {
+  if (typeof window === 'undefined') return false
+  return (
+    window.matchMedia?.('(display-mode: standalone)')?.matches === true ||
+    // iOS Safari exposes this non-standard flag for Home-Screen PWAs.
+    window.navigator.standalone === true
+  )
+}
+
+/** True for iOS/iPadOS, where Web Push only exists inside an installed PWA. */
+export function isIos() {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent || ''
+  // iPadOS 13+ masquerades as desktop Safari ("MacIntel") but is touch-capable.
+  const iPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
+  return /iphone|ipad|ipod/i.test(ua) || iPadOS
+}
+
 // VAPID keys are base64url; PushManager wants a Uint8Array.
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -42,12 +61,16 @@ async function getRegistration() {
 
 /**
  * Current push state for the UI, without side effects.
- * @returns {Promise<{supported:boolean, configured:boolean, permission:NotificationPermission, subscribed:boolean}>}
+ * @returns {Promise<{supported:boolean, configured:boolean, permission:NotificationPermission, subscribed:boolean, needsInstall:boolean}>}
  */
 export async function getPushState() {
   const supported = pushSupported()
   const configured = pushConfigured()
   const permission = supported ? Notification.permission : 'denied'
+  // On iOS, Web Push APIs simply don't exist in a Safari tab — they appear only
+  // once the app is added to the Home Screen. So when push looks "unsupported"
+  // there, the real fix is "Add to Home Screen", not "your device can't do it".
+  const needsInstall = !supported && isIos() && !isStandalone()
   let subscribed = false
   if (supported) {
     try {
@@ -59,7 +82,7 @@ export async function getPushState() {
       /* not registered yet — treat as not subscribed */
     }
   }
-  return { supported, configured, permission, subscribed }
+  return { supported, configured, permission, subscribed, needsInstall }
 }
 
 /** Subscribe this device and register it with the backend. Throws on failure. */

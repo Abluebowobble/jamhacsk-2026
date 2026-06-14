@@ -3,6 +3,7 @@ import { Logo } from '../components/Logo'
 import { HouseholdSwitcher } from '../components/HouseholdSwitcher'
 import { NotificationsBell } from '../components/NotificationsBell'
 import { AccountMenu } from '../components/AccountMenu'
+import { InstallBanner } from '../components/InstallBanner'
 import { useSession } from '../lib/sessionContext'
 import { HouseholdContext } from '../lib/householdContext'
 import { RoleContext } from '../lib/roles'
@@ -25,6 +26,8 @@ export function AppShell() {
               </div>
             </div>
           </header>
+
+          <InstallBanner />
 
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
             <Outlet />

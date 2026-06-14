@@ -228,6 +228,14 @@ async function loadDeviceEvents(id, limit = 8) {
   }
 }
 
+// How often to re-poll live device state as a realtime fallback. Realtime
+// pushes changes instantly when healthy, but it can silently stop delivering
+// (dropped socket, channel error, StrictMode double-subscribe in dev, or an
+// unapplied realtime publication) — and presence not reflecting is exactly the
+// failure that strands a safety dashboard. Polling guarantees freshness within
+// a few seconds regardless. Kept modest and paused while the tab is hidden.
+const DEVICE_POLL_MS = 5000
+
 // ---- a shared 1s clock (only ticks while something needs it) --------------
 
 function useNow(active) {
@@ -254,6 +262,16 @@ export function useDevices(householdId) {
     loadHouseholdDevices(householdId)
   }, [householdId])
 
+  // Realtime fallback: re-poll the household's devices so live state (presence
+  // above all) still surfaces if realtime isn't delivering. See DEVICE_POLL_MS.
+  useEffect(() => {
+    if (!householdId) return undefined
+    const t = setInterval(() => {
+      if (!document.hidden) loadHouseholdDevices(householdId)
+    }, DEVICE_POLL_MS)
+    return () => clearInterval(t)
+  }, [householdId])
+
   const devices = useMemo(
     () => s.devices.filter((d) => d.householdId === householdId),
     [s.devices, householdId],
@@ -276,6 +294,17 @@ export function useDevice(id) {
 
   useEffect(() => {
     if (id) refreshDevice(id)
+  }, [id])
+
+  // Realtime fallback for the detail page: poll this one device so its presence
+  // (and stove/online) reflect promptly even when realtime is silent. See
+  // DEVICE_POLL_MS.
+  useEffect(() => {
+    if (!id) return undefined
+    const t = setInterval(() => {
+      if (!document.hidden) refreshDevice(id)
+    }, DEVICE_POLL_MS)
+    return () => clearInterval(t)
   }, [id])
 
   const now = useNow(Boolean(cached?.timer))
