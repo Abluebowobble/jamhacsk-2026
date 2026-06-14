@@ -18,6 +18,7 @@ from src.buzzer import Buzzer
 from src.loop import FirmwareLoop
 from src.mqtt_client import MqttClient
 from src.safety import SafetyController
+from src.state import AssignmentStore
 from src.stove import Stove
 
 logging.basicConfig(
@@ -37,6 +38,16 @@ def main():
     config = load_config()
     log.info("Starting Hestia firmware for device %s", config.device_id)
 
+    # The household this device belongs to is learned at runtime (the backend
+    # publishes it to the retained assignment topic on pair/unpair) and persisted
+    # locally. Prefer the persisted value; fall back to the optional .env seed.
+    state = AssignmentStore(config.state_file)
+    household_id = state.load() or config.household_id
+    if household_id:
+        log.info("Loaded household assignment: %s", household_id)
+    else:
+        log.info("No household assignment yet — idle until paired")
+
     # Actuators (lazy hardware init; simulated automatically off-Pi).
     buzzer = Buzzer()
     stove = Stove()
@@ -52,14 +63,17 @@ def main():
         client=None,  # set below once it can use the loop's enqueueing callbacks
         safety=safety,
         stove=stove,
+        state=state,
         poll_interval=POLL_INTERVAL_SECONDS,
         status_heartbeat=STATUS_HEARTBEAT_SECONDS,
     )
     client = MqttClient(
         config,
+        household_id=household_id,
         on_command=loop.on_command,
         on_settings=loop.on_settings,
         on_timer=loop.on_timer,
+        on_assignment=loop.on_assignment,
     )
     loop.set_client(client)
 

@@ -8,6 +8,9 @@ let logger = console
 
 // Topics are keyed by household: hestia/households/{householdId}/devices/{deviceId}/{kind}
 const TOPIC_BASE = 'hestia/households'
+// Device-scoped (household-independent) base for the assignment topic the device
+// listens to so it can learn/forget its household at runtime.
+const DEVICE_TOPIC_BASE = 'hestia/devices'
 
 /**
  * Connect to the MQTT broker and subscribe to device topics. Safe to call when
@@ -215,5 +218,32 @@ export async function publishToDevice(deviceId, payload, kind = 'commands') {
   client.publish(
     `${TOPIC_BASE}/${device.household_id}/devices/${deviceId}/${kind}`,
     JSON.stringify({ ...payload, timestamp: new Date().toISOString() }),
+  )
+}
+
+/**
+ * Tell a device which household it now belongs to (or that it was unpaired).
+ * Published RETAINED to the device-scoped assignment topic so a device that is
+ * offline/booting later still receives its current assignment. Fire-and-forget:
+ * the device also persists this locally, so a missed message self-heals on the
+ * device's next reconnect when it re-reads the retained value.
+ *
+ * @param {string} deviceId
+ * @param {string|null} householdId  null = unpaired
+ */
+export async function publishAssignment(deviceId, householdId) {
+  if (!client || !client.connected) {
+    logger.warn?.(`MQTT not connected — dropping assignment for ${deviceId}`)
+    return
+  }
+  client.publish(
+    `${DEVICE_TOPIC_BASE}/${deviceId}/assignment`,
+    JSON.stringify({
+      deviceId,
+      householdId: householdId ?? null,
+      paired: Boolean(householdId),
+      timestamp: new Date().toISOString(),
+    }),
+    { retain: true },
   )
 }

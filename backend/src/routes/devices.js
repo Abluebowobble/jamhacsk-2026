@@ -3,6 +3,7 @@ import { logEvent } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { sendToHouseholdMembers } from '../services/push.js'
+import { publishAssignment } from '../services/mqtt.js'
 
 export default async function devicesRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -83,6 +84,10 @@ export default async function devicesRoutes(app) {
     if (error) return reply.code(500).send({ error: error.message })
     if (!updated) return reply.code(409).send({ error: 'Device was just paired by someone else' })
 
+    // Tell the device (over MQTT) which household it now belongs to so its
+    // firmware can subscribe to the right topics and arm itself.
+    await publishAssignment(deviceId, householdId)
+
     await logEvent({
       householdId,
       deviceId,
@@ -162,6 +167,10 @@ export default async function devicesRoutes(app) {
       .update({ household_id: null, is_paired: false, updated_at: new Date().toISOString() })
       .eq('id', request.params.deviceId)
     if (error) return reply.code(500).send({ error: error.message })
+
+    // Tell the device it was unpaired so its firmware stops reporting to (and
+    // acting for) this household and goes idle.
+    await publishAssignment(request.params.deviceId, null)
 
     await logEvent({
       householdId,

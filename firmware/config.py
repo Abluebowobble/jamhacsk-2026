@@ -1,7 +1,10 @@
 """Loads firmware configuration from the environment (.env).
 
 Device identity is provided via DEVICE_ID (must match a row in Supabase
-`devices`). Everything else is broker connection detail.
+`devices`). The HOUSEHOLD_ID is *learned at runtime* from the backend's retained
+`hestia/devices/{deviceId}/assignment` topic when the device is paired (and
+persisted to STATE_FILE), so it is optional here — set it only as an initial
+seed/override. Everything else is broker connection detail.
 """
 import os
 from dataclasses import dataclass
@@ -20,11 +23,15 @@ except ImportError:
 @dataclass(frozen=True)
 class Config:
     device_id: str
-    household_id: str
+    # Optional initial household seed. The live assignment is learned over MQTT
+    # and persisted to state_file; this is only used when no state exists yet.
+    household_id: Optional[str]
     host: str
     port: int
     password: Optional[str]
     keepalive: int
+    # Where the learned household assignment is persisted across reboots.
+    state_file: str
     # Camera stream (PRD section 13). The browser connects directly to this
     # MJPEG server (via a Cloudflare Tunnel in deployment), gated by an HMAC
     # token the backend mints with the shared camera_stream_secret.
@@ -57,12 +64,13 @@ def _env_int(name, default):
 
 
 def load_config():
-    # Each physical device MUST set its own unique DEVICE_ID and the HOUSEHOLD_ID
-    # it belongs to (both match its row in Supabase `devices`). These key the
-    # MQTT topic + ACL, which is what isolates one family from another. The
-    # provisioning step (mqtt/provision-device.sh) prints all three values.
+    # Each physical device MUST set its own unique DEVICE_ID (matches its row in
+    # Supabase `devices`). The HOUSEHOLD_ID is learned at runtime when the device
+    # is paired (retained MQTT assignment topic) and is optional here — only used
+    # as an initial seed before any assignment is known. The provisioning step
+    # (mqtt/provision-device.sh) prints the DEVICE_ID + MQTT password.
     device_id = _require("DEVICE_ID")
-    household_id = _require("HOUSEHOLD_ID")
+    household_id = os.environ.get("HOUSEHOLD_ID", "").strip() or None
     broker_url = _require("MQTT_BROKER_URL")
 
     # Accept "mqtt://host:1883" or a bare "host:1883".
@@ -79,6 +87,7 @@ def load_config():
         # only the password is needed here.
         password=os.environ.get("MQTT_PASSWORD") or None,
         keepalive=int(os.environ.get("MQTT_KEEPALIVE", "60")),
+        state_file=os.environ.get("STATE_FILE", "").strip() or "state/device_state.json",
         camera_stream_enabled=_env_bool("CAMERA_STREAM_ENABLED", True),
         camera_stream_port=_env_int("CAMERA_STREAM_PORT", 8089),
         camera_stream_secret=os.environ.get("CAMERA_STREAM_SECRET") or None,
