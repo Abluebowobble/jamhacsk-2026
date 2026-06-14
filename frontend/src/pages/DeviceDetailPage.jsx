@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
   MoreVertical,
@@ -40,6 +40,21 @@ export function DeviceDetailPage() {
   const events = useDeviceEvents(deviceId, 8)
   const households = useHouseholds()
   const [cameraOpen, setCameraOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Fallback path for the notification buttons: when the service worker can't
+  // POST directly (no apiBase/token, or offline), it opens the app at
+  // ?action=snooze|turnoff and the logged-in client performs it here, once.
+  useEffect(() => {
+    const action = searchParams.get('action')
+    if (!action || !device) return
+    setSearchParams((prev) => {
+      prev.delete('action')
+      return prev
+    }, { replace: true })
+    if (action === 'snooze') actions.snooze(device.id)
+    else if (action === 'turnoff') actions.autoShutoff(device.id)
+  }, [searchParams, device, setSearchParams])
 
   if (!device) {
     if (loading) {
@@ -112,6 +127,8 @@ export function DeviceDetailPage() {
         canViewCamera={can('viewCamera', role)}
         unattendedSince={unattendedAnchor(events)}
         onAutoShutoff={() => actions.autoShutoff(device.id)}
+        onSnooze={() => actions.snooze(device.id)}
+        onTurnOff={() => actions.autoShutoff(device.id)}
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -268,7 +285,7 @@ function AdminMenu({ device }) {
         <MoreVertical className="size-5" aria-hidden="true" />
       </Button>
       {open && (
-        <div className="absolute right-0 top-full z-[var(--z-dropdown)] mt-1.5 w-48 overflow-hidden rounded-md border border-border bg-surface py-1 shadow-pop">
+        <div className="hestia-menu-in absolute right-0 top-full z-[var(--z-dropdown)] mt-1.5 w-48 origin-top-right overflow-hidden rounded-md border border-border bg-surface py-1 shadow-pop">
           {canRename && (
             <MenuItem
               icon={Pencil}

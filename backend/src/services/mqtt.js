@@ -2,6 +2,13 @@ import mqtt from 'mqtt'
 import supabaseAdmin from '../lib/supabase.js'
 import { logEvent } from '../lib/events.js'
 import { sendToHouseholdMembers } from './push.js'
+import { mintActionToken } from '../lib/actionToken.js'
+import { SNOOZE_SECONDS } from '../lib/safetyActions.js'
+
+// Backend's own public URL, baked into warning pushes so the service worker can
+// POST the snooze/turn-off action straight here from a locked phone. If unset,
+// the SW falls back to opening the app to perform the action.
+const PUBLIC_API_URL = (process.env.PUBLIC_API_URL || '').replace(/\/+$/, '')
 
 let client = null
 let logger = console
@@ -102,7 +109,7 @@ async function handleMessage(topic, buffer) {
 async function loadDeviceHousehold(deviceId) {
   const { data } = await supabaseAdmin
     .from('devices')
-    .select('id, household_id')
+    .select('id, household_id, warning_delay_seconds')
     .eq('id', deviceId)
     .maybeSingle()
   return data
@@ -138,10 +145,40 @@ async function handlePresence(deviceId, payload) {
   }, logger)
 }
 
-// Safety events the device reports that warrant a push notification.
-const NOTIFY_EVENTS = {
-  WARNING_BUZZER_STARTED: 'Hestia Alert: warning buzzer started — no one detected near the stove.',
-  AUTO_SHUTOFF_TRIGGERED: 'Hestia Alert: stove was turned off automatically because no one was detected nearby.',
+// Plain safety notifications (no action buttons). The auto-shutoff push reuses
+// the warning's per-device tag so it REPLACES the now-stale "about to shut off"
+// notification rather than stacking a second one.
+const SIMPLE_NOTIFY = {
+  AUTO_SHUTOFF_TRIGGERED: 'Stove turned off automatically — no one was detected nearby.',
+}
+
+/**
+ * The "stove is about to turn off" alert: a live countdown plus Snooze / Turn
+ * off now action buttons. Carries a signed action token so the service worker
+ * can act from a locked phone without a session.
+ */
+async function sendWarningPush(device, payload) {
+  const warningDelay = Number(device.warning_delay_seconds) || 30
+  // Prefer the buzzer-start time the device stamped; fall back to now.
+  const startedAt = Date.parse(payload?.timestamp) || Date.now()
+  const shutoffAt = new Date(startedAt + warningDelay * 1000).toISOString()
+  // Token outlives the warning window by a margin so a slightly late tap still
+  // works (the action is safe to run even after auto-shutoff already fired).
+  const actionToken = mintActionToken(device.id, { ttlSeconds: warningDelay + 600 })
+
+  await sendToHouseholdMembers(device.household_id, {
+    title: 'Hestia — stove shutting off',
+    body: 'No one’s at the stove. It will shut off automatically — snooze or turn it off now.',
+    tag: `hestia-shutoff-${device.id}`,
+    requireInteraction: true,
+    kind: 'shutoff-warning',
+    deviceId: device.id,
+    shutoffAt,
+    snoozeSeconds: SNOOZE_SECONDS,
+    actionToken,
+    apiBase: PUBLIC_API_URL,
+    url: `/devices/${device.id}`,
+  }, logger)
 }
 
 async function handleDeviceEvent(deviceId, payload) {
@@ -160,9 +197,18 @@ async function handleDeviceEvent(deviceId, payload) {
     metadata: payload,
   }, logger)
 
-  const body = NOTIFY_EVENTS[eventType]
+  if (eventType === 'WARNING_BUZZER_STARTED') {
+    await sendWarningPush(device, payload)
+    return
+  }
+
+  const body = SIMPLE_NOTIFY[eventType]
   if (body) {
-    await sendToHouseholdMembers(device.household_id, { title: 'Hestia', body }, logger)
+    await sendToHouseholdMembers(
+      device.household_id,
+      { title: 'Hestia', body, tag: `hestia-shutoff-${deviceId}`, url: `/devices/${deviceId}` },
+      logger,
+    )
   }
 }
 

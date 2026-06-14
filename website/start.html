@@ -441,6 +441,18 @@
             </div>
           </div>
 
+          <!-- Visible human-help block — talk to a real person -->
+          <div class="support" data-reveal>
+            <span class="support__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </span>
+            <h3 class="support__title">Would you like a hand setting up?</h3>
+            <p class="support__text">If anything is unclear, a real person will walk you through getting the app and pairing your device — step by step, at your pace.</p>
+            <div class="support__actions">
+              <a class="btn btn--primary btn--lg" href="mailto:help@hestia.my">Email help@hestia.my</a>
+            </div>
+          </div>
+
           <div class="gs-hero__cta" style="justify-content:center; margin-top: 36px;" data-reveal>
             <a class="btn btn--primary btn--lg" id="ctaPairBottom" href="#">
               Pair this device
@@ -515,11 +527,11 @@
       "use strict";
 
       /* Where the Hestia PWA lives. The NFC tag points at this marketing page
-         (e.g. https://hestia.app/start?device_id=…); pairing happens in the app
-         at /pair. If the PWA is hosted on a different origin (e.g.
-         https://app.hestia.app), set APP_BASE to that origin — otherwise leave
-         it "" to use the same origin. */
-      var APP_BASE = "";
+         (e.g. https://hestia.my/start?device_id=…); pairing happens in the app
+         at /pair. The PWA is hosted on a different origin (app.hestia.my, on
+         Cloudflare Pages) than this marketing site (hestia.my), so APP_BASE
+         points at the app's origin. */
+      var APP_BASE = "https://app.hestia.my";
       var PAIR_PATH = "/pair";
       var LOGIN_PATH = "/login";
 

@@ -6,7 +6,9 @@
 import { supabase } from './supabase'
 import { DEMO, demoApi } from './demo'
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Strip any trailing slash so `${BASE}${path}` can't produce a `//api/...`
+// double slash (which Fastify 404s) when VITE_API_URL is set with a slash.
+const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '')
 
 /** Error carrying the HTTP status so callers can branch (404 vs 409 vs 401). */
 export class ApiError extends Error {
@@ -123,6 +125,8 @@ const realApi = {
   // Stove control
   turnOn: (deviceId) => request(`/api/devices/${deviceId}/turn-on`, { method: 'POST' }),
   turnOff: (deviceId) => request(`/api/devices/${deviceId}/turn-off`, { method: 'POST' }),
+  // Snooze an imminent auto shut-off (in-app mirror of the notification button).
+  snooze: (deviceId) => request(`/api/devices/${deviceId}/snooze`, { method: 'POST' }),
 
   // Timers
   createTimer: (deviceId, durationSeconds) =>

@@ -40,6 +40,8 @@ export function DeviceSummaryCard({
   canViewCamera = false,
   unattendedSince = null,
   onAutoShutoff,
+  onSnooze,
+  onTurnOff,
 }) {
   const phase = computePhase(device)
   const meta = PHASE_META[phase]
@@ -123,7 +125,13 @@ export function DeviceSummaryCard({
 
       {/* Live shut-off countdown — only while a lit stove is unattended. */}
       {(phase === PHASE.UNATTENDED || phase === PHASE.WARNING) && (
-        <ShutoffCountdown device={device} since={unattendedSince} onExpire={onAutoShutoff} />
+        <ShutoffCountdown
+          device={device}
+          since={unattendedSince}
+          onExpire={onAutoShutoff}
+          onSnooze={onSnooze}
+          onTurnOff={onTurnOff}
+        />
       )}
     </section>
   )

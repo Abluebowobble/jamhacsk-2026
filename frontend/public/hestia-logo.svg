@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Hestia">
+  <title>Hestia</title>
+  <!-- Power/shutoff ring: open at top = "shuts the stove off" -->
+  <path d="M 307.8 62.8 A 200 200 0 1 1 204.2 62.8"
+        fill="none" stroke="#3d6fa6" stroke-width="26" stroke-linecap="round"/>
+  <!-- Power bar dipping into the gap -->
+  <line x1="256" y1="44" x2="256" y2="98" stroke="#3d6fa6" stroke-width="22" stroke-linecap="round"/>
+  <!-- Flame with a standing presence figure cut out of the negative space -->
+  <path fill="#3d6fa6" fill-rule="evenodd" d="
+    M 256 150
+    C 296 198, 320 232, 318 280
+    C 316 332, 286 362, 256 362
+    C 226 362, 196 332, 194 280
+    C 192 240, 214 206, 246 176
+    C 250 198, 262 202, 266 190
+    C 270 178, 262 164, 256 150 Z
+    M 256 228 a 15 15 0 1 0 0.01 0 Z
+    M 241 330 L 245 270 C 246 261 250 258 256 258 C 262 258 266 261 267 270 L 271 330 Z
+  "/>
+</svg>

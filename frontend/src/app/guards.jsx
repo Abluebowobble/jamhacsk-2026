@@ -1,5 +1,5 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { AlertTriangle } from 'lucide-react'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../lib/authContext'
 import { useSession } from '../lib/sessionContext'
 import { Splash } from './Splash'
@@ -25,6 +25,7 @@ export function RequireAuth() {
 export function RequireOnboarded() {
   const { households, householdsLoading, error, refetchHouseholds, devices, devicesLoading, pairingDeferred } =
     useSession()
+  const navigate = useNavigate()
 
   if (householdsLoading) return <Splash label="Loading your households…" />
 
@@ -39,7 +40,13 @@ export function RequireOnboarded() {
             <h1 className="text-xl font-semibold text-ink">Couldn’t load your account</h1>
             <p className="mt-1.5 text-sm text-ink-body">{error.message}</p>
           </div>
-          <Button onClick={refetchHouseholds}>Try again</Button>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              Go back
+            </Button>
+            <Button onClick={refetchHouseholds}>Try again</Button>
+          </div>
         </div>
       </div>
     )

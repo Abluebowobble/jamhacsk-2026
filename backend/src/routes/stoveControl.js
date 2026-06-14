@@ -2,6 +2,7 @@ import supabaseAdmin from '../lib/supabase.js'
 import { logEvent } from '../lib/events.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { publishToDevice } from '../services/mqtt.js'
+import { snoozeDevice, SNOOZE_SECONDS } from '../lib/safetyActions.js'
 
 export default async function stoveControlRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -40,6 +41,20 @@ export default async function stoveControlRoutes(app) {
       eventType: 'STOVE_TURNED_OFF',
     }, request.log)
     return { status: 'command_sent', command: 'TURN_OFF' }
+  })
+
+  // POST /api/devices/:deviceId/snooze — push the imminent shut-off back by
+  // SNOOZE_SECONDS (the in-app mirror of the notification's "Snooze" button).
+  app.post('/:deviceId/snooze', {
+    preHandler: [requireDeviceAccess('admin', 'member')],
+  }, async (request) => {
+    await snoozeDevice(
+      request.params.deviceId,
+      request.device.household_id,
+      { userId: request.user.id, source: 'app' },
+      request.log,
+    )
+    return { status: 'command_sent', command: 'SNOOZE', seconds: SNOOZE_SECONDS }
   })
 
   // GET /api/devices/:deviceId/status

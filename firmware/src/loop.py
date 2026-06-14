@@ -153,6 +153,9 @@ class FirmwareLoop:
             self._stove.turn_off()
             self._safety.set_stove(False, source=source)
             self._clear_timer()
+        elif command == "SNOOZE":
+            # "Snooze 2 min" from the about-to-shut-off notification (or in-app).
+            self._safety.snooze(int(payload.get("seconds", 120)))
         else:
             log.warning("Unknown command: %s", command)
 

@@ -158,6 +158,11 @@ export const demoApi = {
     if (d) setTimeout(() => { d.stove_status = 'off' }, 700)
     return wait(null)
   },
+  // Snooze keeps the stove on; just record the event so recent activity updates.
+  snooze: (deviceId) => {
+    events[deviceId] = [ev(`es_${Math.random().toString(36).slice(2, 8)}`, deviceId, 'SHUTOFF_SNOOZED', 0), ...(events[deviceId] ?? [])]
+    return wait({ status: 'command_sent', command: 'SNOOZE', seconds: 120 })
+  },
 
   createTimer: (deviceId, durationSeconds) => {
     const t = { id: `tmr_${Math.random().toString(36).slice(2, 8)}`, device_id: deviceId, status: 'active', duration_seconds: durationSeconds, ends_at: iso(durationSeconds * 1000) }

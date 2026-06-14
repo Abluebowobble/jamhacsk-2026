@@ -132,6 +132,22 @@ class SafetyController:
             if self._state == State.MONITORING:
                 self._enter_absence()
 
+    def snooze(self, seconds: int = 120):
+        """Defer an imminent auto-shutoff: silence the buzzer and re-warn after
+        ``seconds``. Drives the "Snooze 2 min" button. No-op unless we're armed
+        and actually counting down (ABSENCE/WARNING).
+        """
+        if self._state not in (State.WARNING, State.ABSENCE):
+            return
+        log.info("Snooze %ss — silencing buzzer, will re-warn", seconds)
+        self._stop_buzzer()
+        self._state = State.ABSENCE
+        # Backdate the absence start so the absence timer elapses exactly
+        # ``seconds`` from now, re-firing the warning then. (The backend already
+        # logs SHUTOFF_SNOOZED, so we don't emit a duplicate event here.)
+        self._absent_since = self._now() - (self._settings["absence_timeout_seconds"] - seconds)
+        self._warning_since = None
+
     def tick(self, now: Optional[float] = None):
         """Advance time-based transitions. Call once per main-loop iteration."""
         if now is None:

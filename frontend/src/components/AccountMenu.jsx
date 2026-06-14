@@ -48,7 +48,7 @@ export function AccountMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-[var(--z-dropdown)] mt-1.5 w-60 overflow-hidden rounded-md border border-border bg-surface py-1 shadow-pop"
+          className="hestia-menu-in absolute right-0 top-full z-[var(--z-dropdown)] mt-1.5 w-60 origin-top-right overflow-hidden rounded-md border border-border bg-surface py-1 shadow-pop"
         >
           <div className="border-b border-border px-3 py-2.5">
             <p className="text-xs text-ink-muted">Signed in as</p>

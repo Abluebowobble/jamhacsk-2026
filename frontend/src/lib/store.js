@@ -277,6 +277,13 @@ export const actions = {
     await awaitDeviceState(id, (x) => !x.stoveOn) // show OFF only once it reports back
     await loadDeviceEvents(id)
   },
+  // Snooze an imminent auto shut-off: the stove stays on, so there's no state to
+  // poll for — just relay the command and refresh the event log so the snooze
+  // shows in recent activity.
+  async snooze(id) {
+    await api.snooze(id)
+    await loadDeviceEvents(id)
+  },
   async createTimer(id, durationSecs) {
     await api.createTimer(id, durationSecs)
     await Promise.all([refreshDevice(id), loadDeviceEvents(id)])

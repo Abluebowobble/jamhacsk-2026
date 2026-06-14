@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Flame, AlertTriangle, ShieldAlert } from 'lucide-react'
+import { Flame, AlertTriangle, ShieldAlert, Clock, Power } from 'lucide-react'
 import { formatCountdown } from '../lib/format'
+import { Button } from './ui/Button'
 import { cx } from '../lib/cx'
 
 // Live "time until auto-shut-off" for a lit, unattended stove. The depleting
@@ -23,7 +24,7 @@ const STROKE = 9
 const R = (SIZE - STROKE) / 2
 const C = 2 * Math.PI * R
 
-export function ShutoffCountdown({ device, since = null, onExpire }) {
+export function ShutoffCountdown({ device, since = null, onExpire, onSnooze, onTurnOff }) {
   const total = Math.max(1, (device.absenceTimeout ?? 0) + (device.warningDelay ?? 0))
   const firstSeen = useRef(Date.now())
   const anchor = since ?? firstSeen.current
@@ -59,6 +60,21 @@ export function ShutoffCountdown({ device, since = null, onExpire }) {
   const stroke = danger ? 'var(--color-danger)' : 'var(--color-warn)'
   const Icon = terminal ? ShieldAlert : danger ? AlertTriangle : Flame
 
+  // Snooze / Turn off now — the in-app mirror of the notification buttons.
+  // Disabled briefly while the command is in flight so a double-tap can't
+  // fire twice.
+  const [busy, setBusy] = useState(null) // 'snooze' | 'turnoff' | null
+  const run = (kind, fn) => async () => {
+    if (busy || !fn) return
+    setBusy(kind)
+    try {
+      await fn()
+    } finally {
+      setBusy(null)
+    }
+  }
+  const showActions = !terminal && (onSnooze || onTurnOff)
+
   const heading = terminal ? 'Shutting off now' : inBuzzer ? 'Buzzer sounding' : 'No one’s returned'
   const sub = terminal
     ? 'Shut-off signal sent — waiting for the stove to confirm.'
@@ -69,10 +85,11 @@ export function ShutoffCountdown({ device, since = null, onExpire }) {
   return (
     <div
       className={cx(
-        'flex items-center gap-4 rounded-xl border p-3.5 sm:gap-5 sm:p-4',
+        'flex flex-col gap-3 rounded-xl border p-3.5 sm:p-4',
         danger ? 'border-danger/40 bg-danger-subtle' : 'border-warn/40 bg-warn-subtle',
       )}
     >
+      <div className="flex items-center gap-4 sm:gap-5">
       <div className="relative shrink-0" style={{ width: SIZE, height: SIZE }}>
         <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90" aria-hidden="true">
           <circle
@@ -117,6 +134,34 @@ export function ShutoffCountdown({ device, since = null, onExpire }) {
         </p>
         <p className="mt-1 text-sm text-ink-body">{sub}</p>
       </div>
+      </div>
+
+      {showActions && (
+        <div className="flex gap-2">
+          {onSnooze && (
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={run('snooze', onSnooze)}
+              disabled={Boolean(busy)}
+            >
+              <Clock className="size-4" aria-hidden="true" />
+              {busy === 'snooze' ? 'Snoozing…' : 'Snooze 2 min'}
+            </Button>
+          )}
+          {onTurnOff && (
+            <Button
+              variant="danger"
+              className="flex-1"
+              onClick={run('turnoff', onTurnOff)}
+              disabled={Boolean(busy)}
+            >
+              <Power className="size-4" aria-hidden="true" />
+              {busy === 'turnoff' ? 'Turning off…' : 'Turn off now'}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
