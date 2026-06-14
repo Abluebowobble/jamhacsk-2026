@@ -29,7 +29,7 @@ log = logging.getLogger("hestia.loop")
 
 
 class FirmwareLoop:
-    def __init__(self, *, config, client, safety, stove, monitor=None,
+    def __init__(self, *, config, client, safety, stove, state=None, monitor=None,
                  poll_interval=0.5, status_heartbeat=30.0,
                  time_fn=time.monotonic):
         self.cfg = config
@@ -37,10 +37,17 @@ class FirmwareLoop:
         self._client = client
         self._safety = safety
         self._stove = stove
+        # Persistent household assignment store (src.state.AssignmentStore).
+        self._state = state
         self._monitor = monitor
         self._poll_interval = poll_interval
         self._status_heartbeat = status_heartbeat
         self._now = time_fn
+
+        # Paired = we belong to a household and run the full safety + publish
+        # loop. Unpaired = idle (sync inbound only, so we still hear an
+        # assignment). Derived from the client when it's attached.
+        self._is_paired = bool(getattr(client, "household_id", None))
 
         # Inbound MQTT requests land here from the network thread; drained on the
         # main thread at the top of each tick (phase 1).
@@ -68,6 +75,7 @@ class FirmwareLoop:
         enqueueing callbacks). Publishing is best-effort, so this may even be
         left unset for a fully offline run."""
         self._client = client
+        self._is_paired = bool(getattr(client, "household_id", None))
 
     def attach_monitor(self, monitor):
         """Wire a PresenceMonitor in so its debounced flips feed this loop.
@@ -90,6 +98,11 @@ class FirmwareLoop:
 
     def on_timer(self, payload):
         self._inbound.put(("timer", payload))
+
+    def on_assignment(self, payload):
+        # Applying this reconnects the MQTT client, so it must run on the main
+        # loop thread — enqueue here, handle in _sync_inbound.
+        self._inbound.put(("assignment", payload))
 
     # --- internal collectors (main thread) ----------------------------------
     def _record_event(self, event_type, metadata):
@@ -118,7 +131,11 @@ class FirmwareLoop:
 
     def tick(self):
         now = self._now()
-        self._sync_inbound()      # 1. sync MQTT requests first
+        self._sync_inbound()      # 1. sync MQTT requests first (incl. assignment)
+        # While unpaired the device is idle: it has no household to protect or
+        # report to, so it only listens for an assignment (handled in phase 1).
+        if not self._is_paired:
+            return
         self._run_logic(now)      # 2. firmware's own safety logic
         self._publish_outbound(now)  # 3. send action logs + sensor data back
 
@@ -141,6 +158,45 @@ class FirmwareLoop:
             self._handle_settings(payload)
         elif kind == "timer":
             self._handle_timer(payload)
+        elif kind == "assignment":
+            self._handle_assignment(payload)
+
+    def _handle_assignment(self, payload):
+        """Apply a household pair / unpair pushed by the backend.
+
+        Paired   -> point the MQTT client at the new household subtree and resume
+                    the safety + publish loop.
+        Unpaired -> fail-safe the stove off, disarm, clear the old household's
+                    retained status, and go idle until paired again.
+        """
+        new_household = payload.get("householdId") or None
+        old_household = getattr(self._client, "household_id", None)
+        log.info("Assignment received: household %s -> %s", old_household, new_household)
+
+        # Persist first so a reboot reflects the latest assignment even if the
+        # reconnect below fails.
+        if self._state is not None:
+            self._state.save(new_household)
+
+        if new_household:
+            self._client.set_household(new_household)
+            self._is_paired = True
+            log.info("Device paired to household %s — safety loop active", new_household)
+            return
+
+        # Unpaired: go fully idle. Do this BEFORE switching the client off the old
+        # household so the fail-safe + status clear still reach the broker.
+        log.info("Device unpaired — turning stove off and going idle")
+        try:
+            self._stove.turn_off()
+        except Exception:
+            log.exception("unpair: stove.turn_off failed")
+        self._safety.set_stove(False, source="unpair")  # disarms + stops buzzer
+        self._clear_timer()
+        if old_household is not None:
+            self._client.clear_household_status(old_household)
+        self._client.set_household(None)
+        self._is_paired = False
 
     def _handle_command(self, payload):
         command = payload.get("command")

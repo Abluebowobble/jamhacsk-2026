@@ -9,9 +9,20 @@ Mirrors PRD section 20 and what backend/src/services/mqtt.js actually parses:
 from datetime import datetime, timezone
 
 TOPIC_BASE = "hestia/households"
+# Device-scoped (household-independent) base. Used for the assignment topic the
+# device listens to *before* it knows its household, so it can learn/forget it.
+DEVICE_TOPIC_BASE = "hestia/devices"
 
 
 # --- Topic builders ---------------------------------------------------------
+# The assignment topic is NOT under the household tree: the device subscribes to
+# it regardless of (and to discover) which household it belongs to. The backend
+# publishes it retained on pair/unpair.
+def topic_assignment(device_id):
+    return f"{DEVICE_TOPIC_BASE}/{device_id}/assignment"
+
+
+
 # Topics are keyed by household so the broker ACL can isolate families:
 #   hestia/households/{householdId}/devices/{deviceId}/{kind}
 def _topic(household_id, device_id, kind):

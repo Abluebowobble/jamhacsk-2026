@@ -19,13 +19,18 @@ log = logging.getLogger("hestia.mqtt")
 
 
 class MqttClient:
-    def __init__(self, config, *, on_command=None, on_settings=None, on_timer=None):
+    def __init__(self, config, *, household_id=None, on_command=None,
+                 on_settings=None, on_timer=None, on_assignment=None):
         self.cfg = config
         self.device_id = config.device_id
-        self.household_id = config.household_id
+        # The household is mutable: it starts from a persisted/seed value (may be
+        # None = unpaired) and changes at runtime via set_household() when the
+        # backend pairs/unpairs the device.
+        self.household_id = household_id
         self._on_command = on_command
         self._on_settings = on_settings
         self._on_timer = on_timer
+        self._on_assignment = on_assignment
 
         # A short random suffix keeps the client_id unique. Two clients with the
         # SAME id make the broker kick one off repeatedly (connect/disconnect
@@ -36,24 +41,37 @@ class MqttClient:
         )
 
         # The device authenticates as username = DEVICE_ID. The broker ACL grants
-        # that user ONLY its own household/device subtree, so families are isolated.
+        # that user ONLY its own device subtree (any household), so families are
+        # isolated by deviceId.
         self._client.username_pw_set(self.device_id, config.password)
 
         # Auto-reconnect with backoff, so a dropped broker recovers on its own.
         self._client.reconnect_delay_set(min_delay=1, max_delay=30)
 
-        # Last Will: if this Pi disconnects unexpectedly, the broker publishes
-        # an offline status on our behalf -> backend marks the device offline.
-        self._client.will_set(
-            m.topic_status(self.household_id, self.device_id),
-            json.dumps(m.offline_will(self.device_id)),
-            qos=1,
-            retain=True,
-        )
+        # Last Will: if this Pi disconnects unexpectedly, the broker publishes an
+        # offline status on our behalf -> backend marks the device offline. Only
+        # meaningful once we know our household (set in _apply_will()).
+        self._apply_will()
 
         self._client.on_connect = self._handle_connect
         self._client.on_message = self._handle_message
         self._client.on_disconnect = self._handle_disconnect
+
+    def _apply_will(self):
+        """(Re)configure the Last Will for the current household.
+
+        The will is part of the CONNECT packet, so changing it only takes effect
+        on the next (re)connect — set_household() forces a reconnect for that.
+        """
+        if self.household_id:
+            self._client.will_set(
+                m.topic_status(self.household_id, self.device_id),
+                json.dumps(m.offline_will(self.device_id)),
+                qos=1,
+                retain=True,
+            )
+        else:
+            self._client.will_clear()
 
     # --- lifecycle ----------------------------------------------------------
     def start_resilient(self):
@@ -79,6 +97,40 @@ class MqttClient:
         self._client.loop_stop()
         self._client.disconnect()
 
+    def set_household(self, new_household_id):
+        """Change the household this device reports to (pair / unpair / re-pair).
+
+        Must be called on the main loop thread (not a paho callback). Updates the
+        Last Will and forces a reconnect so the new will registers and
+        _handle_connect re-subscribes to the correct subtree. A no-op if the
+        household is unchanged.
+        """
+        new_household_id = new_household_id or None
+        if new_household_id == self.household_id:
+            return
+        log.info("Household assignment: %s -> %s", self.household_id, new_household_id)
+        self.household_id = new_household_id
+        self._apply_will()
+        # reconnect() re-sends CONNECT (with the new will) and triggers
+        # on_connect, which subscribes to the right topics for the new household.
+        try:
+            self._client.reconnect()
+        except Exception:
+            # If the broker is down, the background loop will reconnect later with
+            # the updated will/household already in place.
+            log.debug("reconnect after household change deferred (broker down?)",
+                      exc_info=True)
+
+    def clear_household_status(self, household_id):
+        """Remove the retained online status on a household we're leaving, so a
+        stale 'online' message doesn't linger after unpair. Empty retained
+        payload deletes the retained message on that topic."""
+        if not household_id:
+            return
+        self._client.publish(
+            m.topic_status(household_id, self.device_id), payload=b"", qos=1, retain=True
+        )
+
     # --- inbound (backend -> Pi) -------------------------------------------
     def _handle_connect(self, client, userdata, flags, reason_code, properties=None):
         rc = getattr(reason_code, "value", reason_code)
@@ -86,6 +138,21 @@ class MqttClient:
             log.error("MQTT connect refused: %s", reason_code)
             return
         log.info("MQTT connected as device %s", self.device_id)
+
+        # ALWAYS subscribe to the device-scoped assignment topic so we learn (and
+        # later forget) our household even before we're paired. Retained, so a
+        # device that boots already-paired gets its assignment immediately.
+        assignment = m.topic_assignment(self.device_id)
+        client.subscribe(assignment, qos=1)
+        log.info("Subscribed: %s", assignment)
+
+        # Household-scoped topics + presence announcement only make sense once a
+        # household is known. While unpaired we stay connected purely to listen
+        # for an assignment.
+        if not self.household_id:
+            log.info("No household yet — waiting for assignment")
+            return
+
         for topic in (
             m.topic_commands(self.household_id, self.device_id),
             m.topic_settings(self.household_id, self.device_id),
@@ -110,7 +177,11 @@ class MqttClient:
 
         kind = msg.topic.rsplit("/", 1)[-1]
         try:
-            if kind == "commands":
+            if kind == "assignment":
+                # Enqueue ONLY: applying an assignment reconfigures + reconnects
+                # this client, which must not happen on the paho network thread.
+                self._dispatch(self._on_assignment, payload, "assignment")
+            elif kind == "commands":
                 self._dispatch(self._on_command, payload, "command")
             elif kind == "settings":
                 self._dispatch(self._on_settings, payload, "settings")
@@ -135,6 +206,10 @@ class MqttClient:
     def publish_status(self, *, online=True, stove_status="off",
                        presence="not_detected", buzzer="off",
                        active_timer_seconds_remaining=None):
+        # Telemetry is household-scoped; while unpaired there's nowhere (and no
+        # one) to publish to, so skip.
+        if not self.household_id:
+            return
         payload = m.status_payload(
             self.device_id,
             online=online,
@@ -147,12 +222,16 @@ class MqttClient:
         self._publish(m.topic_status(self.household_id, self.device_id), payload, qos=1, retain=True)
 
     def publish_presence(self, detected):
+        if not self.household_id:
+            return
         self._publish(
             m.topic_presence(self.household_id, self.device_id),
             m.presence_payload(detected),
         )
 
     def publish_event(self, event_type, metadata=None):
+        if not self.household_id:
+            return
         self._publish(
             m.topic_events(self.household_id, self.device_id),
             m.event_payload(event_type, metadata),
