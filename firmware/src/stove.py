@@ -83,24 +83,30 @@ class _Sg90Servo:
         )
         log.info("Stove backend: SG90 servo pin=%s on_angle=%s°", pin, on_angle)
 
-    def _move_to(self, angle):
+    def _move_to(self, angle, hold):
         self._servo.angle = angle
         # Hold the pulse long enough for the servo to physically reach the angle
         # (SG90 ≈ 0.1 s/60°, so a full 180° sweep needs a few hundred ms).
         time.sleep(self._settle_s)
-        # Then DETACH: stop sending PWM pulses. A cheap SG90 left under a
-        # continuous pulse "hunts" around the target and buzzes/twitches, so
-        # once it has reached the angle we cut the signal and let it sit quietly.
-        # The knob holds position mechanically; the next on()/off() re-asserts a
-        # pulse, so safety is unaffected.
-        self._servo.detach()
+        # Optionally DETACH: stop sending PWM pulses. A cheap SG90 left under a
+        # continuous pulse "hunts" around the target and buzzes/twitches, so on a
+        # non-critical move we can cut the signal and let it sit quietly.
+        #
+        # We must NOT do this on the OFF path: the servo is turning a stove knob,
+        # a real mechanical load (friction, and often a spring-return / detented
+        # knob). Once detached the servo loses all holding torque and the knob can
+        # creep/spring back toward ON — so the stove never reliably stays off.
+        # Off is safety-critical, so it keeps asserting the OFF pulse (hold=True).
+        if not hold:
+            self._servo.detach()
 
     def on(self):
-        self._move_to(self._on_angle)
+        # ON is not safety-critical; detach after settling to avoid SG90 jitter.
+        self._move_to(self._on_angle, hold=False)
 
     def off(self):
-        self._move_to(_OFF_ANGLE)
-        print ("tunring stove off")
+        # Keep torque on OFF so the knob is actually held at the off position.
+        self._move_to(_OFF_ANGLE, hold=True)
 
     def close(self):
         try:
