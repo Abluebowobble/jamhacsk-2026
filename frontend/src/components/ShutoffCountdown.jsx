@@ -80,7 +80,15 @@ export function ShutoffCountdown({ device, since = null, onExpire, graceUntil = 
       )}
     >
       <div className="relative shrink-0" style={{ width: SIZE, height: SIZE }}>
-        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90" aria-hidden="true">
+        {/* scaleX(-1) outside the -90° rotation mirrors the ring so it drains
+            CLOCKWISE while keeping the 12 o'clock start fixed. */}
+        <svg
+          width={SIZE}
+          height={SIZE}
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          style={{ transform: 'scaleX(-1) rotate(-90deg)', transformOrigin: 'center' }}
+          aria-hidden="true"
+        >
           <circle
             cx={SIZE / 2}
             cy={SIZE / 2}
