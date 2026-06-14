@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, X, AlertCircle, Trash2, LogOut, ShieldCheck, User, UserPlus, Inbox } from 'lucide-react'
+import { Check, X, AlertCircle, Trash2, LogOut, ShieldCheck, User, UserPlus, Inbox, KeyRound, Copy, Plus } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Field } from '../../components/ui/Field'
 import { Button } from '../../components/ui/Button'
@@ -37,6 +37,7 @@ export function HouseholdSection() {
     <div className="flex flex-col gap-8">
       {/* key on householdId so switching households re-seeds the name field. */}
       <RenameGroup key={householdId} householdId={householdId} name={activeHousehold.name} canRename={canRename} refetch={refetchHouseholds} />
+      {canManage && <InviteCodesGroup key={`invites-${householdId}`} householdId={householdId} />}
       {canManage && <RequestsGroup householdId={householdId} />}
       <MembersGroup householdId={householdId} />
       <DangerGroup
@@ -113,6 +114,172 @@ function RenameGroup({ householdId, name, canRename, refetch }) {
         </form>
       </Card>
     </SettingsGroup>
+  )
+}
+
+// ---- Invite codes (admin: generate codes members redeem to join) ---------
+
+// Human-friendly display: split the 8-char code with a hyphen (KQ7M-3PX9).
+// The raw, unhyphenated code is what's copied and what the redeemer types
+// (the backend normalizes either way).
+function formatCode(code) {
+  return code && code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code
+}
+
+function expiryLabel(expiresAt) {
+  if (!expiresAt) return 'No expiry'
+  const ms = new Date(expiresAt).getTime() - Date.now()
+  if (ms <= 0) return 'Expired'
+  const days = Math.round(ms / 86_400_000)
+  if (days >= 1) return `Expires in ${days} day${days === 1 ? '' : 's'}`
+  const hours = Math.max(1, Math.round(ms / 3_600_000))
+  return `Expires in ${hours} hour${hours === 1 ? '' : 's'}`
+}
+
+function InviteCodesGroup({ householdId }) {
+  const [codes, setCodes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [actionError, setActionError] = useState(null)
+
+  // Keyed on householdId by the parent, so this mounts fresh per household and
+  // `loading` starts true — no synchronous setState needed in the effect body.
+  useEffect(() => {
+    let alive = true
+    api
+      .listJoinCodes(householdId)
+      .then((list) => alive && setCodes(list))
+      .catch(() => alive && setActionError('Couldn’t load invite codes.'))
+      .finally(() => alive && setLoading(false))
+    return () => {
+      alive = false
+    }
+  }, [householdId])
+
+  const onGenerate = async () => {
+    setGenerating(true)
+    setActionError(null)
+    try {
+      const code = await api.createJoinCode(householdId)
+      setCodes((prev) => [code, ...prev])
+    } catch (e) {
+      setActionError(e?.message || 'Couldn’t generate a code. Try again.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const onRevoke = async (code) => {
+    setActionError(null)
+    const prev = codes
+    setCodes((cs) => cs.filter((c) => c.id !== code.id)) // optimistic
+    try {
+      await api.revokeJoinCode(code.id)
+    } catch (e) {
+      setCodes(prev) // roll back
+      setActionError(e?.message || 'Couldn’t revoke that code.')
+    }
+  }
+
+  return (
+    <SettingsGroup
+      title="Invite codes"
+      description="Share a code so people can join this household as members — no device pairing needed. Revoke a code to stop new sign-ups with it."
+    >
+      {actionError && (
+        <p className="inline-flex items-center gap-1.5 text-sm text-danger-fg" role="alert">
+          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+          {actionError}
+        </p>
+      )}
+
+      <Card className="divide-y divide-border">
+        {loading ? (
+          Array.from({ length: 1 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-4">
+              <Skeleton className="h-7 w-32 rounded-md" />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-9 w-9 rounded-md" />
+            </div>
+          ))
+        ) : codes.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 px-6 py-9 text-center">
+            <span className="grid size-10 place-items-center rounded-full bg-surface-sunken text-ink-muted">
+              <KeyRound className="size-5" aria-hidden="true" />
+            </span>
+            <p className="text-sm font-medium text-ink">No active codes</p>
+            <p className="max-w-xs text-sm text-ink-body">
+              Generate a code and share it with someone you want to add to this household.
+            </p>
+          </div>
+        ) : (
+          codes.map((c) => <CodeRow key={c.id} code={c} onRevoke={() => onRevoke(c)} />)
+        )}
+      </Card>
+
+      <div>
+        <Button onClick={onGenerate} loading={generating}>
+          <Plus className="size-4" aria-hidden="true" />
+          Generate invite code
+        </Button>
+      </div>
+    </SettingsGroup>
+  )
+}
+
+function CodeRow({ code, onRevoke }) {
+  const [copied, setCopied] = useState(false)
+
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code.code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* clipboard blocked — the code is visible to read off manually */
+    }
+  }
+
+  const used = code.use_count ?? 0
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 p-4">
+      <div className="min-w-0 flex-1">
+        <p className="font-mono text-lg font-semibold tracking-[0.12em] text-ink tabular-nums">
+          {formatCode(code.code)}
+        </p>
+        <p className="mt-0.5 text-xs text-ink-muted">
+          {expiryLabel(code.expires_at)} · used {used} time{used === 1 ? '' : 's'}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="secondary" onClick={onCopy}>
+          {copied ? (
+            <>
+              <Check className="size-4 text-success-fg" aria-hidden="true" />
+              Copied
+            </>
+          ) : (
+            <>
+              <Copy className="size-4" aria-hidden="true" />
+              Copy
+            </>
+          )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-9 text-danger-fg hover:bg-danger-subtle"
+          aria-label={`Revoke code ${formatCode(code.code)}`}
+          onClick={onRevoke}
+        >
+          <Trash2 className="size-4" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
   )
 }
 

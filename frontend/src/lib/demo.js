@@ -75,6 +75,11 @@ let joinRequests = [
   { id: 'jr_riley', household_id: 'hh_home', user_id: 'usr_riley', status: 'pending', created_at: iso(-3 * 3_600_000), profiles: { full_name: 'Riley Chen' } },
 ]
 
+// Active invite codes an admin has generated for a household.
+let joinCodes = [
+  { id: 'jc_home', household_id: 'hh_home', code: 'KQ7M3PX9', expires_at: iso(6 * 86_400_000), use_count: 2, created_at: iso(-86_400_000) },
+]
+
 // The DEMO_USER is an admin of "Home", so they receive a join-request
 // notification per pending request, plus one resolved example.
 let notifications = [
@@ -157,6 +162,32 @@ export const demoApi = {
   pairingStatus: () => wait({ status: 'unpaired' }),
   pairDevice: (deviceId) => wait(find(deviceId)),
   requestJoin: () => wait({ id: 'jr_1', status: 'pending' }),
+
+  listJoinCodes: (householdId) => wait(joinCodes.filter((c) => c.household_id === householdId).map((c) => ({ ...c }))),
+  createJoinCode: (householdId, expiresInDays = 7) => {
+    const c = {
+      id: `jc_${Math.random().toString(36).slice(2, 8)}`,
+      household_id: householdId,
+      code: Array.from({ length: 8 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join(''),
+      expires_at: expiresInDays === null ? null : iso(expiresInDays * 86_400_000),
+      use_count: 0,
+      created_at: iso(0),
+    }
+    joinCodes.unshift(c)
+    return wait({ ...c })
+  },
+  revokeJoinCode: (codeId) => {
+    joinCodes = joinCodes.filter((c) => c.id !== codeId)
+    return wait(null)
+  },
+  redeemJoinCode: (code) => {
+    const norm = String(code).toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const c = joinCodes.find((x) => x.code === norm)
+    if (!c) return Promise.reject(Object.assign(new Error('That invite code isn’t valid.'), { name: 'ApiError', status: 404 }))
+    const h = households.find((x) => x.id === c.household_id) ?? { id: c.household_id, name: 'Household' }
+    if (!households.some((x) => x.id === h.id)) households.push({ ...h, role: 'member' })
+    return wait({ household: { ...h, role: 'member' }, alreadyMember: false })
+  },
 
   listJoinRequests: (householdId) =>
     wait(joinRequests.filter((j) => j.household_id === householdId && j.status === 'pending').map((j) => ({ ...j }))),

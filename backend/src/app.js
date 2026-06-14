@@ -11,6 +11,7 @@ import healthRoutes from './routes/health.js'
 import householdsRoutes from './routes/households.js'
 import membersRoutes from './routes/members.js'
 import joinRequestsRoutes from './routes/joinRequests.js'
+import joinCodesRoutes from './routes/joinCodes.js'
 import devicesRoutes from './routes/devices.js'
 import stoveControlRoutes from './routes/stoveControl.js'
 import cameraRoutes from './routes/camera.js'
@@ -77,6 +78,7 @@ export async function buildApp() {
   await app.register(householdsRoutes, { prefix: '/api/households' })
   await app.register(membersRoutes, { prefix: '/api/households' })
   await app.register(joinRequestsRoutes, { prefix: '/api' })
+  await app.register(joinCodesRoutes, { prefix: '/api' })
   await app.register(devicesRoutes, { prefix: '/api' })
   await app.register(stoveControlRoutes, { prefix: '/api/devices' })
   await app.register(cameraRoutes, { prefix: '/api/devices' })

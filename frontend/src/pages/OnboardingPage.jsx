@@ -20,10 +20,13 @@ import { Button } from '../components/ui/Button'
 //   1. No household → choose a path: create a new one, or join an existing one
 //      (join routes to pairing, where access to a device's household is requested).
 //   2. Chose "create" → name the household.
-//   3. Defaults not set → pick the safety timings new devices start with.
-//   4. Household, no device → prompt to pair (deferrable for the session).
+//   3. Defaults not set (admin) → pick the safety timings new devices start with.
+//   4. Household, no device (admin) → prompt to pair (deferrable for the session).
+// Steps 3-4 are device setup, which only the household's admin does. A member
+// who joined with an invite code has no device chores — they fall straight
+// through to the dashboard.
 export function OnboardingPage() {
-  const { households, householdsLoading, devices, devicesLoading, deferPairing, refetchHouseholds, setActiveHousehold } =
+  const { households, householdsLoading, activeHousehold, devices, devicesLoading, deferPairing, refetchHouseholds, setActiveHousehold } =
     useSession()
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
@@ -52,20 +55,24 @@ export function OnboardingPage() {
     return (
       <ChoosePathStep
         onCreate={() => setPath('create')}
-        onJoin={() => navigate('/pair')}
+        onJoin={() => navigate('/join')}
         onSignOut={signOut}
       />
     )
   }
 
-  // Step 2 — choose the safety defaults applied to each device on pairing.
+  // Members are set up the moment they have a household — no device steps.
+  const isAdmin = activeHousehold?.role === 'admin'
+  if (!isAdmin) return <Navigate to="/" replace />
+
+  // Step 2 (admin) — choose the safety defaults applied to each device on pairing.
   if (!defaultsSet) {
     return <SafetyDefaultsStep userId={user?.id} onSaved={() => setDefaultsSet(true)} />
   }
 
   if (devicesLoading) return <Splash label="Checking your devices…" />
 
-  // Step 3 — household exists but no device paired.
+  // Step 3 (admin) — household exists but no device paired.
   if (devices.length === 0) {
     return (
       <PairPromptStep

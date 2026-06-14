@@ -17,7 +17,11 @@ export function SessionProvider({ children }) {
   const [selectedId, setSelectedId] = useState(() => readActiveId())
 
   const [devices, setDevices] = useState([])
-  const [devicesLoading, setDevicesLoading] = useState(false)
+  // Start true: once authed with a household, devices are about to be fetched.
+  // Treating the pre-fetch window as "loading" stops the onboarding gate from
+  // briefly seeing an empty device list (devices=[] before the effect runs) and
+  // bouncing a deep-link refresh to /onboarding.
+  const [devicesLoading, setDevicesLoading] = useState(true)
 
   // The household gate is hard; the device gate is a strong prompt the user can
   // defer for this session (e.g. their physical unit isn't to hand right now).
@@ -50,6 +54,7 @@ export function SessionProvider({ children }) {
       setDevices([])
       setPairingDeferred(false)
       setHouseholdsLoading(false)
+      setDevicesLoading(false)
     }
   }, [status, refetchHouseholds])
 
@@ -69,6 +74,7 @@ export function SessionProvider({ children }) {
     const id = householdId ?? null
     if (!id) {
       setDevices([])
+      setDevicesLoading(false)
       return []
     }
     setDevicesLoading(true)

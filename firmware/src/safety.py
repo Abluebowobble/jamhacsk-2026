@@ -112,6 +112,40 @@ class SafetyController:
                 log.info("Stove OFF (source=%s) — disarming safety monitor", source)
             self._disarm()
 
+    def snooze(self, seconds: int):
+        """Postpone the auto-shutoff by ``seconds`` ("add time" from the app).
+
+        Only meaningful while the safety monitor is armed and the person is
+        absent (ABSENCE or WARNING). Silences the buzzer and re-enters ABSENCE
+        with the absence anchor shifted so the warning fires again in exactly
+        ``seconds`` — this reuses ``tick()`` and keeps ``seconds_until_action``
+        / ``snapshot`` correct with no extra state. A no-op while DISARMED or
+        MONITORING (nothing to extend).
+        """
+        try:
+            seconds = int(seconds)
+        except (TypeError, ValueError):
+            log.warning("snooze: ignoring non-numeric seconds %r", seconds)
+            return
+        if seconds <= 0:
+            log.warning("snooze: ignoring non-positive seconds %s", seconds)
+            return
+        if self._state not in (State.ABSENCE, State.WARNING):
+            log.info("snooze: ignored — nothing to extend (state=%s)", self._state.value)
+            return
+
+        if self._state == State.WARNING:
+            self._stop_buzzer()
+        # Shift the anchor so `absence_timeout - elapsed == seconds` at the next
+        # tick: elapsed = now - absent_since, and warning fires at elapsed >=
+        # absence_timeout, so absent_since = now - (absence_timeout - seconds).
+        timeout = self._settings["absence_timeout_seconds"]
+        self._state = State.ABSENCE
+        self._absent_since = self._now() - (timeout - seconds)
+        self._warning_since = None
+        log.info("Snoozed — auto-shutoff postponed by %ss", seconds)
+        self._emit("WARNING_SNOOZED", {"seconds": seconds})
+
     def on_presence(self, detected: bool):
         """Feed a debounced presence change into the safety logic.
 

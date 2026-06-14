@@ -105,6 +105,23 @@ const realApi = {
       (r) => r.device,
     ),
 
+  // Invite codes (settings → household, admin). Generate / list / revoke.
+  listJoinCodes: (householdId) =>
+    request(`/api/households/${householdId}/join-codes`).then((r) => r.joinCodes ?? []),
+  createJoinCode: (householdId, expiresInDays) =>
+    request(`/api/households/${householdId}/join-codes`, {
+      method: 'POST',
+      body: expiresInDays === undefined ? {} : { expiresInDays },
+    }).then((r) => r.joinCode),
+  revokeJoinCode: (codeId) => request(`/api/join-codes/${codeId}`, { method: 'DELETE' }),
+
+  // Redeem an invite code to join a household as a member (the new member flow).
+  redeemJoinCode: (code) =>
+    request('/api/join-codes/redeem', { method: 'POST', body: { code } }).then((r) => ({
+      household: r.household,
+      alreadyMember: Boolean(r.alreadyMember),
+    })),
+
   // Join requests (Case B — request access to an already-paired device's household)
   requestJoin: (householdId) =>
     request(`/api/households/${householdId}/join-requests`, { method: 'POST' }).then(
@@ -138,6 +155,9 @@ const realApi = {
   // Stove control
   turnOn: (deviceId) => request(`/api/devices/${deviceId}/turn-on`, { method: 'POST' }),
   turnOff: (deviceId) => request(`/api/devices/${deviceId}/turn-off`, { method: 'POST' }),
+  // "Add time": postpone the unattended auto-shutoff by `seconds` (multiple of 30).
+  extendWarning: (deviceId, seconds) =>
+    request(`/api/devices/${deviceId}/extend-warning`, { method: 'POST', body: { seconds } }),
 
   // Timers
   createTimer: (deviceId, durationSeconds) =>

@@ -363,6 +363,12 @@ export const actions = {
     await awaitDeviceState(id, (x) => !x.stoveOn) // show OFF only once it reports back
     await loadDeviceEvents(id)
   },
+  // "Add time" at the warning moment: relay a snooze to the device, then refresh
+  // so the new WARNING_SNOOZED event re-anchors the countdown ring.
+  async extendWarning(id, seconds) {
+    await api.extendWarning(id, seconds)
+    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
+  },
   async createTimer(id, durationSecs) {
     await api.createTimer(id, durationSecs)
     await Promise.all([refreshDevice(id), loadDeviceEvents(id)])

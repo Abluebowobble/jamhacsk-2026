@@ -21,9 +21,11 @@ export function RequireAuth() {
 // Gate 2 — onboarding. The user is signed in; make sure they're set up before
 // the control panel loads:
 //   • no household           → /onboarding (create or join)
-//   • household but no device → /onboarding (pair) unless deferred this session
+//   • admin with no device    → /onboarding (pair) unless deferred this session
+// Members never get the pairing prompt — they set up through the household
+// (an invite code); devices are the admin's to add.
 export function RequireOnboarded() {
-  const { households, householdsLoading, error, refetchHouseholds, devices, devicesLoading, pairingDeferred } =
+  const { households, householdsLoading, error, refetchHouseholds, activeHousehold, devices, devicesLoading, pairingDeferred } =
     useSession()
   const { signOut } = useAuth()
 
@@ -57,7 +59,8 @@ export function RequireOnboarded() {
   // Wait until we know whether the active household has a device before deciding.
   if (devicesLoading) return <Splash label="Checking your devices…" />
 
-  if (devices.length === 0 && !pairingDeferred) {
+  const isAdmin = activeHousehold?.role === 'admin'
+  if (isAdmin && devices.length === 0 && !pairingDeferred) {
     return <Navigate to="/onboarding" replace />
   }
 

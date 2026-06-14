@@ -164,15 +164,38 @@ async function handlePresence(deviceId, payload) {
   }, logger)
 }
 
-// Safety events the device reports that warrant a push notification (PRD §16).
+// Safety events the device reports that warrant a plain-text push (PRD §16).
 const NOTIFY_EVENTS = {
-  WARNING_BUZZER_STARTED: 'Hestia Alert: warning buzzer started — no one detected near the stove.',
   AUTO_SHUTOFF_TRIGGERED: 'Hestia Alert: stove was turned off automatically because no one was detected nearby.',
   WARNING_CANCELLED: 'Hestia: someone returned to the stove — the warning was cancelled.',
 }
 
+// The unattended-warning moment gets an actionable push (PRD §12): two buttons
+// that deep-link into the app — "Add time" (snooze) or "Turn off" — plus the
+// device URL so a tap lands on its detail page. The service worker reads
+// `actions`/`data`/`url` from this payload (frontend/public/push-sw.js).
+function warningPush(deviceId, name) {
+  return {
+    title: `Hestia — ${name} unattended`,
+    body: 'No one detected near the stove. Add time or turn it off.',
+    tag: `warn-${deviceId}`, // coalesce repeated warning/snooze alerts
+    requireInteraction: true,
+    url: `/devices/${deviceId}?alert=warning`,
+    data: { deviceId },
+    actions: [
+      { action: 'add-time', title: 'Add time' },
+      { action: 'turn-off', title: 'Turn off' },
+    ],
+  }
+}
+
 async function handleDeviceEvent(deviceId, payload) {
-  const device = await loadDeviceHousehold(deviceId)
+  // Load the name too so the actionable warning push can title the device.
+  const { data: device } = await supabaseAdmin
+    .from('devices')
+    .select('id, household_id, device_name')
+    .eq('id', deviceId)
+    .maybeSingle()
   // Only act on devices that belong to a household, so events + notifications
   // go to the correct household and unknown devices are ignored.
   if (!device?.household_id) return
@@ -186,6 +209,15 @@ async function handleDeviceEvent(deviceId, payload) {
     eventType,
     metadata: payload,
   }, logger)
+
+  if (eventType === 'WARNING_BUZZER_STARTED') {
+    await sendToHouseholdMembers(
+      device.household_id,
+      warningPush(deviceId, device.device_name || 'the stove'),
+      logger,
+    )
+    return
+  }
 
   const body = NOTIFY_EVENTS[eventType]
   if (body) {

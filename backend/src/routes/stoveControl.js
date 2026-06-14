@@ -2,6 +2,7 @@ import supabaseAdmin from '../lib/supabase.js'
 import { logEvent } from '../lib/events.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { publishToDevice } from '../services/mqtt.js'
+import { sendToHouseholdMembers } from '../services/push.js'
 
 export default async function stoveControlRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -40,6 +41,41 @@ export default async function stoveControlRoutes(app) {
       eventType: 'STOVE_TURNED_OFF',
     }, request.log)
     return { status: 'command_sent', command: 'TURN_OFF' }
+  })
+
+  // POST /api/devices/:deviceId/extend-warning — "add time": postpone the
+  // unattended auto-shutoff by `seconds` (snooze). The Pi holds the authoritative
+  // timer, so we relay a SNOOZE command; the snooze is logged + coalesced-notified.
+  app.post('/:deviceId/extend-warning', {
+    preHandler: [requireDeviceAccess('admin', 'member')],
+    schema: {
+      body: {
+        type: 'object',
+        required: ['seconds'],
+        properties: {
+          seconds: { type: 'integer', minimum: 30, maximum: 1800, multipleOf: 30 },
+        },
+      },
+    },
+  }, async (request) => {
+    const { seconds } = request.body
+    const { deviceId } = request.params
+
+    await publishToDevice(deviceId, { command: 'SNOOZE', seconds, source: 'user' })
+    await logEvent({
+      householdId: request.device.household_id,
+      deviceId,
+      userId: request.user.id,
+      eventType: 'WARNING_SNOOZED',
+      metadata: { seconds },
+    }, request.log)
+    await sendToHouseholdMembers(request.device.household_id, {
+      title: 'Hestia',
+      body: `Time added — the stove stays on for now.`,
+      tag: `warn-${deviceId}`, // coalesce with the warning alert
+    }, request.log)
+
+    return { status: 'command_sent', command: 'SNOOZE', seconds }
   })
 
   // GET /api/devices/:deviceId/status

@@ -153,6 +153,8 @@ class FirmwareLoop:
             self._stove.turn_off()
             self._safety.set_stove(False, source=source)
             self._clear_timer()
+        elif command == "SNOOZE":
+            self._safety.snooze(payload.get("seconds", 0))
         else:
             log.warning("Unknown command: %s", command)
 

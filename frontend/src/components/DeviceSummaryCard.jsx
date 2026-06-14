@@ -40,6 +40,8 @@ export function DeviceSummaryCard({
   canViewCamera = false,
   unattendedSince = null,
   onAutoShutoff,
+  graceUntil = null,
+  graceTotal = null,
 }) {
   const phase = computePhase(device)
   const meta = PHASE_META[phase]
@@ -121,9 +123,16 @@ export function DeviceSummaryCard({
         />
       </div>
 
-      {/* Live shut-off countdown — only while a lit stove is unattended. */}
+      {/* Live shut-off countdown — only while a lit stove is unattended. After
+          an "add time" snooze, the grace deadline overrides the threshold timing. */}
       {(phase === PHASE.UNATTENDED || phase === PHASE.WARNING) && (
-        <ShutoffCountdown device={device} since={unattendedSince} onExpire={onAutoShutoff} />
+        <ShutoffCountdown
+          device={device}
+          since={unattendedSince}
+          graceUntil={graceUntil}
+          graceTotal={graceTotal}
+          onExpire={onAutoShutoff}
+        />
       )}
     </section>
   )
