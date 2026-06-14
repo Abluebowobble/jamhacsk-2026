@@ -1,4 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
+import { sendToSubscription } from '../services/push.js'
 
 export default async function pushRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -28,6 +29,20 @@ export default async function pushRoutes(app) {
       .select()
       .single()
     if (error) return reply.code(500).send({ error: error.message })
+
+    // Fire a one-off confirmation to THIS device so the user immediately sees
+    // push works — the only push not gated on a safety event. Fire-and-forget:
+    // a send failure must not fail the subscription that was just stored.
+    sendToSubscription(
+      { endpoint, p256dh, auth },
+      {
+        title: 'Notifications on',
+        body: 'Hestia will alert you here when a stove needs attention.',
+        tag: 'push-welcome',
+      },
+      request.log,
+    ).catch(() => {})
+
     return reply.code(201).send({ subscription: data })
   })
 

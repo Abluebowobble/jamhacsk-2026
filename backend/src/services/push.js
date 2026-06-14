@@ -20,6 +20,25 @@ export function isPushConfigured() {
 }
 
 /**
+ * Send a single push to one subscription. Used for the subscribe confirmation —
+ * the only push not tied to a safety event — so a user can verify, on the spot,
+ * that alerts actually reach this device. Returns true on success.
+ */
+export async function sendToSubscription({ endpoint, p256dh, auth }, payload, logger = console) {
+  if (!configured) return false
+  try {
+    await webpush.sendNotification(
+      { endpoint, keys: { p256dh, auth } },
+      JSON.stringify(payload),
+    )
+    return true
+  } catch (err) {
+    logger.error?.({ err }, 'confirmation push failed')
+    return false
+  }
+}
+
+/**
  * Send a push notification to every subscription belonging to a user.
  * Stale (410/404) subscriptions are pruned from the DB.
  */
