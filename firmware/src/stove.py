@@ -29,6 +29,11 @@ from .util import env_float, env_int
 
 log = logging.getLogger("hestia.stove")
 
+
+def _dbg(*args):
+    """Loud, unbuffered debug print so each stove action shows up in the Pi log."""
+    print(">>> DBG[stove]", *args, flush=True)
+
 # The stove is OFF when the servo sits at this angle. We stop 5° short of the
 # servo's 0° hard stop so it doesn't strain/buzz against the physical limit.
 _OFF_ANGLE = 5
@@ -104,6 +109,7 @@ class Stove(Actuator):
 
     def turn_on(self):
         """Drive the servo to the ON angle."""
+        _dbg("turn_on() called")
         self._drive(True)
 
     def turn_off(self):
@@ -116,22 +122,29 @@ class Stove(Actuator):
         where the servo started. (The base ``Actuator`` skips a no-op transition;
         the stove must not.)
         """
+        _dbg("turn_off() called")
         self._drive(False)
 
     def _drive(self, on):
         """Command the servo to the on/off angle. No idempotency guard: the
         servo's physical position is the source of truth, not the tracked bool,
         so re-asserting the target angle is always correct."""
+        target = self._on_angle if on else _OFF_ANGLE
+        _dbg("_drive(on=", on, ") -> ensuring backend, target angle=", target)
         try:
             backend = self._ensure()
+            _dbg("  backend is:", type(backend).__name__)
             backend.on() if on else backend.off()
-        except Exception:
+            _dbg("  backend.", "on" if on else "off", "() completed")
+        except Exception as exc:
+            _dbg("  !! backend raised:", repr(exc))
             self.log.exception("stove.turn_%s failed", "on" if on else "off")
             if on:
                 return  # couldn't engage — leave reported state unchanged
         self._active = on
         # Record the angle we commanded; is_on derives on/off from this.
-        self._angle = self._on_angle if on else _OFF_ANGLE
+        self._angle = target
+        _dbg("  state updated: _active=", self._active, "_angle=", self._angle)
 
     @property
     def is_on(self) -> bool:

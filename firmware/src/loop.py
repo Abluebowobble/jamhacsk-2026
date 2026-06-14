@@ -28,6 +28,11 @@ from typing import Optional
 log = logging.getLogger("hestia.loop")
 
 
+def _dbg(*args):
+    """Loud, unbuffered debug print so each action shows up in the Pi log."""
+    print(">>> DBG[loop]", *args, flush=True)
+
+
 class FirmwareLoop:
     def __init__(self, *, config, client, safety, stove, state=None, monitor=None,
                  poll_interval=0.5, status_heartbeat=30.0,
@@ -68,6 +73,8 @@ class FirmwareLoop:
         # cloud-independent shutoff when it elapses.
         self._timer_deadline: Optional[float] = None
         self._timer_id = None
+        # Throttle for the per-tick timer countdown debug line.
+        self._last_timer_dbg = 0.0
 
         if self._monitor is not None:
             self.attach_monitor(self._monitor)
@@ -101,6 +108,7 @@ class FirmwareLoop:
         self._inbound.put(("settings", payload))
 
     def on_timer(self, payload):
+        _dbg("on_timer: received from MQTT (enqueueing):", payload)
         self._inbound.put(("timer", payload))
 
     def on_assignment(self, payload):
@@ -206,17 +214,23 @@ class FirmwareLoop:
         command = payload.get("command")
         source = payload.get("source", "backend")
         log.info("Command: %s (source=%s)", command, source)
+        _dbg("_handle_command:", command, "source=", source)
         if command == "TURN_ON":
+            _dbg("  -> stove.turn_on()")
             self._stove.turn_on()
             self._safety.set_stove(True, source=source)
+            _dbg("  <- stove.is_on now:", self._stove.is_on)
         elif command == "TURN_OFF":
+            _dbg("  -> stove.turn_off()")
             self._stove.turn_off()
             self._safety.set_stove(False, source=source)
             self._clear_timer()
+            _dbg("  <- stove.is_on now:", self._stove.is_on)
         elif command == "SNOOZE":
             self._safety.snooze(payload.get("seconds", 0))
         else:
             log.warning("Unknown command: %s", command)
+            _dbg("  !! unknown command:", command)
 
     def _handle_settings(self, payload):
         log.info("Settings: %s", payload)
@@ -228,13 +242,23 @@ class FirmwareLoop:
     def _handle_timer(self, payload):
         action = payload.get("action")
         log.info("Timer: %s", payload)
+        _dbg("_handle_timer: action=", action, "payload=", payload)
         if action == "TIMER_STARTED":
             duration = payload.get("durationSeconds")
+            _dbg("  TIMER_STARTED durationSeconds=", duration, "(type", type(duration).__name__, ")")
             if duration:
                 self._timer_deadline = self._now() + float(duration)
                 self._timer_id = payload.get("timerId")
+                _dbg("  deadline set: now=", round(self._now(), 2),
+                     "deadline=", round(self._timer_deadline, 2),
+                     "fires in", round(self._timer_deadline - self._now(), 2), "s")
+            else:
+                _dbg("  !! no/zero durationSeconds — deadline NOT set, timer will never fire")
         elif action == "TIMER_CANCELLED":
+            _dbg("  TIMER_CANCELLED — clearing deadline")
             self._clear_timer()
+        else:
+            _dbg("  !! unhandled timer action:", action)
 
     def _clear_timer(self):
         self._timer_deadline = None
@@ -258,11 +282,25 @@ class FirmwareLoop:
         # event here: the backend timer poller owns that audit event and fires it
         # exactly once (it holds the DB timer's status), so reporting it from here
         # too would double-log.
-        if self._timer_deadline is not None and now >= self._timer_deadline:
-            log.info("Cooking timer elapsed — turning stove off")
-            self._stove.turn_off()
-            self._safety.set_stove(False, source="timer")
-            self._clear_timer()
+        if self._timer_deadline is not None:
+            remaining = self._timer_deadline - now
+            # Heartbeat the countdown every ~3s so we can see it tick toward 0.
+            if now - self._last_timer_dbg >= 3.0:
+                self._last_timer_dbg = now
+                _dbg("timer countdown:", round(remaining, 1), "s remaining",
+                     "(now=", round(now, 2), "deadline=", round(self._timer_deadline, 2), ")")
+            if now >= self._timer_deadline:
+                log.info("Cooking timer elapsed — turning stove off")
+                _dbg("TIMER ELAPSED -> calling stove.turn_off()")
+                try:
+                    self._stove.turn_off()
+                    _dbg("  stove.turn_off() returned; stove.is_on=", self._stove.is_on)
+                except Exception as exc:
+                    _dbg("  !! stove.turn_off() RAISED:", repr(exc))
+                    log.exception("timer shutoff: stove.turn_off failed")
+                self._safety.set_stove(False, source="timer")
+                self._clear_timer()
+                _dbg("  timer cleared after shutoff")
 
     # --- phase 3: publish (best-effort; broker may be down) -----------------
     def _publish_outbound(self, now):

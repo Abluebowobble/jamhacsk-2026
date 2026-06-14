@@ -166,6 +166,9 @@ class MqttClient:
         log.warning("MQTT disconnected (%s) — auto-reconnecting", reason)
 
     def _handle_message(self, client, userdata, msg):
+        # Loud, unbuffered: proves whether a message actually reached the device.
+        print(">>> DBG[mqtt] RX topic=", msg.topic, "payload=", msg.payload[:200],
+              flush=True)
         try:
             payload = json.loads(msg.payload.decode())
         except (ValueError, UnicodeDecodeError):
