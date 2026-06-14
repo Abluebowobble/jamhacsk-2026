@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   Hestia marketing site — "Clinical Precision" (light only)
+   Warm burnt-orange on near-white. Hairline structure. Calm at rest,
+   decisive in a safety event. The resting world is orange/green;
+   amber and red are EARNED — warning and danger only.
+   Tokens mirror frontend/src/index.css (the product's design system).
+   ===================================================================== */
+
+@theme {
+  /* ---- Surfaces (faint warm tint — clinical, not "orange paper") ---- */
+  --color-bg: oklch(0.990 0.004 70);
+  --color-surface: oklch(1 0 0);
+  --color-surface-sunken: oklch(0.974 0.006 70);
+  --color-panel: oklch(0.982 0.007 65);
+
+  /* ---- Ink (warm-neutral) ---- */
+  --color-ink: oklch(0.20 0.012 65);
+  --color-ink-body: oklch(0.32 0.012 65);
+  --color-ink-muted: oklch(0.50 0.015 65);
+  --color-ink-faint: oklch(0.62 0.013 65);
+
+  /* ---- Borders ---- */
+  --color-border: oklch(0.918 0.006 65);
+  --color-border-strong: oklch(0.860 0.007 65);
+
+  /* ---- Primary: burnt-orange ---- */
+  --color-primary: oklch(0.55 0.16 52);
+  --color-primary-hover: oklch(0.50 0.17 50);
+  --color-primary-active: oklch(0.45 0.17 48);
+  --color-primary-fg: oklch(0.99 0.01 75);
+  --color-primary-subtle: oklch(0.965 0.035 65);
+  --color-primary-border: oklch(0.860 0.060 60);
+
+  /* ---- Safe / online / presence — green ---- */
+  --color-success: oklch(0.60 0.13 155);
+  --color-success-subtle: oklch(0.950 0.040 155);
+  --color-success-fg: oklch(0.40 0.11 155);
+  --color-success-border: oklch(0.85 0.06 155);
+
+  /* ---- Warning / buzzer / absence countdown — amber ---- */
+  --color-warn: oklch(0.72 0.15 70);
+  --color-warn-subtle: oklch(0.955 0.050 75);
+  --color-warn-fg: oklch(0.45 0.10 60);
+  --color-warn-border: oklch(0.86 0.08 75);
+
+  /* ---- Danger / auto-shutoff / offline / destructive — red ---- */
+  --color-danger: oklch(0.55 0.21 25);
+  --color-danger-hover: oklch(0.50 0.21 25);
+  --color-danger-subtle: oklch(0.950 0.040 25);
+  --color-danger-fg: oklch(0.45 0.16 25);
+  --color-danger-border: oklch(0.86 0.07 25);
+
+  /* ---- Neutral / stove-off / inactive (calm gray, NOT red) ---- */
+  --color-neutral: oklch(0.70 0.010 65);
+  --color-neutral-subtle: oklch(0.962 0.005 65);
+
+  /* ---- Type ---- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: clamp(2.1rem, 1.4rem + 2.6vw, 3rem);
+  --text-5xl: clamp(2.6rem, 1.5rem + 4.2vw, 4.25rem);
+  --text-6xl: clamp(3rem, 1.6rem + 5.6vw, 5.25rem);
+
+  /* ---- Radius (clinical = restrained) ---- */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 14px;
+  --radius-2xl: 22px;
+  --radius-full: 9999px;
+
+  /* ---- Elevation ---- */
+  --shadow-pop: 0 4px 12px -2px oklch(0.20 0.02 65 / 0.10);
+  --shadow-modal: 0 16px 40px -8px oklch(0.20 0.02 65 / 0.18);
+  --shadow-card-hover: 0 1px 2px oklch(0.20 0.02 65 / 0.04),
+                       0 8px 24px -12px oklch(0.20 0.02 65 / 0.14);
+  --shadow-float: 0 2px 4px oklch(0.20 0.02 65 / 0.04),
+                  0 24px 60px -22px oklch(0.45 0.10 52 / 0.30);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---- Layout ---- */
+  --container-w: 1140px;
+  --container-narrow-w: 760px;
+  --nav-h: 64px;
+}
+
+:root {
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 240ms;
+
+  --z-base: 1;
+  --z-sticky: 1100;
+  --z-nav: 1250;
+  --z-backdrop: 1200;
+  --z-modal: 1300;
+
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-ink-body);
+  background: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+}
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 16px);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100svh;
+    background: var(--color-bg);
+    color: var(--color-ink-body);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--color-ink);
+    font-weight: 600;
+    letter-spacing: -0.014em;
+    text-wrap: balance;
+    line-height: 1.12;
+  }
+
+  p { text-wrap: pretty; }
+
+  img, svg, video { display: block; max-width: 100%; }
+  svg { flex-shrink: 0; }
+
+  a { color: var(--color-primary); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+  a:hover { color: var(--color-primary-hover); }
+
+  ul { list-style: none; padding: 0; }
+
+  button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+
+  code, kbd, samp, .tabular, .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection { background: var(--color-primary-subtle); color: var(--color-ink); }
+  ::placeholder { color: var(--color-ink-muted); opacity: 1; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  :focus:not(:focus-visible) { outline: none; }
+}
+
+@layer utilities {
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  /* Faint engineering grid, masked to fade at the edges — the "instrument" surface. */
+  .grid-bg { position: relative; isolation: isolate; }
+  .grid-bg::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(to right, oklch(0.55 0.07 52 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0.55 0.07 52 / 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 78%);
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 78%);
+  }
+
+  /* Warm ambient glow used behind hero / centerpiece. */
+  .aurora {
+    position: absolute; inset: -20% -10% auto -10%; height: 120%; z-index: -1;
+    pointer-events: none; filter: blur(60px); opacity: 0.6;
+    background:
+      radial-gradient(40% 50% at 22% 30%, oklch(0.72 0.15 52 / 0.35), transparent 70%),
+      radial-gradient(38% 48% at 80% 22%, oklch(0.78 0.13 70 / 0.30), transparent 70%),
+      radial-gradient(45% 55% at 60% 75%, oklch(0.68 0.12 150 / 0.18), transparent 72%);
+  }
+}
+
+/* Lenis smooth-scroll engine */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Dashed connector "flow" toward the (optional) cloud. */
+@keyframes flow-dash { to { stroke-dashoffset: -18; } }
+.flow-dash { animation: flow-dash 1.1s linear infinite; }
+
+/* The one motion at rest: a warning ring pulse. Steady on danger. */
+@keyframes hestia-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.15 70 / 0.45); }
+  50%      { box-shadow: 0 0 0 7px oklch(0.72 0.15 70 / 0); }
+}
+.hestia-pulse-warn { animation: hestia-pulse 1.6s var(--ease-out) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .hestia-pulse-warn { box-shadow: 0 0 0 2px var(--color-warn); }
+  .aurora { opacity: 0.4; }
+}
