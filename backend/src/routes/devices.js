@@ -2,6 +2,7 @@ import supabaseAdmin from '../lib/supabase.js'
 import { logEvent } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
+import { sendToHouseholdMembers } from '../services/push.js'
 
 export default async function devicesRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -88,6 +89,13 @@ export default async function devicesRoutes(app) {
       userId: request.user.id,
       eventType: 'DEVICE_PAIRED',
       metadata: {},
+    }, request.log)
+
+    // PRD §16: notify the household that a device was paired.
+    await sendToHouseholdMembers(householdId, {
+      title: 'Hestia',
+      body: `${updated.device_name || 'A device'} was paired to your household.`,
+      tag: `device-paired-${deviceId}`,
     }, request.log)
 
     return reply.code(201).send({ device: updated })

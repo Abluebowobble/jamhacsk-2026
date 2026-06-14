@@ -13,7 +13,7 @@ numpy>=1.24.0
 # (pip install is fragile on Pi). Without it, capture falls back to OpenCV.
 # picamera2
 
-# Buzzer + stove relay GPIO control on the Raspberry Pi 4B. The firmware falls
+# Buzzer + stove SG90 servo GPIO control on the Raspberry Pi 4B. The firmware falls
 # back to a simulated (no-op, logs only) backend automatically on a dev machine,
 # so these are optional off-Pi (the markers skip them on non-ARM hosts).
 #

@@ -6,7 +6,9 @@
 import { supabase } from './supabase'
 import { DEMO, demoApi } from './demo'
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Strip a trailing slash so `${BASE}${path}` never produces a double slash
+// (paths below all start with "/").
+const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '')
 
 /** Error carrying the HTTP status so callers can branch (404 vs 409 vs 401). */
 export class ApiError extends Error {

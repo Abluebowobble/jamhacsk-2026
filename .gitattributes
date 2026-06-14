@@ -1,2 +1,6 @@
 # Shell scripts must stay LF so they run inside Linux containers.
 *.sh text eol=lf
+
+# Broker config is read inside the mosquitto (Linux) container — keep it LF, or
+# Mosquitto reads paths with a trailing \r and fails to start.
+mqtt/config/mosquitto.conf text eol=lf
