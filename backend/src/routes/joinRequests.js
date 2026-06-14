@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
 import {
   createNotification,
@@ -38,9 +38,11 @@ export default async function joinRequestsRoutes(app) {
     if (error) return reply.code(500).send({ error: error.message })
 
     await logEvent({
+      ...auditContext(request),
       householdId,
-      userId: request.user.id,
       eventType: 'JOIN_REQUEST_CREATED',
+      resourceType: 'join_request',
+      resourceId: joinRequest.id,
       metadata: { requestId: joinRequest.id },
     }, request.log)
 
@@ -183,16 +185,20 @@ async function reviewRequest(request, reply, decision) {
     if (memberError) return reply.code(500).send({ error: memberError.message })
 
     await logEvent({
+      ...auditContext(request),
       householdId: joinRequest.household_id,
-      userId: request.user.id,
       eventType: 'JOIN_REQUEST_APPROVED',
+      resourceType: 'join_request',
+      resourceId: requestId,
       metadata: { requestId, approvedUserId: joinRequest.user_id },
     }, request.log)
     await logEvent({
+      ...auditContext(request),
       householdId: joinRequest.household_id,
-      userId: joinRequest.user_id,
       eventType: 'MEMBER_ADDED',
-      metadata: { requestId },
+      resourceType: 'member',
+      resourceId: joinRequest.user_id,
+      metadata: { requestId, addedUserId: joinRequest.user_id },
     }, request.log)
 
     await createNotification({
@@ -204,9 +210,11 @@ async function reviewRequest(request, reply, decision) {
     }, request.log)
   } else {
     await logEvent({
+      ...auditContext(request),
       householdId: joinRequest.household_id,
-      userId: request.user.id,
       eventType: 'JOIN_REQUEST_DENIED',
+      resourceType: 'join_request',
+      resourceId: requestId,
       metadata: { requestId, deniedUserId: joinRequest.user_id },
     }, request.log)
 

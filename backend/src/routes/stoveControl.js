@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { publishToDevice } from '../services/mqtt.js'
 import { sendToHouseholdMembers } from '../services/push.js'
@@ -17,10 +17,12 @@ export default async function stoveControlRoutes(app) {
       .update({ stove_status: 'on', updated_at: new Date().toISOString() })
       .eq('id', request.params.deviceId)
     await logEvent({
+      ...auditContext(request),
       householdId: request.device.household_id,
       deviceId: request.params.deviceId,
-      userId: request.user.id,
       eventType: 'STOVE_TURNED_ON',
+      resourceType: 'device',
+      resourceId: request.params.deviceId,
     }, request.log)
     return { status: 'command_sent', command: 'TURN_ON' }
   })
@@ -35,10 +37,12 @@ export default async function stoveControlRoutes(app) {
       .update({ stove_status: 'off', updated_at: new Date().toISOString() })
       .eq('id', request.params.deviceId)
     await logEvent({
+      ...auditContext(request),
       householdId: request.device.household_id,
       deviceId: request.params.deviceId,
-      userId: request.user.id,
       eventType: 'STOVE_TURNED_OFF',
+      resourceType: 'device',
+      resourceId: request.params.deviceId,
     }, request.log)
     return { status: 'command_sent', command: 'TURN_OFF' }
   })

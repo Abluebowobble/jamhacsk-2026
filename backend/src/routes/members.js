@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
 
 export default async function membersRoutes(app) {
@@ -84,9 +84,12 @@ export default async function membersRoutes(app) {
     if (!data) return reply.code(404).send({ error: 'Member not found in this household' })
 
     await logEvent({
+      ...auditContext(request),
       householdId,
-      userId: request.user.id,
       eventType: 'MEMBER_ROLE_CHANGED',
+      resourceType: 'member',
+      resourceId: userId,
+      after: { role },
       metadata: { targetUserId: userId, role },
     }, request.log)
 
@@ -120,9 +123,11 @@ export default async function membersRoutes(app) {
     if (error) return reply.code(500).send({ error: error.message })
 
     await logEvent({
+      ...auditContext(request),
       householdId,
-      userId: request.user.id,
       eventType: 'MEMBER_REMOVED',
+      resourceType: 'member',
+      resourceId: userId,
       metadata: { removedUserId: userId },
     }, request.log)
 

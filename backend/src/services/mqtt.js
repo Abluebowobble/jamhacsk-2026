@@ -102,7 +102,7 @@ async function handleMessage(topic, buffer) {
 async function loadDeviceHousehold(deviceId) {
   const { data } = await supabaseAdmin
     .from('devices')
-    .select('id, household_id')
+    .select('id, household_id, device_name')
     .eq('id', deviceId)
     .maybeSingle()
   return data
@@ -133,6 +133,11 @@ async function handleStatus(deviceId, payload) {
       householdId: device.household_id,
       deviceId,
       eventType: wentOffline ? 'DEVICE_OFFLINE' : 'DEVICE_ONLINE',
+      actorType: 'device',
+      actorLabel: device.device_name ?? null,
+      source: 'mqtt',
+      resourceType: 'device',
+      resourceId: deviceId,
     }, logger)
     await sendToHouseholdMembers(device.household_id, {
       title: 'Hestia',
@@ -160,6 +165,11 @@ async function handlePresence(deviceId, payload) {
     householdId: device.household_id,
     deviceId,
     eventType: detected ? 'PRESENCE_DETECTED' : 'NO_PRESENCE_DETECTED',
+    actorType: 'device',
+    actorLabel: device.device_name ?? null,
+    source: 'mqtt',
+    resourceType: 'device',
+    resourceId: deviceId,
     metadata: payload,
   }, logger)
 }
@@ -207,6 +217,11 @@ async function handleDeviceEvent(deviceId, payload) {
     householdId: device.household_id,
     deviceId,
     eventType,
+    actorType: 'device',
+    actorLabel: device.device_name ?? null,
+    source: 'mqtt',
+    resourceType: 'device',
+    resourceId: deviceId,
     metadata: payload,
   }, logger)
 

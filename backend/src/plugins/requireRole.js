@@ -1,4 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
+import { logEvent, auditContext } from '../lib/events.js'
 
 /**
  * Builds a Fastify preHandler that ensures request.user is a member of the
@@ -29,12 +30,28 @@ export function makeRoleCheck(...allowedRoles) {
       return reply.code(500).send({ error: 'Failed to check membership' })
     }
     if (!membership) {
+      await logDenied(request, householdId, { required: allowedRoles, reason: 'not_a_member' })
       return reply.code(403).send({ error: 'You are not a member of this household' })
     }
     if (allowedRoles.length && !allowedRoles.includes(membership.role)) {
+      await logDenied(request, householdId, { required: allowedRoles, actual: membership.role, reason: 'wrong_role' })
       return reply.code(403).send({ error: `Requires role: ${allowedRoles.join(' or ')}` })
     }
 
     request.membership = membership
   }
+}
+
+// Audit a blocked authorization attempt. The route handler never runs, so this
+// is the only place the denial gets recorded.
+async function logDenied(request, householdId, metadata) {
+  await logEvent({
+    ...auditContext(request),
+    householdId,
+    eventType: 'PERMISSION_DENIED',
+    outcome: 'denied',
+    resourceType: 'household',
+    resourceId: householdId,
+    metadata: { route: request.routeOptions?.url ?? request.url, method: request.method, ...metadata },
+  }, request.log)
 }

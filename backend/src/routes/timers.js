@@ -1,8 +1,8 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { logEvent } from '../lib/events.js'
+import { logEvent, auditContext } from '../lib/events.js'
 import { requireDeviceAccess } from '../lib/deviceAccess.js'
 import { publishToDevice } from '../services/mqtt.js'
-import { sendToUser } from '../services/push.js'
+import { sendToHouseholdMembers } from '../services/push.js'
 
 export default async function timersRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -57,10 +57,12 @@ export default async function timersRoutes(app) {
     }, 'timers')
 
     await logEvent({
+      ...auditContext(request),
       householdId: request.device.household_id,
       deviceId: request.params.deviceId,
-      userId: request.user.id,
       eventType: 'TIMER_CREATED',
+      resourceType: 'timer',
+      resourceId: timer.id,
       metadata: { timerId: timer.id, duration_seconds },
     }, request.log)
 
@@ -107,15 +109,18 @@ export default async function timersRoutes(app) {
     publishToDevice(timer.device_id, { action: 'TIMER_CANCELLED', timerId }, 'timers')
 
     await logEvent({
+      ...auditContext(request),
       householdId: timer.household_id,
       deviceId: timer.device_id,
-      userId: request.user.id,
       eventType: 'TIMER_CANCELLED',
+      resourceType: 'timer',
+      resourceId: timerId,
       metadata: { timerId },
     }, request.log)
 
-    if (timer.created_by) {
-      await sendToUser(timer.created_by, { title: 'Hestia', body: 'Your stove timer was cancelled.' }, request.log)
+    // PRD §16: notify the whole household, not just the timer's creator.
+    if (timer.household_id) {
+      await sendToHouseholdMembers(timer.household_id, { title: 'Hestia', body: 'A stove timer was cancelled.' }, request.log)
     }
 
     return reply.code(204).send()
