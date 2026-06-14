@@ -31,6 +31,7 @@ the broker remotely.
 3. **OS:** Ubuntu 24.04 LTS. **Plan:** smallest (1 vCPU / 1 GB, ~$5–6/mo) is enough.
 4. (Optional but nice) add your SSH key under "SSH Keys".
 5. Deploy. When it's up, copy the **public IP** — referred to below as `VULTR_IP`.
+   The current server's IP is **216.128.154.60** (substitute it for `VULTR_IP` throughout).
 
 ## 2. Log in and install Docker
 

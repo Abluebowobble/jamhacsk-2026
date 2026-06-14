@@ -60,7 +60,7 @@ Provisioned device. Put these in the device's firmware/.env:
 
   DEVICE_ID=$DEVICE_ID
   MQTT_PASSWORD=$PASSWORD
-  MQTT_BROKER_URL=mqtt://<broker-host>:1883
+  MQTT_BROKER_URL=mqtt://216.128.154.60:1883
 
 (The device authenticates as username = DEVICE_ID. No HOUSEHOLD_ID needed — the
 device learns its household when it's paired in the web app.)

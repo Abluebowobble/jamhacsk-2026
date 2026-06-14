@@ -373,7 +373,8 @@ together on one Vultr VM** via `docker compose` ([docker-compose.yml](../docker-
 - `mqtt` (Mosquitto) exposes `1883`; backend reaches it internally at `mqtt://mqtt:1883`.
 - `backend` builds from `./backend/Dockerfile`, reads `backend/.env`, listens on `3000`
   (bound to `127.0.0.1` in compose — front it with a tunnel/reverse proxy for HTTPS).
-- The **Raspberry Pi connects to the broker remotely** at `mqtt://VULTR_IP:1883`.
+- The **Raspberry Pi connects to the broker remotely** at `mqtt://VULTR_IP:1883`
+  (current server: `mqtt://216.128.154.60:1883`).
 - The **frontend** deploys to Vercel ([vercel.json](../frontend/vercel.json)); an HTTPS
   frontend must call an HTTPS backend (the `.env.example` suggests a Cloudflare Tunnel
   URL for `VITE_API_URL`).
