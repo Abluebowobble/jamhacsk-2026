@@ -59,6 +59,10 @@ class FirmwareLoop:
 
         self._running = False
         self._last_heartbeat = 0.0
+        # Signature of the discrete status fields last published, so a status
+        # change publishes immediately instead of waiting for the heartbeat.
+        # None != any real tuple, so the first paired tick always publishes.
+        self._last_status_sig = None
 
         # Local view of the active cooking timer (PRD FR10) for status + a
         # cloud-independent shutoff when it elapses.
@@ -278,10 +282,28 @@ class FirmwareLoop:
                     lambda et=event_type, md=meta: self._client.publish_event(et, md)
                 )
 
-        # Sensor data: periodic status heartbeat (retained).
-        if now - self._last_heartbeat >= self._status_heartbeat:
+        # Sensor data: status. Publish immediately when a discrete field changes,
+        # and at least every heartbeat interval otherwise (retained).
+        fields = self._status_fields()
+        sig = self._status_signature(fields)
+        if sig != self._last_status_sig or now - self._last_heartbeat >= self._status_heartbeat:
+            self._last_status_sig = sig
             self._last_heartbeat = now
-            self._safe_publish(lambda: self._client.publish_status(**self._status_fields()))
+            self._safe_publish(lambda: self._client.publish_status(**fields))
+
+    @staticmethod
+    def _status_signature(fields):
+        """Change-detection key for status: the discrete fields only.
+
+        Deliberately excludes active_timer_seconds_remaining — it counts down
+        every tick, so including it would force a publish on every tick.
+        """
+        return (
+            fields["online"],
+            fields["stove_status"],
+            fields["presence"],
+            fields["buzzer"],
+        )
 
     def _status_fields(self):
         snap = self._safety.snapshot()
