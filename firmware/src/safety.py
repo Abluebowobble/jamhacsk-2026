@@ -80,6 +80,11 @@ class SafetyController:
         self._present: Optional[bool] = None   # last known presence (None = unknown)
         self._absent_since: Optional[float] = None
         self._warning_since: Optional[float] = None
+        # True while a cooking timer (FR10) is running. That timer is the sole
+        # shutoff authority for its window, so the absence -> warning ->
+        # auto-shutoff timer is suppressed and must not start. See
+        # set_timer_active / _enter_absence.
+        self._timer_active = False
 
     # --- inputs -------------------------------------------------------------
     def update_settings(self, absence_timeout_seconds=None, warning_delay_seconds=None):
@@ -111,6 +116,31 @@ class SafetyController:
             if self._state != State.DISARMED:
                 log.info("Stove OFF (source=%s) — disarming safety monitor", source)
             self._disarm()
+
+    def set_timer_active(self, active: bool):
+        """Mark whether a cooking timer (FR10) is currently running.
+
+        While active, the absence auto-shutoff timer is suppressed: that timer
+        must not start (one timer at a time), since the cooking timer governs
+        shutoff for its window. Turning this on cancels any absence/warning
+        already in progress (back to plain monitoring); turning it off re-arms
+        the absence timer from the latest known presence if the stove is on.
+        """
+        active = bool(active)
+        if active == self._timer_active:
+            return
+        self._timer_active = active
+        if active:
+            # The cooking timer now governs — stand the absence machine down.
+            if self._state in (State.ABSENCE, State.WARNING):
+                if self._state == State.WARNING:
+                    self._stop_buzzer()
+                self._enter_monitoring()
+        else:
+            # Cooking timer ended — re-arm absence if the stove is still on and
+            # the person is currently absent.
+            if self._state == State.MONITORING and self._present is False:
+                self._enter_absence()
 
     def snooze(self, seconds: int):
         """Postpone the auto-shutoff by ``seconds`` ("add time" from the app).
@@ -188,6 +218,12 @@ class SafetyController:
         self._warning_since = None
 
     def _enter_absence(self):
+        # A running cooking timer is the sole shutoff authority for its window,
+        # so the absence timer must not start while it's active — just keep
+        # monitoring (no countdown, no warning).
+        if self._timer_active:
+            self._enter_monitoring()
+            return
         self._state = State.ABSENCE
         self._absent_since = self._now()
         self._warning_since = None

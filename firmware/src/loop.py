@@ -245,10 +245,24 @@ class FirmwareLoop:
         _dbg("_handle_timer: action=", action, "payload=", payload)
         if action == "TIMER_STARTED":
             duration = payload.get("durationSeconds")
+            incoming_id = payload.get("timerId")
             _dbg("  TIMER_STARTED durationSeconds=", duration, "(type", type(duration).__name__, ")")
+            # One timer at a time: once a cooking timer is running it is the sole
+            # shutoff authority, so never let another timer start (manually here,
+            # or automatically via the absence machine — see set_timer_active).
+            # A re-send of the SAME timer (e.g. a retained message after a
+            # reconnect) is allowed through as a refresh.
+            if self._timer_deadline is not None and incoming_id != self._timer_id:
+                _dbg("  TIMER_STARTED ignored — timer", self._timer_id,
+                     "already active (incoming", incoming_id, ")")
+                log.info("Ignoring TIMER_STARTED %s — timer %s already active",
+                         incoming_id, self._timer_id)
+                return
             if duration:
                 self._timer_deadline = self._now() + float(duration)
-                self._timer_id = payload.get("timerId")
+                self._timer_id = incoming_id
+                # Suppress the absence auto-shutoff timer while this one governs.
+                self._safety.set_timer_active(True)
                 _dbg("  deadline set: now=", round(self._now(), 2),
                      "deadline=", round(self._timer_deadline, 2),
                      "fires in", round(self._timer_deadline - self._now(), 2), "s")
@@ -263,6 +277,10 @@ class FirmwareLoop:
     def _clear_timer(self):
         self._timer_deadline = None
         self._timer_id = None
+        # The cooking timer no longer governs — let the absence safety timer
+        # arm again (it re-evaluates against the current presence/stove state).
+        if self._safety is not None:
+            self._safety.set_timer_active(False)
 
     # --- phase 2: logic -----------------------------------------------------
     def _run_logic(self, now):
