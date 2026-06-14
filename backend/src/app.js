@@ -3,6 +3,7 @@
 // opening a port or connecting to MQTT.
 import 'dotenv/config'
 import Fastify from 'fastify'
+import cors from '@fastify/cors'
 
 import supabaseAdmin from './lib/supabase.js'
 import authPlugin from './plugins/auth.js'
@@ -22,6 +23,20 @@ import notificationsRoutes from './routes/notifications.js'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
+
+  // CORS — fully open. Registered FIRST so it handles the preflight (OPTIONS)
+  // before any auth/route logic runs. `origin: true` reflects whatever Origin
+  // the browser sends, so a request is NEVER blocked by CORS regardless of which
+  // tunnel URL the API is on or whether the frontend runs on localhost or
+  // app.hestia.my. This only removes the browser ORIGIN check; every protected
+  // route still requires a valid Supabase Bearer token (plugins/auth.js).
+  // Without this block Fastify adds no CORS headers at all and every cross-origin
+  // request fails with "No 'Access-Control-Allow-Origin' header".
+  app.log.warn('CORS is fully open (all origins allowed)')
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+  })
 
   await app.register(authPlugin)
 

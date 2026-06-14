@@ -40,10 +40,10 @@ class MqttClient:
             client_id=f"hestia-device-{self.device_id}-{uuid4().hex[:6]}",
         )
 
-        # The device authenticates as username = DEVICE_ID. The broker ACL grants
-        # that user ONLY its own device subtree (any household), so families are
-        # isolated by deviceId.
-        self._client.username_pw_set(self.device_id, config.password)
+        # All devices authenticate with the SHARED broker account (default
+        # username "device"). This is just a gate against random internet clients;
+        # the deviceId still keys the topics, and the backend governs visibility.
+        self._client.username_pw_set(config.username, config.password)
 
         # Auto-reconnect with backoff, so a dropped broker recovers on its own.
         self._client.reconnect_delay_set(min_delay=1, max_delay=30)

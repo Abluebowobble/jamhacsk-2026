@@ -1,4 +1,9 @@
 #!/bin/sh
+# OPTIONAL (per-device isolation). By default every device shares one MQTT
+# account ("device" / DEVICE_MQTT_PASSWORD, created by entrypoint.sh), so you do
+# NOT need to run this. Use it only if you want a device to have its own broker
+# credential scoped to its own subtree.
+#
 # Auto-create a per-device MQTT account scoped to this device's subtree in ANY
 # household, then hot-reload the broker. Run on the host where the hestia-mqtt
 # container runs (it uses `docker exec`).
