@@ -22,6 +22,8 @@ let state = {
   events: {}, // deviceId -> adapted events
   members: {}, // householdId -> adapted members
   joinRequests: {}, // householdId -> adapted pending access requests
+  notifications: [], // signed-in user's notification feed (newest first)
+  notificationsUnread: 0, // unread count for the bell badge
   loadingHouseholds: {}, // householdId -> bool
   loadingMembers: {}, // householdId -> bool
   loadingJoinRequests: {}, // householdId -> bool
@@ -78,6 +80,18 @@ function adaptJoinRequest(r) {
     name: r.profiles?.full_name ?? null,
     status: r.status,
     at: r.created_at,
+  }
+}
+
+function adaptNotification(n) {
+  return {
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    body: n.body ?? null,
+    data: n.data ?? {},
+    read: Boolean(n.read_at),
+    at: n.created_at,
   }
 }
 
@@ -192,6 +206,19 @@ async function loadJoinRequests(householdId) {
   }
 }
 
+async function loadNotifications(limit = 30) {
+  try {
+    const res = await api.listNotifications(limit)
+    emit({
+      ...state,
+      notifications: (res?.notifications ?? []).map(adaptNotification),
+      notificationsUnread: res?.unread ?? 0,
+    })
+  } catch {
+    /* keep any prior feed on transient failure */
+  }
+}
+
 async function loadDeviceEvents(id, limit = 8) {
   try {
     const rows = await api.deviceEvents(id, limit)
@@ -298,34 +325,18 @@ export function useJoinRequests(householdId) {
 }
 
 /**
- * Pending access requests aggregated across every household the user *admins*
- * (the notifications bell). Polls so requests surface without a manual refresh.
- * `households` is the session list ([{ id, name, role }]); each request carries
- * the originating household's name for display.
+ * The signed-in user's notification feed for the bell. Loads on mount and polls
+ * so new notifications (e.g. someone requesting access) surface without a manual
+ * refresh. Returns the feed, the unread count, and a manual `reload`.
  */
-export function usePendingRequests(households) {
+export function useNotifications() {
   const s = useStore()
-  const adminIds = useMemo(
-    () => households.filter((h) => h.role === 'admin').map((h) => h.id),
-    [households],
-  )
-  const key = adminIds.join(',')
-
   useEffect(() => {
-    if (!adminIds.length) return undefined
-    adminIds.forEach(loadJoinRequests)
-    const t = setInterval(() => adminIds.forEach(loadJoinRequests), 60_000)
+    loadNotifications()
+    const t = setInterval(loadNotifications, 45_000)
     return () => clearInterval(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
-
-  return useMemo(() => {
-    const nameById = Object.fromEntries(households.map((h) => [h.id, h.name]))
-    return adminIds
-      .flatMap((id) => (s.joinRequests[id] ?? []).map((r) => ({ ...r, householdName: nameById[id] ?? null })))
-      .sort((a, b) => new Date(b.at) - new Date(a.at))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.joinRequests, key, households])
+  }, [])
+  return { notifications: s.notifications, unread: s.notificationsUnread, reload: loadNotifications }
 }
 
 // ---- actions (real, awaited mutations + targeted refetch) -----------------
@@ -382,11 +393,27 @@ export const actions = {
     await loadMembers(householdId)
   },
   // Approve or deny a pending access request. On approval the requester becomes
-  // a member, so refresh both lists; the reviewed request drops off either way.
+  // a member; the reviewed request drops off the settings list and the bell
+  // (its notification is cleared server-side), so refresh both.
   async reviewJoinRequest(householdId, requestId, decision) {
     if (decision === 'approved') await api.approveJoinRequest(requestId)
     else await api.denyJoinRequest(requestId)
-    await loadJoinRequests(householdId)
+    await Promise.all([loadJoinRequests(householdId), loadNotifications()])
     if (decision === 'approved') await loadMembers(householdId)
+  },
+  // Clear the unread badge when the user opens the bell. Optimistic: flip the
+  // local feed to read immediately, then persist.
+  async markNotificationsRead() {
+    if (state.notificationsUnread === 0) return
+    emit({
+      ...state,
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+      notificationsUnread: 0,
+    })
+    try {
+      await api.markAllNotificationsRead()
+    } catch {
+      await loadNotifications() // re-sync if the write failed
+    }
   },
 }

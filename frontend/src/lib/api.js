@@ -119,6 +119,11 @@ const realApi = {
   denyJoinRequest: (requestId) =>
     request(`/api/join-requests/${requestId}/deny`, { method: 'POST' }),
 
+  // Notifications (DB-backed in-app feed) — returns { notifications, unread }
+  listNotifications: (limit = 30) => request(`/api/notifications?limit=${limit}`),
+  markNotificationRead: (id) => request(`/api/notifications/${id}/read`, { method: 'POST' }),
+  markAllNotificationsRead: () => request('/api/notifications/read-all', { method: 'POST' }),
+
   // Single device + its live data
   getDevice: (deviceId) => request(`/api/devices/${deviceId}`).then((r) => r.device),
   listTimers: (deviceId) =>

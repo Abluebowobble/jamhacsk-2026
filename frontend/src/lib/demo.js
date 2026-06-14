@@ -75,6 +75,14 @@ let joinRequests = [
   { id: 'jr_riley', household_id: 'hh_home', user_id: 'usr_riley', status: 'pending', created_at: iso(-3 * 3_600_000), profiles: { full_name: 'Riley Chen' } },
 ]
 
+// The DEMO_USER is an admin of "Home", so they receive a join-request
+// notification per pending request, plus one resolved example.
+let notifications = [
+  { id: 'ntf_alex', user_id: 'usr_demo', type: 'join_request', title: 'New access request', body: 'Alex Kim asked to join Home.', data: { joinRequestId: 'jr_alex', householdId: 'hh_home', householdName: 'Home', requesterId: 'usr_alex', requesterName: 'Alex Kim' }, read_at: null, created_at: iso(-22 * 60_000) },
+  { id: 'ntf_riley', user_id: 'usr_demo', type: 'join_request', title: 'New access request', body: 'Riley Chen asked to join Home.', data: { joinRequestId: 'jr_riley', householdId: 'hh_home', householdName: 'Home', requesterId: 'usr_riley', requesterName: 'Riley Chen' }, read_at: null, created_at: iso(-3 * 3_600_000) },
+  { id: 'ntf_old', user_id: 'usr_demo', type: 'join_approved', title: 'Request approved', body: 'You can now access Mom’s Cabin.', data: { householdId: 'hh_cabin', householdName: "Mom's Cabin" }, read_at: iso(-2 * 86_400_000), created_at: iso(-2 * 86_400_000) },
+]
+
 function row(id, name, householdId, { online, stove, presence }) {
   return {
     id,
@@ -161,12 +169,34 @@ export const demoApi = {
         list.push({ user_id: j.user_id, role: 'member', created_at: iso(0), profiles: { full_name: j.profiles?.full_name } })
       }
     }
+    notifications = notifications.filter((n) => n.data?.joinRequestId !== requestId)
     return wait({ status: 'approved' })
   },
   denyJoinRequest: (requestId) => {
     const j = joinRequests.find((x) => x.id === requestId)
     if (j && j.status === 'pending') j.status = 'denied'
+    notifications = notifications.filter((n) => n.data?.joinRequestId !== requestId)
     return wait({ status: 'denied' })
+  },
+
+  listNotifications: () => {
+    const mine = notifications
+      .filter((n) => n.user_id === DEMO_USER_ID)
+      .slice()
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    const unread = mine.filter((n) => !n.read_at).length
+    return wait({ notifications: mine.map((n) => ({ ...n })), unread })
+  },
+  markNotificationRead: (id) => {
+    const n = notifications.find((x) => x.id === id)
+    if (n && !n.read_at) n.read_at = iso(0)
+    return wait({ ok: true })
+  },
+  markAllNotificationsRead: () => {
+    notifications.forEach((n) => {
+      if (n.user_id === DEMO_USER_ID && !n.read_at) n.read_at = iso(0)
+    })
+    return wait({ ok: true })
   },
 
   turnOn: (deviceId) => {

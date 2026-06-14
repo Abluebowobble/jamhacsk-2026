@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Home, Nfc, ArrowRight, LogOut, Clock } from 'lucide-react'
+import { Home, Users, ChevronRight, ArrowLeft, Nfc, ArrowRight, LogOut, Clock } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useSession } from '../lib/sessionContext'
@@ -16,31 +16,43 @@ import { Card } from '../components/ui/Card'
 import { Field } from '../components/ui/Field'
 import { Button } from '../components/ui/Button'
 
-// Three-step gate after sign-in:
-//   1. No household        → create one (joining happens by pairing a device).
-//   2. Defaults not set    → pick the safety timings new devices start with.
-//   3. Household, no device → prompt to pair (deferrable for the session).
-// Each step is derived from session/account state, so completing one advances here.
+// Gate after sign-in, each step derived from session/account state:
+//   1. No household → choose a path: create a new one, or join an existing one
+//      (join routes to pairing, where access to a device's household is requested).
+//   2. Chose "create" → name the household.
+//   3. Defaults not set → pick the safety timings new devices start with.
+//   4. Household, no device → prompt to pair (deferrable for the session).
 export function OnboardingPage() {
   const { households, householdsLoading, devices, devicesLoading, deferPairing, refetchHouseholds, setActiveHousehold } =
     useSession()
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
 
+  // Which fork the user took from the welcome screen (null = still choosing).
+  const [path, setPath] = useState(null)
   // Local mirror so saving the defaults advances the gate without a refetch.
   const [defaultsSet, setDefaultsSet] = useState(() => hasSafetyDefaults(user?.id))
 
   if (householdsLoading) return <Splash label="Loading your account…" />
 
-  // Step 1 — no household yet.
+  // Step 1 — no household yet: welcome + the create / join fork.
   if (households.length === 0) {
+    if (path === 'create') {
+      return (
+        <CreateHouseholdStep
+          onBack={() => setPath(null)}
+          onCreated={async (household) => {
+            setActiveHousehold(household.id)
+            await refetchHouseholds()
+            // Stays on /onboarding; re-renders into the next step.
+          }}
+        />
+      )
+    }
     return (
-      <CreateHouseholdStep
-        onCreated={async (household) => {
-          setActiveHousehold(household.id)
-          await refetchHouseholds()
-          // Stays on /onboarding; re-renders into the next step.
-        }}
+      <ChoosePathStep
+        onCreate={() => setPath('create')}
+        onJoin={() => navigate('/pair')}
         onSignOut={signOut}
       />
     )
@@ -70,8 +82,64 @@ export function OnboardingPage() {
   return <Navigate to="/" replace />
 }
 
-function CreateHouseholdStep({ onCreated, onSignOut }) {
-  const navigate = useNavigate()
+// First screen after sign-in: the create / join fork. Two real choices, not a
+// decorative grid — distinct icons, copy, and destinations. Each tile is a
+// button (full keyboard + focus support); hover lifts it a hair and fills the
+// icon, so the fork feels tactile under the half-second glance.
+function ChoosePathStep({ onCreate, onJoin, onSignOut }) {
+  return (
+    <CenteredScreen>
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-semibold text-ink">Welcome to Hestia</h1>
+        <p className="mt-1.5 text-sm text-ink-body text-balance">
+          Let’s get you set up. Are you starting a new household, or joining one that already
+          exists?
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <ChoiceTile
+          icon={Home}
+          title="Create a new household"
+          description="Start fresh and become its admin, then pair your first Hestia."
+          onClick={onCreate}
+        />
+        <ChoiceTile
+          icon={Users}
+          title="Join a household"
+          description="Have a device’s pairing ID or NFC tag? Request access to one already set up."
+          onClick={onJoin}
+        />
+      </div>
+
+      <SignOutLink onSignOut={onSignOut} />
+    </CenteredScreen>
+  )
+}
+
+function ChoiceTile({ icon: Icon, title, description, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex w-full items-center gap-4 rounded-md border border-border bg-surface p-4 text-left transition-[transform,border-color,background-color] duration-[120ms] ease-out hover:-translate-y-px hover:border-primary-border hover:bg-primary-subtle active:translate-y-0"
+    >
+      <span className="grid size-11 shrink-0 place-items-center rounded-md bg-primary-subtle text-primary transition-colors duration-[120ms] ease-out group-hover:bg-primary group-hover:text-primary-fg">
+        <Icon className="size-5" aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-base font-semibold text-ink">{title}</span>
+        <span className="mt-0.5 block text-sm text-ink-body">{description}</span>
+      </span>
+      <ChevronRight
+        className="size-5 shrink-0 text-ink-faint transition-[transform,color] duration-[120ms] ease-out group-hover:translate-x-0.5 group-hover:text-primary"
+        aria-hidden="true"
+      />
+    </button>
+  )
+}
+
+function CreateHouseholdStep({ onCreated, onBack }) {
   const [name, setName] = useState('')
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -96,8 +164,8 @@ function CreateHouseholdStep({ onCreated, onSignOut }) {
   return (
     <CenteredScreen>
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-semibold text-ink">Set up your household</h1>
-        <p className="mt-1.5 text-sm text-ink-body">
+        <h1 className="text-2xl font-semibold text-ink">Name your household</h1>
+        <p className="mt-1.5 text-sm text-ink-body text-balance">
           A household groups your Hestia devices and the people who watch over them. You’ll be its
           admin.
         </p>
@@ -120,26 +188,21 @@ function CreateHouseholdStep({ onCreated, onSignOut }) {
         </Button>
       </Card>
 
-      <Card className="mt-4 flex items-start gap-3 p-4">
-        <Nfc className="mt-0.5 size-5 shrink-0 text-ink-muted" aria-hidden="true" />
-        <div className="text-sm">
-          <p className="font-medium text-ink">Joining someone’s household?</p>
-          <p className="mt-0.5 text-ink-body">
-            Tap your Hestia’s NFC tag, or{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/pair')}
-              className="font-medium text-primary hover:text-primary-hover"
-            >
-              enter its pairing ID
-            </button>{' '}
-            to request access.
-          </p>
-        </div>
-      </Card>
-
-      <SignOutLink onSignOut={onSignOut} />
+      <BackLink onBack={onBack} />
     </CenteredScreen>
+  )
+}
+
+function BackLink({ onBack }) {
+  return (
+    <button
+      type="button"
+      onClick={onBack}
+      className="mx-auto mt-6 flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink-body"
+    >
+      <ArrowLeft className="size-4" aria-hidden="true" />
+      Back
+    </button>
   )
 }
 

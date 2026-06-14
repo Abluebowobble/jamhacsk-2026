@@ -18,6 +18,7 @@ import safetySettingsRoutes from './routes/safetySettings.js'
 import timersRoutes from './routes/timers.js'
 import eventsRoutes from './routes/events.js'
 import pushRoutes from './routes/push.js'
+import notificationsRoutes from './routes/notifications.js'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
@@ -83,6 +84,7 @@ export async function buildApp() {
   await app.register(timersRoutes, { prefix: '/api' })
   await app.register(eventsRoutes, { prefix: '/api' })
   await app.register(pushRoutes, { prefix: '/api/push' })
+  await app.register(notificationsRoutes, { prefix: '/api' })
 
   return app
 }
