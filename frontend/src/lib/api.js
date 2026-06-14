@@ -95,6 +95,8 @@ const realApi = {
     request('/api/push/subscribe', { method: 'POST', body: { endpoint, p256dh, auth } }),
   pushUnsubscribe: (endpoint) =>
     request('/api/push/unsubscribe', { method: 'DELETE', body: { endpoint } }),
+  // Send a test push to this user's subscribed devices (settings → about).
+  pushTest: () => request('/api/push/test', { method: 'POST' }),
 
   // Devices
   listDevices: (householdId) =>

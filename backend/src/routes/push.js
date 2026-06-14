@@ -1,5 +1,5 @@
 import supabaseAdmin from '../lib/supabase.js'
-import { sendToSubscription } from '../services/push.js'
+import { sendToSubscription, sendToUser, isPushConfigured } from '../services/push.js'
 
 export default async function pushRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -63,5 +63,30 @@ export default async function pushRoutes(app) {
       .eq('endpoint', request.body.endpoint)
     if (error) return reply.code(500).send({ error: error.message })
     return reply.code(204).send()
+  })
+
+  // POST /api/push/test — send a test notification to this user's devices, so a
+  // member can verify delivery on demand without waiting for a real safety event.
+  app.post('/test', async (request, reply) => {
+    if (!isPushConfigured()) {
+      return reply.code(503).send({ error: 'Push is not configured on the server.' })
+    }
+    const { count } = await supabaseAdmin
+      .from('push_subscriptions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', request.user.id)
+    if (!count) {
+      return reply.code(409).send({ error: 'No subscribed device. Turn on notifications first.' })
+    }
+    await sendToUser(
+      request.user.id,
+      {
+        title: 'Hestia test',
+        body: 'Push notifications are working on this device.',
+        tag: 'push-test',
+      },
+      request.log,
+    )
+    return { sent: count }
   })
 }
