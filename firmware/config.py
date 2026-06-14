@@ -28,6 +28,9 @@ class Config:
     household_id: Optional[str]
     host: str
     port: int
+    # Shared MQTT login used by ALL devices (defaults: device / hestiadevice).
+    # The deviceId still keys the topics/identity — only the broker auth is shared.
+    username: str
     password: Optional[str]
     keepalive: int
     # Where the learned household assignment is persisted across reboots.
@@ -67,8 +70,9 @@ def load_config():
     # Each physical device MUST set its own unique DEVICE_ID (matches its row in
     # Supabase `devices`). The HOUSEHOLD_ID is learned at runtime when the device
     # is paired (retained MQTT assignment topic) and is optional here — only used
-    # as an initial seed before any assignment is known. The provisioning step
-    # (mqtt/provision-device.sh) prints the DEVICE_ID + MQTT password.
+    # as an initial seed before any assignment is known. MQTT auth uses the SHARED
+    # device account (MQTT_USERNAME/MQTT_PASSWORD, defaults device/hestiadevice),
+    # so no per-device provisioning is needed.
     device_id = _require("DEVICE_ID")
     household_id = os.environ.get("HOUSEHOLD_ID", "").strip() or None
     broker_url = _require("MQTT_BROKER_URL")
@@ -83,9 +87,11 @@ def load_config():
         household_id=household_id,
         host=host,
         port=port,
-        # The device authenticates as username = DEVICE_ID (see mqtt_client), so
-        # only the password is needed here.
-        password=os.environ.get("MQTT_PASSWORD") or None,
+        # Shared broker login for every device. Defaults match the broker's
+        # DEVICE_MQTT_USERNAME/DEVICE_MQTT_PASSWORD so a device only needs
+        # DEVICE_ID + MQTT_BROKER_URL set to connect.
+        username=os.environ.get("MQTT_USERNAME", "").strip() or "device",
+        password=os.environ.get("MQTT_PASSWORD", "").strip() or "hestiadevice",
         keepalive=int(os.environ.get("MQTT_KEEPALIVE", "60")),
         state_file=os.environ.get("STATE_FILE", "").strip() or "state/device_state.json",
         camera_stream_enabled=_env_bool("CAMERA_STREAM_ENABLED", True),

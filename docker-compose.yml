@@ -8,6 +8,10 @@ services:
     environment:
       MQTT_USERNAME: ${MQTT_USERNAME:-backend}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-hestiadev}
+      # Shared account every device authenticates with (formality/gate, not
+      # isolation). Devices set the same values in firmware/.env.
+      DEVICE_MQTT_USERNAME: ${DEVICE_MQTT_USERNAME:-device}
+      DEVICE_MQTT_PASSWORD: ${DEVICE_MQTT_PASSWORD:-hestiadevice}
     ports:
       - "1883:1883"
     volumes:
