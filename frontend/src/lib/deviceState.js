@@ -109,6 +109,71 @@ export function unattendedAnchor(events = []) {
   return null
 }
 
+/**
+ * The active "add time" snooze, or null. When a user extends the warning the
+ * device logs WARNING_SNOOZED with the granted seconds; the countdown ring then
+ * counts down to that grace deadline instead of the threshold-derived one.
+ *
+ * Honoured only while it's the most recent safety-cycle event (a later
+ * NO_PRESENCE_DETECTED / STOVE_TURNED_ON starts a fresh cycle that supersedes
+ * it) and the deadline is still in the future.
+ *
+ * @returns {{ until: number, total: number } | null} epoch ms + grace seconds
+ */
+export function snoozeDeadline(events = [], now = Date.now()) {
+  const at = (e) => {
+    const t = new Date(e.at).getTime()
+    return Number.isFinite(t) ? t : -Infinity
+  }
+  const snooze = events
+    .filter((e) => e.type === 'WARNING_SNOOZED')
+    .reduce((acc, e) => (at(e) > at(acc) ? e : acc), null)
+  if (!snooze) return null
+
+  // A newer absence/ignition event means a fresh cycle — the snooze is stale.
+  const supersededBy = events.some(
+    (e) =>
+      (e.type === 'NO_PRESENCE_DETECTED' || e.type === 'STOVE_TURNED_ON') &&
+      at(e) > at(snooze),
+  )
+  if (supersededBy) return null
+
+  const total = Number(snooze.meta?.seconds)
+  if (!Number.isFinite(total) || total <= 0) return null
+  const until = at(snooze) + total * 1000
+  return until > now ? { until, total } : null
+}
+
+/**
+ * Whether the unattended warning is currently live, from the event log — the
+ * snapshot API doesn't expose the buzzer/warning phase (it lives on the Pi), so
+ * the most recent safety-cycle event is the signal. Drives the in-app warning
+ * surface (the push fires off the same WARNING_BUZZER_STARTED event).
+ *
+ * @returns {'active'|'resolved'|'none'}
+ *   active   — latest is the buzzer warning or a snooze (still counting down)
+ *   resolved — latest is a return / shut-off / cancel (warning is over)
+ *   none     — no relevant events yet (or still loading)
+ */
+export function warningActivity(events = []) {
+  const at = (e) => {
+    const t = new Date(e.at).getTime()
+    return Number.isFinite(t) ? t : -Infinity
+  }
+  const ACTIVE = new Set(['WARNING_BUZZER_STARTED', 'WARNING_SNOOZED'])
+  const RESOLVED = new Set([
+    'PRESENCE_DETECTED',
+    'STOVE_TURNED_OFF',
+    'AUTO_SHUTOFF_TRIGGERED',
+    'WARNING_CANCELLED',
+  ])
+  const latest = events
+    .filter((e) => ACTIVE.has(e.type) || RESOLVED.has(e.type))
+    .reduce((acc, e) => (at(e) > at(acc) ? e : acc), null)
+  if (!latest) return 'none'
+  return ACTIVE.has(latest.type) ? 'active' : 'resolved'
+}
+
 /** Is anything time-evolving on this device right now? */
 export function isDynamic(d) {
   if (!d.online) return false

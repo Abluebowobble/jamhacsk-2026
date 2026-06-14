@@ -69,6 +69,25 @@ let members = {
   ],
 }
 
+// Pending access requests awaiting an admin's review (settings + bell).
+let joinRequests = [
+  { id: 'jr_alex', household_id: 'hh_home', user_id: 'usr_alex', status: 'pending', created_at: iso(-22 * 60_000), profiles: { full_name: 'Alex Kim' } },
+  { id: 'jr_riley', household_id: 'hh_home', user_id: 'usr_riley', status: 'pending', created_at: iso(-3 * 3_600_000), profiles: { full_name: 'Riley Chen' } },
+]
+
+// Active invite codes an admin has generated for a household.
+let joinCodes = [
+  { id: 'jc_home', household_id: 'hh_home', code: 'KQ7M3PX9', expires_at: iso(6 * 86_400_000), use_count: 2, created_at: iso(-86_400_000) },
+]
+
+// The DEMO_USER is an admin of "Home", so they receive a join-request
+// notification per pending request, plus one resolved example.
+let notifications = [
+  { id: 'ntf_alex', user_id: 'usr_demo', type: 'join_request', title: 'New access request', body: 'Alex Kim asked to join Home.', data: { joinRequestId: 'jr_alex', householdId: 'hh_home', householdName: 'Home', requesterId: 'usr_alex', requesterName: 'Alex Kim' }, read_at: null, created_at: iso(-22 * 60_000) },
+  { id: 'ntf_riley', user_id: 'usr_demo', type: 'join_request', title: 'New access request', body: 'Riley Chen asked to join Home.', data: { joinRequestId: 'jr_riley', householdId: 'hh_home', householdName: 'Home', requesterId: 'usr_riley', requesterName: 'Riley Chen' }, read_at: null, created_at: iso(-3 * 3_600_000) },
+  { id: 'ntf_old', user_id: 'usr_demo', type: 'join_approved', title: 'Request approved', body: 'You can now access Mom’s Cabin.', data: { householdId: 'hh_cabin', householdName: "Mom's Cabin" }, read_at: iso(-2 * 86_400_000), created_at: iso(-2 * 86_400_000) },
+]
+
 function row(id, name, householdId, { online, stove, presence }) {
   return {
     id,
@@ -143,6 +162,73 @@ export const demoApi = {
   pairingStatus: () => wait({ status: 'unpaired' }),
   pairDevice: (deviceId) => wait(find(deviceId)),
   requestJoin: () => wait({ id: 'jr_1', status: 'pending' }),
+
+  listJoinCodes: (householdId) => wait(joinCodes.filter((c) => c.household_id === householdId).map((c) => ({ ...c }))),
+  createJoinCode: (householdId, expiresInDays = 7) => {
+    const c = {
+      id: `jc_${Math.random().toString(36).slice(2, 8)}`,
+      household_id: householdId,
+      code: Array.from({ length: 8 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join(''),
+      expires_at: expiresInDays === null ? null : iso(expiresInDays * 86_400_000),
+      use_count: 0,
+      created_at: iso(0),
+    }
+    joinCodes.unshift(c)
+    return wait({ ...c })
+  },
+  revokeJoinCode: (codeId) => {
+    joinCodes = joinCodes.filter((c) => c.id !== codeId)
+    return wait(null)
+  },
+  redeemJoinCode: (code) => {
+    const norm = String(code).toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const c = joinCodes.find((x) => x.code === norm)
+    if (!c) return Promise.reject(Object.assign(new Error('That invite code isn’t valid.'), { name: 'ApiError', status: 404 }))
+    const h = households.find((x) => x.id === c.household_id) ?? { id: c.household_id, name: 'Household' }
+    if (!households.some((x) => x.id === h.id)) households.push({ ...h, role: 'member' })
+    return wait({ household: { ...h, role: 'member' }, alreadyMember: false })
+  },
+
+  listJoinRequests: (householdId) =>
+    wait(joinRequests.filter((j) => j.household_id === householdId && j.status === 'pending').map((j) => ({ ...j }))),
+  approveJoinRequest: (requestId) => {
+    const j = joinRequests.find((x) => x.id === requestId)
+    if (j && j.status === 'pending') {
+      j.status = 'approved'
+      const list = members[j.household_id] ?? (members[j.household_id] = [])
+      if (!list.some((m) => m.user_id === j.user_id)) {
+        list.push({ user_id: j.user_id, role: 'member', created_at: iso(0), profiles: { full_name: j.profiles?.full_name } })
+      }
+    }
+    notifications = notifications.filter((n) => n.data?.joinRequestId !== requestId)
+    return wait({ status: 'approved' })
+  },
+  denyJoinRequest: (requestId) => {
+    const j = joinRequests.find((x) => x.id === requestId)
+    if (j && j.status === 'pending') j.status = 'denied'
+    notifications = notifications.filter((n) => n.data?.joinRequestId !== requestId)
+    return wait({ status: 'denied' })
+  },
+
+  listNotifications: () => {
+    const mine = notifications
+      .filter((n) => n.user_id === DEMO_USER_ID)
+      .slice()
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    const unread = mine.filter((n) => !n.read_at).length
+    return wait({ notifications: mine.map((n) => ({ ...n })), unread })
+  },
+  markNotificationRead: (id) => {
+    const n = notifications.find((x) => x.id === id)
+    if (n && !n.read_at) n.read_at = iso(0)
+    return wait({ ok: true })
+  },
+  markAllNotificationsRead: () => {
+    notifications.forEach((n) => {
+      if (n.user_id === DEMO_USER_ID && !n.read_at) n.read_at = iso(0)
+    })
+    return wait({ ok: true })
+  },
 
   turnOn: (deviceId) => {
     const d = find(deviceId)

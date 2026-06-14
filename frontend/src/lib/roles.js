@@ -15,6 +15,7 @@ const MATRIX = {
   removeStove: ['admin'],
   removeMember: ['admin'],
   changeRole: ['admin'],
+  manageInvites: ['admin'],
   renameHousehold: ['admin'],
   deleteHousehold: ['admin'],
   renameDevice: ['admin'],

@@ -1,7 +1,11 @@
 import supabaseAdmin from '../lib/supabase.js'
 import { logEvent } from '../lib/events.js'
 import { makeRoleCheck } from '../plugins/requireRole.js'
-import { sendToHouseholdAdmins, sendToUser } from '../services/push.js'
+import {
+  createNotification,
+  notifyHouseholdAdmins,
+  clearJoinRequestNotifications,
+} from '../lib/notifications.js'
 
 export default async function joinRequestsRoutes(app) {
   app.addHook('preHandler', app.authenticate)
@@ -40,9 +44,21 @@ export default async function joinRequestsRoutes(app) {
       metadata: { requestId: joinRequest.id },
     }, request.log)
 
-    await sendToHouseholdAdmins(householdId, {
-      title: 'Hestia',
-      body: 'A new request to join your household is awaiting approval.',
+    // Persist a notification for each admin so the request is visible in-app
+    // (the bell) even if Web Push is unavailable, and survives until reviewed.
+    const householdName = await getHouseholdName(householdId)
+    const requesterName = await getProfileName(request.user.id)
+    await notifyHouseholdAdmins(householdId, {
+      type: 'join_request',
+      title: 'New access request',
+      body: `${requesterName || 'Someone'} asked to join ${householdName || 'your household'}.`,
+      data: {
+        joinRequestId: joinRequest.id,
+        householdId,
+        householdName,
+        requesterId: request.user.id,
+        requesterName,
+      },
     }, request.log)
 
     return reply.code(201).send({ joinRequest })
@@ -55,13 +71,30 @@ export default async function joinRequestsRoutes(app) {
       params: { type: 'object', properties: { householdId: { type: 'string', format: 'uuid' } } },
     },
   }, async (request, reply) => {
-    const { data, error } = await supabaseAdmin
+    const { data: rows, error } = await supabaseAdmin
       .from('join_requests')
-      .select('*, profiles(full_name)')
+      .select('id, household_id, user_id, status, created_at')
       .eq('household_id', request.params.householdId)
       .eq('status', 'pending')
     if (error) return reply.code(500).send({ error: error.message })
-    return { joinRequests: data }
+
+    // Resolve display names with a second query rather than a PostgREST embed:
+    // join_requests.user_id and profiles.id both reference auth.users with no
+    // direct FK between them, so an embedded `profiles(full_name)` selector
+    // can't be planned (it errors). Merge names in to keep the response shape.
+    const ids = rows.map((r) => r.user_id)
+    let names = {}
+    if (ids.length) {
+      const { data: profiles, error: pErr } = await supabaseAdmin
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', ids)
+      if (pErr) return reply.code(500).send({ error: pErr.message })
+      names = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.full_name]))
+    }
+
+    const joinRequests = rows.map((r) => ({ ...r, profiles: { full_name: names[r.user_id] ?? null } }))
+    return { joinRequests }
   })
 
   // POST /api/join-requests/:requestId/approve
@@ -81,6 +114,26 @@ export default async function joinRequestsRoutes(app) {
   }, async (request, reply) => {
     return reviewRequest(request, reply, 'denied')
   })
+}
+
+// ---- helpers --------------------------------------------------------------
+
+async function getHouseholdName(householdId) {
+  const { data } = await supabaseAdmin
+    .from('households')
+    .select('name')
+    .eq('id', householdId)
+    .maybeSingle()
+  return data?.name ?? null
+}
+
+async function getProfileName(userId) {
+  const { data } = await supabaseAdmin
+    .from('profiles')
+    .select('full_name')
+    .eq('id', userId)
+    .maybeSingle()
+  return data?.full_name ?? null
 }
 
 async function reviewRequest(request, reply, decision) {
@@ -114,6 +167,12 @@ async function reviewRequest(request, reply, decision) {
     .eq('id', requestId)
   if (updateError) return reply.code(500).send({ error: updateError.message })
 
+  // The request is resolved — clear the pending notification from every admin's
+  // feed so a handled request doesn't linger in the bell.
+  await clearJoinRequestNotifications(requestId, request.log)
+
+  const householdName = await getHouseholdName(joinRequest.household_id)
+
   if (decision === 'approved') {
     const { error: memberError } = await supabaseAdmin
       .from('household_members')
@@ -136,9 +195,12 @@ async function reviewRequest(request, reply, decision) {
       metadata: { requestId },
     }, request.log)
 
-    await sendToUser(joinRequest.user_id, {
-      title: 'Hestia',
-      body: 'Your request to join the household was approved.',
+    await createNotification({
+      userId: joinRequest.user_id,
+      type: 'join_approved',
+      title: 'Request approved',
+      body: `You can now access ${householdName || 'the household'}.`,
+      data: { householdId: joinRequest.household_id, householdName },
     }, request.log)
   } else {
     await logEvent({
@@ -148,9 +210,12 @@ async function reviewRequest(request, reply, decision) {
       metadata: { requestId, deniedUserId: joinRequest.user_id },
     }, request.log)
 
-    await sendToUser(joinRequest.user_id, {
-      title: 'Hestia',
-      body: 'Your request to join the household was denied.',
+    await createNotification({
+      userId: joinRequest.user_id,
+      type: 'join_denied',
+      title: 'Request declined',
+      body: `Your request to join ${householdName || 'the household'} wasn’t approved.`,
+      data: { householdId: joinRequest.household_id, householdName },
     }, request.log)
   }
 

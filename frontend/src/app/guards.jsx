@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../lib/authContext'
 import { useSession } from '../lib/sessionContext'
 import { Splash } from './Splash'
@@ -21,10 +21,13 @@ export function RequireAuth() {
 // Gate 2 — onboarding. The user is signed in; make sure they're set up before
 // the control panel loads:
 //   • no household           → /onboarding (create or join)
-//   • household but no device → /onboarding (pair) unless deferred this session
+//   • admin with no device    → /onboarding (pair) unless deferred this session
+// Members never get the pairing prompt — they set up through the household
+// (an invite code); devices are the admin's to add.
 export function RequireOnboarded() {
-  const { households, householdsLoading, error, refetchHouseholds, devices, devicesLoading, pairingDeferred } =
+  const { households, householdsLoading, error, refetchHouseholds, activeHousehold, devices, devicesLoading, pairingDeferred } =
     useSession()
+  const { signOut } = useAuth()
 
   if (householdsLoading) return <Splash label="Loading your households…" />
 
@@ -39,7 +42,13 @@ export function RequireOnboarded() {
             <h1 className="text-xl font-semibold text-ink">Couldn’t load your account</h1>
             <p className="mt-1.5 text-sm text-ink-body">{error.message}</p>
           </div>
-          <Button onClick={refetchHouseholds}>Try again</Button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button variant="secondary" onClick={signOut}>
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              Back to sign in
+            </Button>
+            <Button onClick={refetchHouseholds}>Try again</Button>
+          </div>
         </div>
       </div>
     )
@@ -50,7 +59,8 @@ export function RequireOnboarded() {
   // Wait until we know whether the active household has a device before deciding.
   if (devicesLoading) return <Splash label="Checking your devices…" />
 
-  if (devices.length === 0 && !pairingDeferred) {
+  const isAdmin = activeHousehold?.role === 'admin'
+  if (isAdmin && devices.length === 0 && !pairingDeferred) {
     return <Navigate to="/onboarding" replace />
   }
 

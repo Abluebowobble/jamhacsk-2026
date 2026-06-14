@@ -23,10 +23,16 @@ const STROKE = 9
 const R = (SIZE - STROKE) / 2
 const C = 2 * Math.PI * R
 
-export function ShutoffCountdown({ device, since = null, onExpire }) {
-  const total = Math.max(1, (device.absenceTimeout ?? 0) + (device.warningDelay ?? 0))
+// `graceUntil` (epoch ms) + `graceTotal` (seconds) override the threshold-derived
+// countdown after an "add time" snooze: the ring then depletes toward the granted
+// grace deadline. Without them it behaves exactly as before.
+export function ShutoffCountdown({ device, since = null, onExpire, graceUntil = null, graceTotal = null }) {
+  const snoozing = graceUntil != null && graceTotal > 0
+  const total = snoozing
+    ? graceTotal
+    : Math.max(1, (device.absenceTimeout ?? 0) + (device.warningDelay ?? 0))
   const firstSeen = useRef(Date.now())
-  const anchor = since ?? firstSeen.current
+  const anchor = snoozing ? graceUntil - graceTotal * 1000 : (since ?? firstSeen.current)
 
   // A 1s clock, alive only while this is mounted (i.e. only for an unattended
   // device on screen). prefers-reduced-motion is handled globally in index.css,

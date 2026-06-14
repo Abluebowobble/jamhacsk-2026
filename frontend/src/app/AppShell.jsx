@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { HouseholdSwitcher } from '../components/HouseholdSwitcher'
+import { NotificationsBell } from '../components/NotificationsBell'
 import { AccountMenu } from '../components/AccountMenu'
 import { useSession } from '../lib/sessionContext'
 import { HouseholdContext } from '../lib/householdContext'
@@ -19,6 +20,7 @@ export function AppShell() {
               <Logo />
               <div className="ml-auto flex items-center gap-2 sm:gap-3">
                 <HouseholdSwitcher />
+                <NotificationsBell />
                 <AccountMenu />
               </div>
             </div>

@@ -21,8 +21,12 @@ let state = {
   devices: [], // adapted devices across loaded households
   events: {}, // deviceId -> adapted events
   members: {}, // householdId -> adapted members
+  joinRequests: {}, // householdId -> adapted pending access requests
+  notifications: [], // signed-in user's notification feed (newest first)
+  notificationsUnread: 0, // unread count for the bell badge
   loadingHouseholds: {}, // householdId -> bool
   loadingMembers: {}, // householdId -> bool
+  loadingJoinRequests: {}, // householdId -> bool
   attempted: {}, // deviceId -> bool (a single-device fetch has settled at least once)
 }
 const listeners = new Set()
@@ -66,6 +70,29 @@ function adaptEvent(e) {
 
 function adaptMember(m) {
   return { userId: m.user_id, role: m.role, name: m.profiles?.full_name ?? null, joinedAt: m.created_at }
+}
+
+function adaptJoinRequest(r) {
+  return {
+    id: r.id,
+    householdId: r.household_id,
+    userId: r.user_id,
+    name: r.profiles?.full_name ?? null,
+    status: r.status,
+    at: r.created_at,
+  }
+}
+
+function adaptNotification(n) {
+  return {
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    body: n.body ?? null,
+    data: n.data ?? {},
+    read: Boolean(n.read_at),
+    at: n.created_at,
+  }
 }
 
 /** Recompute the live `remainingSecs` of a timer from its end time. */
@@ -156,6 +183,39 @@ async function loadMembers(householdId) {
     })
   } catch {
     emit({ ...state, loadingMembers: { ...state.loadingMembers, [householdId]: false } })
+  }
+}
+
+async function loadJoinRequests(householdId) {
+  if (!householdId) return
+  emit({ ...state, loadingJoinRequests: { ...state.loadingJoinRequests, [householdId]: true } })
+  try {
+    const rows = await api.listJoinRequests(householdId)
+    emit({
+      ...state,
+      joinRequests: { ...state.joinRequests, [householdId]: rows.map(adaptJoinRequest) },
+      loadingJoinRequests: { ...state.loadingJoinRequests, [householdId]: false },
+    })
+  } catch {
+    // Non-admins get 403 — treat as "nothing to review" rather than an error.
+    emit({
+      ...state,
+      joinRequests: { ...state.joinRequests, [householdId]: state.joinRequests[householdId] ?? [] },
+      loadingJoinRequests: { ...state.loadingJoinRequests, [householdId]: false },
+    })
+  }
+}
+
+async function loadNotifications(limit = 30) {
+  try {
+    const res = await api.listNotifications(limit)
+    emit({
+      ...state,
+      notifications: (res?.notifications ?? []).map(adaptNotification),
+      notificationsUnread: res?.unread ?? 0,
+    })
+  } catch {
+    /* keep any prior feed on transient failure */
   }
 }
 
@@ -253,6 +313,32 @@ export function useMembers(householdId) {
   return { members, loading }
 }
 
+/** Pending access requests for one household (admin review). Loads on first use. */
+export function useJoinRequests(householdId) {
+  const s = useStore()
+  useEffect(() => {
+    if (householdId) loadJoinRequests(householdId)
+  }, [householdId])
+  const requests = useMemo(() => s.joinRequests[householdId] ?? [], [s.joinRequests, householdId])
+  const loading = s.loadingJoinRequests[householdId] !== false
+  return { requests, loading }
+}
+
+/**
+ * The signed-in user's notification feed for the bell. Loads on mount and polls
+ * so new notifications (e.g. someone requesting access) surface without a manual
+ * refresh. Returns the feed, the unread count, and a manual `reload`.
+ */
+export function useNotifications() {
+  const s = useStore()
+  useEffect(() => {
+    loadNotifications()
+    const t = setInterval(loadNotifications, 45_000)
+    return () => clearInterval(t)
+  }, [])
+  return { notifications: s.notifications, unread: s.notificationsUnread, reload: loadNotifications }
+}
+
 // ---- actions (real, awaited mutations + targeted refetch) -----------------
 
 export const actions = {
@@ -276,6 +362,12 @@ export const actions = {
     await api.turnOff(id) // signal the hardware to shut off
     await awaitDeviceState(id, (x) => !x.stoveOn) // show OFF only once it reports back
     await loadDeviceEvents(id)
+  },
+  // "Add time" at the warning moment: relay a snooze to the device, then refresh
+  // so the new WARNING_SNOOZED event re-anchors the countdown ring.
+  async extendWarning(id, seconds) {
+    await api.extendWarning(id, seconds)
+    await Promise.all([refreshDevice(id), loadDeviceEvents(id)])
   },
   async createTimer(id, durationSecs) {
     await api.createTimer(id, durationSecs)
@@ -305,5 +397,29 @@ export const actions = {
   async removeMember(householdId, userId) {
     await api.removeMember(householdId, userId)
     await loadMembers(householdId)
+  },
+  // Approve or deny a pending access request. On approval the requester becomes
+  // a member; the reviewed request drops off the settings list and the bell
+  // (its notification is cleared server-side), so refresh both.
+  async reviewJoinRequest(householdId, requestId, decision) {
+    if (decision === 'approved') await api.approveJoinRequest(requestId)
+    else await api.denyJoinRequest(requestId)
+    await Promise.all([loadJoinRequests(householdId), loadNotifications()])
+    if (decision === 'approved') await loadMembers(householdId)
+  },
+  // Clear the unread badge when the user opens the bell. Optimistic: flip the
+  // local feed to read immediately, then persist.
+  async markNotificationsRead() {
+    if (state.notificationsUnread === 0) return
+    emit({
+      ...state,
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+      notificationsUnread: 0,
+    })
+    try {
+      await api.markAllNotificationsRead()
+    } catch {
+      await loadNotifications() // re-sync if the write failed
+    }
   },
 }

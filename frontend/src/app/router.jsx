@@ -4,6 +4,7 @@ import { RequireAuth, RequireOnboarded } from './guards'
 import { AppShell } from './AppShell'
 import { AuthPage } from '../pages/AuthPage'
 import { OnboardingPage } from '../pages/OnboardingPage'
+import { JoinHouseholdPage } from '../pages/JoinHouseholdPage'
 import { PairPage } from '../pages/PairPage'
 import { OverviewPage } from '../pages/OverviewPage'
 import { DeviceDetailPage } from '../pages/DeviceDetailPage'
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
           // Onboarding + pairing live before the dashboard gate so the user can
           // get a household and pair a device to clear it.
           { path: '/onboarding', element: <OnboardingPage /> },
+          { path: '/join', element: <JoinHouseholdPage /> },
           { path: '/pair', element: <PairPage /> },
 
           // The control panel — only once the user has a household (and a device,

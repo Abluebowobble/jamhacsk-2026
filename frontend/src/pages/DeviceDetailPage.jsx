@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
   MoreVertical,
@@ -22,6 +22,7 @@ import { Field } from '../components/ui/Field'
 import { Modal } from '../components/ui/Modal'
 import { Stat } from '../components/ui/Stat'
 import { DeviceSummaryCard } from '../components/DeviceSummaryCard'
+import { ShutoffWarningModal } from '../components/ShutoffWarningModal'
 import { TimerControls } from '../components/TimerControls'
 import { SafetySettings } from '../components/SafetySettings'
 import { EventList } from '../components/EventList'
@@ -29,7 +30,7 @@ import { EmptyState } from '../components/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
 import { useDevice, useDeviceLoading, useDeviceEvents, useHouseholds, actions } from '../lib/store'
 import { useCan, can, RoleContext } from '../lib/roles'
-import { unattendedAnchor } from '../lib/deviceState'
+import { unattendedAnchor, warningActivity, snoozeDeadline } from '../lib/deviceState'
 import { formatDuration } from '../lib/format'
 import { api } from '../lib/api'
 
@@ -40,6 +41,59 @@ export function DeviceDetailPage() {
   const events = useDeviceEvents(deviceId, 8)
   const households = useHouseholds()
   const [cameraOpen, setCameraOpen] = useState(false)
+
+  // The unattended-warning surface — opened by an active warning, or by the
+  // notification deep-link (?alert=warning / ?action=add-time|turn-off).
+  const [searchParams, setSearchParams] = useSearchParams()
+  const alertParam = searchParams.get('alert')
+  const actionParam = searchParams.get('action')
+  const [warningOpen, setWarningOpen] = useState(false)
+  const [warningStartAdd, setWarningStartAdd] = useState(false)
+  const dismissedRef = useRef(false)
+  const turnOffFiredRef = useRef(false)
+
+  // Auto-surface while a warning is live; force-close once it's resolved (so a
+  // 'none'/loading event list never fights an incoming deep-link).
+  const activity = device ? warningActivity(events) : 'none'
+  const grace = device ? snoozeDeadline(events) : null
+  useEffect(() => {
+    if (activity === 'active' && !dismissedRef.current) setWarningOpen(true)
+    else if (activity === 'resolved') {
+      dismissedRef.current = false
+      setWarningOpen(false)
+      setWarningStartAdd(false)
+    }
+  }, [activity])
+
+  // Handle the notification deep-link once per arrival, then strip the params so
+  // a refresh doesn't re-fire turn-off or re-open the modal.
+  useEffect(() => {
+    if (!device) return
+    if (actionParam === 'turn-off') {
+      // Tapped "Turn off" in the notification — act directly, skip the modal.
+      if (!turnOffFiredRef.current) {
+        turnOffFiredRef.current = true
+        actions.autoShutoff(device.id)
+      }
+    } else if (alertParam === 'warning' || actionParam === 'add-time') {
+      dismissedRef.current = false
+      setWarningOpen(true)
+      setWarningStartAdd(actionParam === 'add-time')
+    }
+    if (alertParam || actionParam) {
+      const next = new URLSearchParams(searchParams)
+      next.delete('alert')
+      next.delete('action')
+      setSearchParams(next, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [device?.id, alertParam, actionParam])
+
+  const closeWarning = () => {
+    dismissedRef.current = true
+    setWarningOpen(false)
+    setWarningStartAdd(false)
+  }
 
   if (!device) {
     if (loading) {
@@ -112,6 +166,8 @@ export function DeviceDetailPage() {
         canViewCamera={can('viewCamera', role)}
         unattendedSince={unattendedAnchor(events)}
         onAutoShutoff={() => actions.autoShutoff(device.id)}
+        graceUntil={grace?.until ?? null}
+        graceTotal={grace?.total ?? null}
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -164,6 +220,14 @@ export function DeviceDetailPage() {
         {/* Remount on open/close so closing unmounts the <img> and drops the MJPEG connection. */}
         <CameraStream key={cameraOpen ? 'cam-open' : 'cam-closed'} device={device} />
       </Modal>
+
+      <ShutoffWarningModal
+        device={device}
+        events={events}
+        open={warningOpen}
+        onClose={closeWarning}
+        startInAddTime={warningStartAdd}
+      />
     </div>
     </RoleContext.Provider>
   )

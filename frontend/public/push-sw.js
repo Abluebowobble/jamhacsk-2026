@@ -17,6 +17,8 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/pwa-192x192.png',
     badge: data.badge || '/pwa-192x192.png',
     tag: data.tag,
+    // Action buttons (e.g. the unattended-warning "Add time" / "Turn off").
+    actions: Array.isArray(data.actions) ? data.actions : [],
     data: { url: data.url || '/' },
     requireInteraction: Boolean(data.requireInteraction),
   }
@@ -26,7 +28,13 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = event.notification.data?.url || '/'
+  // Carry the tapped action button (if any) into the app via ?action=, so the
+  // device page can fire turn-off or open the add-time selector. The body of the
+  // notification (no button) just opens the URL as-is.
+  let url = event.notification.data?.url || '/'
+  if (event.action) {
+    url += (url.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(event.action)
+  }
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {

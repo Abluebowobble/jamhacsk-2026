@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { AlertTriangle, MailCheck } from 'lucide-react'
+import { AlertTriangle, MailCheck, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/authContext'
 import { CenteredScreen } from '../app/CenteredScreen'
@@ -86,30 +86,13 @@ export function AuthPage() {
 
   if (checkEmail) {
     return (
-      <CenteredScreen>
-        <Card className="flex flex-col items-center gap-4 p-7 text-center">
-          <span className="grid size-12 place-items-center rounded-full bg-primary-subtle text-primary">
-            <MailCheck className="size-6" aria-hidden="true" />
-          </span>
-          <div>
-            <h1 className="text-xl font-semibold text-ink">Confirm your email</h1>
-            <p className="mt-1.5 text-sm text-ink-body">
-              We sent a confirmation link to <span className="font-medium text-ink">{email}</span>.
-              Open it to finish setting up your account, then come back to log in.
-            </p>
-          </div>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => {
-              setCheckEmail(false)
-              switchMode('login')
-            }}
-          >
-            Back to log in
-          </Button>
-        </Card>
-      </CenteredScreen>
+      <CheckEmailScreen
+        email={email}
+        onBack={() => {
+          setCheckEmail(false)
+          switchMode('login')
+        }}
+      />
     )
   }
 
@@ -171,6 +154,85 @@ export function AuthPage() {
           {mode === 'login' ? 'Create one' : 'Log in'}
         </button>
       </p>
+    </CenteredScreen>
+  )
+}
+
+// Post-signup screen: tell the user to confirm, and let them re-send the link.
+// Supabase has its own server-side resend throttle; the 5s UI cooldown stops
+// rapid double-taps and gives clear feedback in between.
+const RESEND_COOLDOWN = 5
+
+function CheckEmailScreen({ email, onBack }) {
+  const [status, setStatus] = useState('idle') // 'idle' | 'sending' | 'sent' | 'error'
+  const [error, setError] = useState(null)
+  const [cooldown, setCooldown] = useState(0)
+
+  // Tick the cooldown down to zero, one second at a time.
+  useEffect(() => {
+    if (cooldown <= 0) return undefined
+    const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [cooldown])
+
+  async function onResend() {
+    if (cooldown > 0 || status === 'sending') return
+    setStatus('sending')
+    setError(null)
+    try {
+      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email })
+      if (resendError) throw resendError
+      setStatus('sent')
+      setCooldown(RESEND_COOLDOWN)
+    } catch (err) {
+      setStatus('error')
+      setError(friendlyAuthError(err, 'signup'))
+    }
+  }
+
+  return (
+    <CenteredScreen>
+      <Card className="flex flex-col items-center gap-4 p-7 text-center">
+        <span className="grid size-12 place-items-center rounded-full bg-primary-subtle text-primary">
+          <MailCheck className="size-6" aria-hidden="true" />
+        </span>
+        <div>
+          <h1 className="text-xl font-semibold text-ink">Confirm your email</h1>
+          <p className="mt-1.5 text-sm text-ink-body">
+            We sent a confirmation link to <span className="font-medium text-ink">{email}</span>.
+            Open it to finish setting up your account, then come back to log in.
+          </p>
+        </div>
+
+        <div aria-live="polite" className="min-h-5 text-sm">
+          {status === 'sent' && cooldown > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-success-fg">
+              <Check className="size-4" aria-hidden="true" />
+              Sent again — check your inbox.
+            </span>
+          )}
+          {status === 'error' && error && (
+            <span className="inline-flex items-center gap-1.5 text-danger-fg" role="alert">
+              <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+              {error}
+            </span>
+          )}
+        </div>
+
+        <div className="flex w-full flex-col gap-2">
+          <Button
+            className="w-full"
+            loading={status === 'sending'}
+            disabled={cooldown > 0 || status === 'sending'}
+            onClick={onResend}
+          >
+            {cooldown > 0 ? `Send email again (${cooldown}s)` : 'Send email again'}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onBack}>
+            Back to log in
+          </Button>
+        </div>
+      </Card>
     </CenteredScreen>
   )
 }

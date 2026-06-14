@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Nfc, ShieldCheck, Users, AlertTriangle, Clock, ArrowLeft } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
+import { useAuth } from '../lib/authContext'
 import { useSession } from '../lib/sessionContext'
+import { readSafetyDefaults } from '../lib/preferences'
 import { CenteredScreen } from '../app/CenteredScreen'
 import { Card } from '../components/ui/Card'
 import { Field } from '../components/ui/Field'
@@ -133,6 +135,7 @@ function ManualEntry({ deviceId, setDeviceId, error, onSubmit }) {
 
 function CaseUnpaired({ deviceId, onBack }) {
   const { households, activeId, setActiveHousehold, refetchHouseholds, refetchDevices } = useSession()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   const NEW = '__new__'
@@ -155,6 +158,16 @@ function CaseUnpaired({ deviceId, onBack }) {
         ? (await api.createHousehold(newName.trim())).id
         : choice
       await api.pairDevice(deviceId, householdId)
+      // Apply the owner's chosen safety defaults to the freshly paired device.
+      // Best-effort: if it fails, the device keeps its factory timings.
+      const defaults = readSafetyDefaults(user?.id)
+      if (defaults) {
+        try {
+          await api.updateSafety(deviceId, defaults)
+        } catch {
+          /* non-fatal — pairing still succeeded */
+        }
+      }
       setActiveHousehold(householdId)
       await Promise.all([refetchHouseholds(), refetchDevices(householdId)])
       navigate('/', { replace: true })
