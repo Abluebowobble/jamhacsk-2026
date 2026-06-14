@@ -1,0 +1,134 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Hestia — home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e11]: Hestia
+      - navigation "Primary" [ref=e12]:
+        - link "How it works" [ref=e13] [cursor=pointer]:
+          - /url: /#how
+        - link "Features" [ref=e14] [cursor=pointer]:
+          - /url: /#features
+        - link "Local-first" [ref=e15] [cursor=pointer]:
+          - /url: /#trust
+        - link "FAQ" [ref=e16] [cursor=pointer]:
+          - /url: /#faq
+      - link "Get started" [ref=e18] [cursor=pointer]:
+        - /url: /#get-started
+        - button "Get started" [ref=e19]:
+          - text: Get started
+          - img [ref=e20]
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e25]:
+        - img [ref=e27]
+        - heading "Get the Hestia app" [level=1] [ref=e29]
+        - paragraph [ref=e30]: Tap the button below to open Hestia. You'll always get the newest version.
+        - link "Open Hestia" [ref=e32] [cursor=pointer]:
+          - /url: https://app.hestia.my
+          - button "Open Hestia" [ref=e33]:
+            - text: Open Hestia
+            - img [ref=e34]
+        - paragraph [ref=e38]:
+          - generic [ref=e39]:
+            - img [ref=e40]
+            - text: Free to start
+          - generic [ref=e42]:
+            - img [ref=e43]
+            - text: No app store
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: Always up to date
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "Open Hestia, then add it to your home screen" [level=2] [ref=e51]
+          - paragraph [ref=e52]: Add Hestia to your home screen and it opens just like any other app — three taps, on your phone or tablet.
+        - generic [ref=e53]:
+          - list [ref=e54]:
+            - listitem [ref=e55]:
+              - generic [ref=e56]: "1"
+              - paragraph [ref=e57]:
+                - text: Tap the orange
+                - strong [ref=e58]: Open Hestia
+                - text: button above. It opens in your web browser.
+            - listitem [ref=e59]:
+              - generic [ref=e60]: "2"
+              - paragraph [ref=e61]:
+                - text: Press the
+                - strong [ref=e62]: Share
+                - text: button
+                - img [ref=e64]
+                - text: .
+            - listitem [ref=e67]:
+              - generic [ref=e68]: "3"
+              - paragraph [ref=e69]:
+                - text: Choose
+                - strong [ref=e70]: Add to Home Screen
+                - text: . Hestia now sits on your home screen, like any other app.
+          - paragraph [ref=e71]:
+            - img [ref=e72]
+            - text: The Share button is the square with an arrow pointing up — at the bottom of the screen on an iPhone, or in the menu on Android.
+      - generic [ref=e75]:
+        - heading "Stuck, or not sure?" [level=2] [ref=e76]
+        - paragraph [ref=e77]:
+          - text: Installing is optional — you can always just tap
+          - strong [ref=e78]: Open Hestia
+          - text: and use it in your browser. If you'd like a hand, ask a family member, or read the common questions.
+        - generic [ref=e79]:
+          - link "Open Hestia" [ref=e80] [cursor=pointer]:
+            - /url: https://app.hestia.my
+            - button "Open Hestia" [ref=e81]
+          - link "Read the FAQ" [ref=e82] [cursor=pointer]:
+            - /url: /#faq
+  - contentinfo [ref=e83]:
+    - generic [ref=e84]:
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - link "Hestia — home" [ref=e87] [cursor=pointer]:
+            - /url: /
+            - img [ref=e88]
+            - generic [ref=e93]: Hestia
+          - paragraph [ref=e94]: A safety instrument for the kitchen. The stove watches itself — and the decision that matters runs on the device, not the cloud.
+        - generic [ref=e95]:
+          - paragraph [ref=e96]: Product
+          - list [ref=e97]:
+            - listitem [ref=e98]:
+              - link "How it works" [ref=e99] [cursor=pointer]:
+                - /url: /#how
+            - listitem [ref=e100]:
+              - link "Features" [ref=e101] [cursor=pointer]:
+                - /url: /#features
+            - listitem [ref=e102]:
+              - link "Local-first" [ref=e103] [cursor=pointer]:
+                - /url: /#trust
+            - listitem [ref=e104]:
+              - link "The app" [ref=e105] [cursor=pointer]:
+                - /url: /#showcase
+        - generic [ref=e106]:
+          - paragraph [ref=e107]: Company
+          - list [ref=e108]:
+            - listitem [ref=e109]:
+              - link "FAQ" [ref=e110] [cursor=pointer]:
+                - /url: /#faq
+            - listitem [ref=e111]:
+              - link "Get started" [ref=e112] [cursor=pointer]:
+                - /url: /download
+            - listitem [ref=e113]:
+              - link "Contact" [ref=e114] [cursor=pointer]:
+                - /url: /#get-started
+        - generic [ref=e115]:
+          - paragraph [ref=e116]: Safety
+          - list [ref=e117]:
+            - listitem [ref=e118]:
+              - link "The safety loop" [ref=e119] [cursor=pointer]:
+                - /url: /#how
+            - listitem [ref=e120]:
+              - link "Privacy" [ref=e121] [cursor=pointer]:
+                - /url: /#trust
+            - listitem [ref=e122]:
+              - link "Reliability" [ref=e123] [cursor=pointer]:
+                - /url: /#faq
+      - generic [ref=e124]:
+        - generic [ref=e125]: © 2026 Hestia.
+        - generic [ref=e126]: Local-first stove safety

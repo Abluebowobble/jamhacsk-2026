@@ -1,0 +1,399 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Hestia — home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e11]: Hestia
+      - navigation "Primary" [ref=e12]:
+        - link "How it works" [ref=e13] [cursor=pointer]:
+          - /url: /#how
+        - link "Features" [ref=e14] [cursor=pointer]:
+          - /url: /#features
+        - link "Local-first" [ref=e15] [cursor=pointer]:
+          - /url: /#trust
+        - link "FAQ" [ref=e16] [cursor=pointer]:
+          - /url: /#faq
+      - link "Get started" [ref=e18] [cursor=pointer]:
+        - /url: /#get-started
+        - button "Get started" [ref=e19]:
+          - text: Get started
+          - img [ref=e20]
+  - main [ref=e22]:
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - paragraph [ref=e26]: Smart stove safety
+        - heading "The stove that watches itself ." [level=1] [ref=e27]:
+          - text: The stove that
+          - generic [ref=e28]:
+            - text: watches itself
+            - img [ref=e29]
+          - text: .
+        - paragraph [ref=e31]: Hestia keeps an eye on every burner. When a lit stove is left unattended it sounds a warning — and if no one comes back, it shuts the stove off automatically. The decision runs on the device, not the cloud.
+        - generic [ref=e32]:
+          - link "Get started" [ref=e33] [cursor=pointer]:
+            - /url: /download
+            - text: Get started
+            - img [ref=e34]
+          - link "See how it works" [ref=e36] [cursor=pointer]:
+            - /url: /#how
+        - list [ref=e37]:
+          - listitem [ref=e38]:
+            - img [ref=e39]
+            - text: Local-first safety
+          - listitem [ref=e41]:
+            - img [ref=e42]
+            - text: Works if the Wi-Fi drops
+          - listitem [ref=e44]:
+            - img [ref=e45]
+            - text: No kitchen cameras
+      - 'img "Live device status: Kitchen Stove is online, stove on, presence detected — attended, all clear." [ref=e48]':
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - text: Device
+            - paragraph [ref=e52]: Kitchen Stove
+          - generic [ref=e53]:
+            - img [ref=e54]
+            - text: Online
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - text: Stove
+            - generic [ref=e60]:
+              - img [ref=e62]
+              - generic [ref=e64]: "On"
+          - generic [ref=e65]:
+            - text: Presence
+            - generic [ref=e66]:
+              - img [ref=e68]
+              - generic [ref=e72]: Detected
+        - generic [ref=e74]:
+          - img [ref=e75]
+          - text: Attended — all clear
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e82]: Why it matters
+        - heading "Cooking is the leading cause of home fires." [level=2] [ref=e83]
+        - paragraph [ref=e84]: Most start the same way — a burner left on while someone steps away "just for a minute." Hestia is built for that minute.
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - term [ref=e87]:
+            - generic [ref=e88]: 49 percent.
+            - text: 0%
+          - definition [ref=e89]:
+            - paragraph [ref=e90]: Cooking equipment is involved in about half of all reported home fires.
+            - paragraph [ref=e91]: NFPA, Home Cooking Fires report (data 2017–2021)
+        - generic [ref=e92]:
+          - term [ref=e93]: "#1"
+          - definition [ref=e94]:
+            - paragraph [ref=e95]: Cooking is the leading cause of home-fire injuries in the United States.
+            - paragraph [ref=e96]: U.S. Fire Administration and NFPA (data 2017–2021)
+        - generic [ref=e97]:
+          - term [ref=e98]:
+            - generic [ref=e99]: 37 percent.
+            - text: 0%
+          - definition [ref=e100]:
+            - paragraph [ref=e101]: Unattended equipment is the leading factor contributing to ignition in nonconfined home cooking fires.
+            - paragraph [ref=e102]: U.S. Fire Administration, citing NFPA (2021)
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e107]: How it works
+        - heading "Detect. Warn. Shut off." [level=2] [ref=e108]
+        - paragraph [ref=e109]: Three steps run continuously on the device in your kitchen. Watch the loop play out as you scroll.
+      - generic [ref=e111]:
+        - list "The safety loop, in three steps" [ref=e112]:
+          - listitem [ref=e113]:
+            - img [ref=e115]
+            - generic [ref=e120]:
+              - heading "1 Detect" [level=3] [ref=e121]:
+                - generic [ref=e122]: "1"
+                - text: Detect
+              - paragraph [ref=e123]: Sensors watch the burner and the room — is the stove lit, and is anyone near it?
+          - listitem [ref=e124]:
+            - img [ref=e126]
+            - generic [ref=e129]:
+              - heading "2 Warn" [level=3] [ref=e130]:
+                - generic [ref=e131]: "2"
+                - text: Warn
+              - paragraph [ref=e132]: If a lit stove is left unattended, the buzzer sounds and an absence countdown begins.
+          - listitem [ref=e133]:
+            - img [ref=e135]
+            - generic [ref=e137]:
+              - heading "3 Shut off" [level=3] [ref=e138]:
+                - generic [ref=e139]: "3"
+                - text: Shut off
+              - paragraph [ref=e140]: If no one returns before the countdown ends, Hestia cuts power to the stove.
+        - figure "A live walkthrough — no stove required." [ref=e141]:
+          - generic [ref=e142]:
+            - generic [ref=e143]: Stove on. Someone is cooking.
+            - generic [ref=e145]:
+              - img [ref=e146]
+              - text: Stove on · attended
+            - generic [ref=e151]:
+              - img "Safety-loop countdown ring" [ref=e152]
+              - generic [ref=e155]:
+                - generic [ref=e156]: At rest
+                - generic [ref=e157]: 10s
+                - generic [ref=e158]: on-device countdown
+            - generic [ref=e159]:
+              - button "Replay the loop" [ref=e160] [cursor=pointer]:
+                - img [ref=e161]
+                - text: Replay the loop
+              - paragraph [ref=e163]: The countdown and the shutoff run on the device itself.
+          - generic [ref=e164]: A live walkthrough — no stove required.
+    - generic [ref=e166]:
+      - generic [ref=e167]:
+        - generic [ref=e169]: Built for the whole household
+        - heading "Everything you need to trust the stove." [level=2] [ref=e170]
+        - paragraph [ref=e171]: One clear status, shared with the people who matter — and the controls to act on it.
+      - generic [ref=e172]:
+        - article [ref=e174]:
+          - img [ref=e176]
+          - heading "Live status at a glance" [level=3] [ref=e179]
+          - paragraph [ref=e180]: The current state of every stove — readable in half a second, from anywhere.
+        - article [ref=e182]:
+          - img [ref=e184]
+          - heading "Tap to pair" [level=3] [ref=e189]
+          - paragraph [ref=e190]: Tap your phone to the device to pair it over NFC — no codes to copy.
+        - article [ref=e192]:
+          - img [ref=e194]
+          - heading "Households & roles" [level=3] [ref=e199]
+          - paragraph [ref=e200]: Admins manage devices and members; everyone else can see status and act. Roles are legible at a glance.
+        - article [ref=e202]:
+          - img [ref=e204]
+          - heading "Timers & reminders" [level=3] [ref=e207]
+          - paragraph [ref=e208]: Set a cook timer and Hestia keeps watch alongside you — a reminder before the countdown starts.
+        - article [ref=e210]:
+          - img [ref=e212]
+          - heading "Safety thresholds" [level=3] [ref=e213]
+          - paragraph [ref=e214]: Tune how long “unattended” is allowed before the countdown starts. Long, low-heat cooking won’t trigger a countdown.
+        - article [ref=e216]:
+          - img [ref=e218]
+          - heading "Event history" [level=3] [ref=e221]
+          - paragraph [ref=e222]: Every warning, return, and auto-shutoff, logged with timestamps — so you always know what happened.
+    - generic [ref=e224]:
+      - generic [ref=e225]:
+        - generic [ref=e227]: Local-first by design
+        - heading "The decision that matters never waits on Wi-Fi." [level=2] [ref=e228]
+        - paragraph [ref=e229]: The safety loop — detect, warn, shut off — runs entirely on the device in your kitchen. The app is the window onto it, not the brain behind it.
+        - generic [ref=e230]:
+          - listitem [ref=e231]:
+            - img [ref=e233]
+            - paragraph [ref=e235]:
+              - strong [ref=e236]: Works if the internet drops.
+              - text: The stove still shuts off. Connectivity changes what you can see, never whether you’re safe.
+          - listitem [ref=e237]:
+            - img [ref=e239]
+            - paragraph [ref=e241]:
+              - strong [ref=e242]: No kitchen cameras.
+              - text: Presence is sensed locally; nothing streams your kitchen to a server.
+          - listitem [ref=e243]:
+            - img [ref=e245]
+            - paragraph [ref=e247]:
+              - strong [ref=e248]: Your home, your data.
+              - text: Status and history stay with your household.
+      - generic [ref=e249]:
+        - 'group "Where the safety decision is made: on the device, locally" [ref=e250]':
+          - generic [ref=e251]:
+            - img [ref=e253]
+            - generic [ref=e256]:
+              - text: Hestia device
+              - paragraph [ref=e257]: In your kitchen
+            - generic [ref=e258]:
+              - img [ref=e259]
+              - text: "Decision: local"
+          - generic [ref=e262]:
+            - img [ref=e263]
+            - generic [ref=e264]: optional · for remote viewing only
+          - generic [ref=e265]:
+            - img [ref=e267]
+            - generic [ref=e269]:
+              - paragraph [ref=e270]: Cloud
+              - paragraph [ref=e271]: Optional · not in the safety loop
+        - paragraph [ref=e272]: The safety decision is made on the device. The cloud only lets you watch from afar — it is never in the loop that keeps you safe.
+    - generic [ref=e274]:
+      - generic [ref=e275]:
+        - generic [ref=e277]: The app
+        - heading "One status. The whole household, on the same page." [level=2] [ref=e278]
+        - paragraph [ref=e279]: The same calm card whether everything's fine or the stove just shut itself off. Color, icon, and words always agree — so there's no second-guessing under stress.
+      - generic [ref=e280]:
+        - generic [ref=e281]:
+          - generic [ref=e282]: Attended
+          - article "Kitchen Stove — Attended" [ref=e283]:
+            - generic [ref=e284]:
+              - generic [ref=e285]: Kitchen Stove
+              - generic [ref=e286]:
+                - img [ref=e287]
+                - text: Online
+            - generic [ref=e291]:
+              - generic [ref=e292]:
+                - text: Stove
+                - generic [ref=e293]:
+                  - img [ref=e295]
+                  - generic [ref=e297]: "On"
+              - generic [ref=e298]:
+                - text: Presence
+                - generic [ref=e299]:
+                  - img [ref=e301]
+                  - generic [ref=e305]: Detected
+            - generic [ref=e307]:
+              - img [ref=e308]
+              - text: Attended — all clear
+        - generic [ref=e311]:
+          - generic [ref=e312]: Unattended
+          - article "Kitchen Stove — Unattended" [ref=e313]:
+            - generic [ref=e314]:
+              - generic [ref=e315]: Kitchen Stove
+              - generic [ref=e316]:
+                - img [ref=e317]
+                - text: Online
+            - generic [ref=e321]:
+              - generic [ref=e322]:
+                - text: Stove
+                - generic [ref=e323]:
+                  - img [ref=e325]
+                  - generic [ref=e327]: "On"
+              - generic [ref=e328]:
+                - text: Presence
+                - generic [ref=e329]:
+                  - img [ref=e331]
+                  - generic [ref=e336]: Not detected
+            - generic [ref=e338]:
+              - img [ref=e339]
+              - text: Unattended — watching
+        - generic [ref=e344]:
+          - generic [ref=e345]: Warning
+          - article "Kitchen Stove — Warning" [ref=e346]:
+            - generic [ref=e347]:
+              - generic [ref=e348]: Kitchen Stove
+              - generic [ref=e349]:
+                - img [ref=e350]
+                - text: Online
+            - generic [ref=e354]:
+              - generic [ref=e355]:
+                - text: Stove
+                - generic [ref=e356]:
+                  - img [ref=e358]
+                  - generic [ref=e360]: "On"
+              - generic [ref=e361]:
+                - text: Presence
+                - generic [ref=e362]:
+                  - img [ref=e364]
+                  - generic [ref=e369]: Not detected
+            - generic [ref=e371]:
+              - img [ref=e372]
+              - text: Warning ·
+              - generic [ref=e374]: 18s
+        - generic [ref=e375]:
+          - generic [ref=e376]: Auto-shutoff
+          - article "Kitchen Stove — Auto-shutoff" [ref=e377]:
+            - generic [ref=e378]:
+              - generic [ref=e379]: Kitchen Stove
+              - generic [ref=e380]:
+                - img [ref=e381]
+                - text: Online
+            - generic [ref=e385]:
+              - generic [ref=e386]:
+                - text: Stove
+                - generic [ref=e387]:
+                  - img [ref=e389]
+                  - generic [ref=e391]: "Off"
+              - generic [ref=e392]:
+                - text: Presence
+                - generic [ref=e393]:
+                  - img [ref=e395]
+                  - generic [ref=e400]: Not detected
+            - generic [ref=e402]:
+              - img [ref=e403]
+              - text: Auto-shutoff
+    - generic [ref=e406]:
+      - heading "Frequently asked questions" [level=2] [ref=e408]
+      - generic [ref=e409]:
+        - generic [ref=e410]:
+          - heading "What happens if the internet goes down?" [level=3] [ref=e411]:
+            - button "What happens if the internet goes down?" [expanded] [ref=e412] [cursor=pointer]:
+              - generic [ref=e413]: What happens if the internet goes down?
+              - img [ref=e415]
+          - region "What happens if the internet goes down?" [ref=e418]:
+            - paragraph [ref=e419]: Nothing changes about your safety. Detection, the warning, and the auto-shutoff all run on the device in your kitchen. You may lose remote visibility until you reconnect, but the stove still turns itself off.
+        - heading "Does it work with my stove?" [level=3] [ref=e421]:
+          - button "Does it work with my stove?" [ref=e422] [cursor=pointer]:
+            - generic [ref=e423]: Does it work with my stove?
+            - img [ref=e425]
+        - heading "Is there a camera in my kitchen?" [level=3] [ref=e427]:
+          - button "Is there a camera in my kitchen?" [ref=e428] [cursor=pointer]:
+            - generic [ref=e429]: Is there a camera in my kitchen?
+            - img [ref=e431]
+        - heading "Who in my house can control it?" [level=3] [ref=e433]:
+          - button "Who in my house can control it?" [ref=e434] [cursor=pointer]:
+            - generic [ref=e435]: Who in my house can control it?
+            - img [ref=e437]
+        - heading "What if I'm cooking low and slow?" [level=3] [ref=e439]:
+          - button "What if I'm cooking low and slow?" [ref=e440] [cursor=pointer]:
+            - generic [ref=e441]: What if I'm cooking low and slow?
+            - img [ref=e443]
+        - heading "How fast does it react?" [level=3] [ref=e445]:
+          - button "How fast does it react?" [ref=e446] [cursor=pointer]:
+            - generic [ref=e447]: How fast does it react?
+            - img [ref=e449]
+    - generic [ref=e453]:
+      - generic [ref=e454]: Get started
+      - heading "Bring Hestia home." [level=2] [ref=e455]
+      - paragraph [ref=e456]: Set up your first device in minutes. Pair it, add your household, and let the kitchen watch itself.
+      - generic [ref=e457]:
+        - link "Get started" [ref=e458] [cursor=pointer]:
+          - /url: /download
+          - text: Get started
+          - img [ref=e459]
+        - link "See how it works" [ref=e461] [cursor=pointer]:
+          - /url: /#how
+  - contentinfo [ref=e462]:
+    - generic [ref=e463]:
+      - generic [ref=e464]:
+        - generic [ref=e465]:
+          - link "Hestia — home" [ref=e466] [cursor=pointer]:
+            - /url: /
+            - img [ref=e467]
+            - generic [ref=e472]: Hestia
+          - paragraph [ref=e473]: A safety instrument for the kitchen. The stove watches itself — and the decision that matters runs on the device, not the cloud.
+        - generic [ref=e474]:
+          - paragraph [ref=e475]: Product
+          - list [ref=e476]:
+            - listitem [ref=e477]:
+              - link "How it works" [ref=e478] [cursor=pointer]:
+                - /url: /#how
+            - listitem [ref=e479]:
+              - link "Features" [ref=e480] [cursor=pointer]:
+                - /url: /#features
+            - listitem [ref=e481]:
+              - link "Local-first" [ref=e482] [cursor=pointer]:
+                - /url: /#trust
+            - listitem [ref=e483]:
+              - link "The app" [ref=e484] [cursor=pointer]:
+                - /url: /#showcase
+        - generic [ref=e485]:
+          - paragraph [ref=e486]: Company
+          - list [ref=e487]:
+            - listitem [ref=e488]:
+              - link "FAQ" [ref=e489] [cursor=pointer]:
+                - /url: /#faq
+            - listitem [ref=e490]:
+              - link "Get started" [ref=e491] [cursor=pointer]:
+                - /url: /download
+            - listitem [ref=e492]:
+              - link "Contact" [ref=e493] [cursor=pointer]:
+                - /url: /#get-started
+        - generic [ref=e494]:
+          - paragraph [ref=e495]: Safety
+          - list [ref=e496]:
+            - listitem [ref=e497]:
+              - link "The safety loop" [ref=e498] [cursor=pointer]:
+                - /url: /#how
+            - listitem [ref=e499]:
+              - link "Privacy" [ref=e500] [cursor=pointer]:
+                - /url: /#trust
+            - listitem [ref=e501]:
+              - link "Reliability" [ref=e502] [cursor=pointer]:
+                - /url: /#faq
+      - generic [ref=e503]:
+        - generic [ref=e504]: © 2026 Hestia.
+        - generic [ref=e505]: Local-first stove safety
