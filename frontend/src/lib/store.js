@@ -111,13 +111,20 @@ function upsertDevices(next) {
 }
 
 async function fetchDeviceWithTimers(deviceRow) {
-  let timers = []
   try {
-    timers = await api.listTimers(deviceRow.id)
+    const timers = await api.listTimers(deviceRow.id)
+    return adaptDevice(deviceRow, timers)
   } catch {
-    /* timers are best-effort; a device still renders without them */
+    // The timers fetch failed (a transient network/realtime blip). Do NOT drop a
+    // timer we're already showing — wiping it to null on every failed refresh is
+    // what made an active countdown "randomly disappear" mid-run. Carry the
+    // existing timer over; only a *successful* fetch returning no active timer is
+    // allowed to clear it.
+    const adapted = adaptDevice(deviceRow, [])
+    const prev = state.devices.find((d) => d.id === deviceRow.id)
+    if (prev?.timer) adapted.timer = prev.timer
+    return adapted
   }
-  return adaptDevice(deviceRow, timers)
 }
 
 async function loadHouseholdDevices(householdId) {

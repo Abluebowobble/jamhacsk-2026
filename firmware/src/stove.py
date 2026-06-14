@@ -9,6 +9,11 @@ servo against its hard stops we stop 5° short of each end: **5° is OFF** and
 ``STOVE_ON_ANGLE`` (default 175°) is ON. On a dev machine (no GPIO) it falls back
 to a simulated, log-only backend, so the firmware still runs anywhere.
 
+The servo pulse is driven through gpiozero's **pigpio** pin factory (DMA /
+hardware-timed PWM) so the SG90 doesn't jitter; install + enable the daemon with
+``sudo apt install pigpio && sudo systemctl enable --now pigpiod``. If pigpiod
+isn't running it falls back to the default (software-PWM) factory.
+
 ``turn_off()`` always drives the servo to the OFF angle **from wherever it
 currently is** — it is deliberately not idempotent (see the method docstring).
 This is the safety-critical path: the servo's real angle is unknown after
@@ -47,6 +52,22 @@ class _Sg90Servo:
 
         self._on_angle = on_angle
         self._settle_s = settle_s
+        # An SG90 twitches/jitters when its control pulse is *software*-timed:
+        # gpiozero's default factory on the Pi 4B (lgpio) generates the PWM on the
+        # CPU, so the pulse width wanders by tens of microseconds and the servo
+        # hunts around the target. pigpio generates the pulse over DMA
+        # (hardware-timed) -> a rock-steady pulse, so the servo holds still.
+        # Requires the pigpio daemon: `sudo apt install pigpio` then
+        # `sudo systemctl enable --now pigpiod`. If it isn't running we fall back
+        # to the default factory so the firmware still works (just jitterier).
+        pin_factory = None
+        try:
+            from gpiozero.pins.pigpio import PiGPIOFactory
+            pin_factory = PiGPIOFactory()
+            log.info("Stove servo: using pigpio pin factory (jitter-free PWM)")
+        except Exception as exc:  # pigpiod down / pigpio not installed
+            log.warning("Stove servo: pigpio unavailable (%s) — using default "
+                        "pin factory; servo may jitter", exc)
         # initial_angle=_OFF_ANGLE makes the servo assert OFF the moment it's
         # initialised — a safe known state on first use. The angle scale spans the
         # servo's full 0–180° physical range so the 5°/175° targets are reachable;
@@ -58,6 +79,7 @@ class _Sg90Servo:
             max_angle=180,
             min_pulse_width=min_pulse_s,
             max_pulse_width=max_pulse_s,
+            pin_factory=pin_factory,
         )
         log.info("Stove backend: SG90 servo pin=%s on_angle=%s°", pin, on_angle)
 
@@ -78,6 +100,7 @@ class _Sg90Servo:
 
     def off(self):
         self._move_to(_OFF_ANGLE)
+        print ("tunring stove off")
 
     def close(self):
         try:

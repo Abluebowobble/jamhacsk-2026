@@ -33,6 +33,23 @@ export default async function timersRoutes(app) {
     },
   }, async (request, reply) => {
     const { duration_seconds } = request.body
+    const nowIso = new Date().toISOString()
+
+    // One timer at a time (matches the firmware rule): a device may have only one
+    // running cooking timer. Reject if one is still active and not yet expired.
+    // Expired-but-still-active rows (ends_at in the past, not yet reaped by the
+    // 10s poller) are ignored here so they can't block a fresh timer.
+    const { data: running } = await supabaseAdmin
+      .from('timers')
+      .select('id')
+      .eq('device_id', request.params.deviceId)
+      .eq('status', 'active')
+      .gt('ends_at', nowIso)
+      .limit(1)
+    if (running?.length) {
+      return reply.code(409).send({ error: 'A timer is already running for this device' })
+    }
+
     const endsAt = new Date(Date.now() + duration_seconds * 1000).toISOString()
 
     const { data: timer, error } = await supabaseAdmin
