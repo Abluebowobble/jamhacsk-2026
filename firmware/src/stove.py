@@ -66,6 +66,12 @@ class _Sg90Servo:
         # Hold the pulse long enough for the servo to physically reach the angle
         # (SG90 ≈ 0.1 s/60°, so a full 180° sweep needs a few hundred ms).
         time.sleep(self._settle_s)
+        # Then DETACH: stop sending PWM pulses. A cheap SG90 left under a
+        # continuous pulse "hunts" around the target and buzzes/twitches, so
+        # once it has reached the angle we cut the signal and let it sit quietly.
+        # The knob holds position mechanically; the next on()/off() re-asserts a
+        # pulse, so safety is unaffected.
+        self._servo.detach()
 
     def on(self):
         self._move_to(self._on_angle)
