@@ -30,7 +30,7 @@ import logging
 import time
 
 from .actuator import Actuator, SimulatedBackend
-from .util import env_float, env_int
+from .util import env_bool, env_float, env_int
 
 log = logging.getLogger("hestia.stove")
 
@@ -131,6 +131,12 @@ class Stove(Actuator):
         super().__init__(backend=backend)
 
     def _make_backend(self):
+        # Force the log-only backend even where GPIO works (e.g. on the Pi). This
+        # turns the firmware into a faithful product mock: real camera, presence,
+        # safety, buzzer and MQTT — only the physical servo is stubbed, so the
+        # device reports stove on/off over MQTT without driving a real knob.
+        if env_bool("STOVE_SIMULATED", False):
+            return SimulatedBackend(log, "Stove", "STOVE_SIMULATED set")
         pin = env_int("STOVE_SERVO_PIN", 18)
         on_angle = self._on_angle
         min_pulse_s = env_float("STOVE_SERVO_MIN_PULSE_MS", 0.5) / 1000.0

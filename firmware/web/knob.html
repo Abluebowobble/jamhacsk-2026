@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light" />
+<title>Hestia — Stove Knob</title>
+<style>
+  /*
+   * Hestia "Clinical Precision": calm, light, steel-blue at rest. Heat (stove ON)
+   * is the one state that *earns* amber. Every state is encoded as color + icon +
+   * text, never color alone (WCAG 2.1 AA).
+   */
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --ink: #1b2733;
+    --muted: #5d6b7a;
+    --line: #d7dee6;
+    --steel: #3f6695;       /* resting accent */
+    --steel-soft: #e7eef6;
+    --amber: #c9740a;       /* "on" / heat — earned */
+    --amber-soft: #fdf1e2;
+    --ring: #c2cdd9;
+    --shadow: 0 10px 30px rgba(27, 39, 51, .12);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .card {
+    width: min(420px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 28px 28px 32px;
+    text-align: center;
+  }
+  .brand {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    color: var(--muted); font-size: 13px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--steel); }
+  h1 { font-size: 19px; margin: 6px 0 22px; font-weight: 650; }
+
+  /* --- the knob ------------------------------------------------------------ */
+  .knob-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto; touch-action: none; }
+  .dial-ticks { position: absolute; inset: 0; }
+  .knob {
+    position: absolute; inset: 18px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 38%, #ffffff 0%, #eef2f6 60%, #e2e8ef 100%);
+    border: 1px solid var(--ring);
+    box-shadow: inset 0 2px 6px rgba(255,255,255,.9), inset 0 -8px 18px rgba(27,39,51,.10), 0 6px 16px rgba(27,39,51,.12);
+    cursor: grab;
+    transition: transform .45s cubic-bezier(.34,1.4,.5,1), box-shadow .3s, border-color .3s;
+    display: grid; place-items: center;
+    outline: none;
+  }
+  .knob:focus-visible { box-shadow: 0 0 0 4px rgba(63,102,149,.35), inset 0 -8px 18px rgba(27,39,51,.10); }
+  .knob.dragging { cursor: grabbing; transition: none; }
+  .knob .pointer {
+    position: absolute; top: 14px; left: 50%;
+    width: 6px; height: 38%;
+    margin-left: -3px;
+    border-radius: 3px;
+    background: var(--steel);
+    transition: background .3s;
+  }
+  .knob .icon { font-size: 40px; line-height: 1; transform: rotate(var(--counter, 0deg)); transition: transform .45s; }
+
+  /* ON state — heat earns amber. */
+  body.on .knob { border-color: var(--amber); box-shadow: inset 0 2px 6px rgba(255,255,255,.9), inset 0 -8px 18px rgba(201,116,10,.18), 0 6px 20px rgba(201,116,10,.28); }
+  body.on .knob .pointer { background: var(--amber); }
+
+  /* --- status line --------------------------------------------------------- */
+  .status {
+    margin-top: 26px;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 9px 16px; border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--steel-soft); color: var(--steel);
+    font-weight: 650; letter-spacing: .04em;
+  }
+  body.on .status { background: var(--amber-soft); color: var(--amber); border-color: #f0d6b0; }
+  .status .badge { font-size: 18px; }
+  .source { margin-top: 14px; min-height: 20px; font-size: 13px; color: var(--muted); }
+  .hint { margin-top: 18px; font-size: 12.5px; color: var(--muted); }
+  .conn { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .conn.bad { color: var(--amber); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand"><span class="dot"></span> Hestia</div>
+    <h1>Stove Knob</h1>
+
+    <div class="knob-wrap">
+      <svg class="dial-ticks" viewBox="0 0 220 220" aria-hidden="true">
+        <!-- OFF tick (top) and ON tick (rotated) reference marks -->
+        <g stroke="#aebccb" stroke-width="2" stroke-linecap="round">
+          <line x1="110" y1="6"  x2="110" y2="18" />
+        </g>
+        <g stroke="#e0b27a" stroke-width="2" stroke-linecap="round" transform="rotate(150 110 110)">
+          <line x1="110" y1="6"  x2="110" y2="18" />
+        </g>
+        <text x="96" y="20" font-size="11" fill="#7b8794" font-family="system-ui">OFF</text>
+        <text x="186" y="150" font-size="11" fill="#b9831f" font-family="system-ui">ON</text>
+      </svg>
+
+      <div id="knob" class="knob" role="switch" aria-checked="false" tabindex="0"
+           aria-label="Stove power knob. Turn to switch the stove on or off.">
+        <span class="icon" id="icon" aria-hidden="true">⏻</span>
+        <span class="pointer"></span>
+      </div>
+    </div>
+
+    <div class="status" id="status" aria-live="polite">
+      <span class="badge" id="badge">⏻</span>
+      <span id="statusText">OFF</span>
+    </div>
+    <div class="source" id="source"></div>
+
+    <div class="hint">Tap or drag the knob to turn the stove on or off.</div>
+    <div class="conn" id="conn">Connecting…</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // The web knob is served by stove_web.py on the device. If the page was opened
+  // with ?token=… (gated mode), carry it on every request.
+  var TOKEN = new URLSearchParams(location.search).get("token");
+  var qs = TOKEN ? ("?token=" + encodeURIComponent(TOKEN)) : "";
+
+  // OFF points straight up (0°); ON is a quarter-plus turn clockwise. Matches the
+  // dial ticks above.
+  var ON_ANGLE = 150;
+
+  var knob = document.getElementById("knob");
+  var icon = document.getElementById("icon");
+  var badge = document.getElementById("badge");
+  var statusText = document.getElementById("statusText");
+  var sourceEl = document.getElementById("source");
+  var connEl = document.getElementById("conn");
+
+  var current = false;        // last state we've rendered
+  var dragging = false;
+
+  function describeSource(src, on) {
+    if (src === "init" || src === null || src === undefined) return "";
+    if (src === "knob") return on ? "Turned on here." : "Turned off here.";
+    if (src === "device") {
+      // A device/backend-driven change: cloud toggle, timer, or auto-shutoff.
+      return on ? "Turned on remotely." : "Turned off remotely.";
+    }
+    return "";
+  }
+
+  function render(on, src) {
+    current = on;
+    document.body.classList.toggle("on", on);
+    knob.style.transform = "rotate(" + (on ? ON_ANGLE : 0) + "deg)";
+    // Keep the glyph upright while the knob rotates.
+    icon.style.setProperty("--counter", (on ? -ON_ANGLE : 0) + "deg");
+    var glyph = on ? "🔥" : "⏻";
+    icon.textContent = glyph;
+    badge.textContent = glyph;
+    statusText.textContent = on ? "ON" : "OFF";
+    knob.setAttribute("aria-checked", on ? "true" : "false");
+    if (src !== undefined) sourceEl.textContent = describeSource(src, on);
+  }
+
+  // --- send a user turn to the device ---------------------------------------
+  function sendTurn(on) {
+    // Optimistic: rotate immediately; the SSE echo is the source of truth.
+    render(on, "knob");
+    fetch("/knob" + qs, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ on: on }),
+    }).catch(function () {
+      connEl.textContent = "Couldn’t reach the device.";
+      connEl.classList.add("bad");
+    });
+  }
+
+  function toggle() { sendTurn(!current); }
+
+  // --- input: tap / keyboard ------------------------------------------------
+  knob.addEventListener("click", function (e) {
+    if (knob.dataset.dragged === "1") { knob.dataset.dragged = "0"; return; }
+    toggle();
+  });
+  knob.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+  });
+
+  // --- input: drag to rotate, snap to nearest detent ------------------------
+  function angleFromEvent(e) {
+    var r = knob.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // 0° = up, increasing clockwise, range 0..360.
+    var a = Math.atan2(e.clientX - cx, cy - e.clientY) * 180 / Math.PI;
+    return (a + 360) % 360;
+  }
+  knob.addEventListener("pointerdown", function (e) {
+    dragging = true;
+    knob.dataset.dragged = "0";
+    knob.classList.add("dragging");
+    knob.setPointerCapture(e.pointerId);
+  });
+  knob.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    var a = angleFromEvent(e);
+    knob.dataset.dragged = "1";
+    var clamped = a > 270 ? 0 : Math.min(a, ON_ANGLE); // keep within OFF..ON arc
+    knob.style.transform = "rotate(" + clamped + "deg)";
+    icon.style.setProperty("--counter", -clamped + "deg");
+  });
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    knob.classList.remove("dragging");
+    var a = angleFromEvent(e);
+    var on = a > 270 ? false : a >= ON_ANGLE / 2;
+    if (on !== current) sendTurn(on); else render(current, undefined);
+  }
+  knob.addEventListener("pointerup", endDrag);
+  knob.addEventListener("pointercancel", endDrag);
+
+  // --- live device state via Server-Sent Events -----------------------------
+  function connect() {
+    var es = new EventSource("/events" + qs);
+    es.onopen = function () {
+      connEl.textContent = "Live";
+      connEl.classList.remove("bad");
+    };
+    es.onmessage = function (ev) {
+      var msg;
+      try { msg = JSON.parse(ev.data); } catch (e) { return; }
+      if (dragging) return; // don't yank the knob out from under a drag
+      render(!!msg.on, msg.source);
+    };
+    es.onerror = function () {
+      connEl.textContent = "Reconnecting…";
+      connEl.classList.add("bad");
+      // EventSource auto-reconnects; nothing else to do.
+    };
+  }
+  connect();
+})();
+</script>
+</body>
+</html>

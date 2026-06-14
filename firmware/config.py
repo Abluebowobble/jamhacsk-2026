@@ -41,6 +41,12 @@ class Config:
     camera_stream_secret: Optional[str]
     camera_stream_fps: int
     camera_stream_jpeg_quality: int
+    # Virtual web stove knob — when enabled, a browser knob page REPLACES the SG90
+    # servo as the stove actuator (the Pi still does camera/presence/safety/buzzer).
+    stove_web_enabled: bool
+    stove_web_host: str
+    stove_web_port: int
+    stove_web_token: Optional[str]
 
 
 def _require(name):
@@ -94,4 +100,8 @@ def load_config():
         camera_stream_secret=os.environ.get("CAMERA_STREAM_SECRET") or None,
         camera_stream_fps=_env_int("CAMERA_STREAM_FPS", 4),
         camera_stream_jpeg_quality=_env_int("CAMERA_STREAM_JPEG_QUALITY", 60),
+        stove_web_enabled=_env_bool("STOVE_WEB_ENABLED", False),
+        stove_web_host=os.environ.get("STOVE_WEB_HOST", "").strip() or "0.0.0.0",
+        stove_web_port=_env_int("STOVE_WEB_PORT", 8090),
+        stove_web_token=os.environ.get("STOVE_WEB_TOKEN") or None,
     )

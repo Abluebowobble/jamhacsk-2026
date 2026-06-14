@@ -220,12 +220,19 @@ class FirmwareLoop:
             self._stove.turn_on()
             self._safety.set_stove(True, source=source)
             _dbg("  <- stove.is_on now:", self._stove.is_on)
+            # Backend-originated turns are already logged by the cloud
+            # (stoveControl.js); only a local manual turn (the web knob) needs the
+            # firmware to report the event so it lands in history.
+            if source == "knob":
+                self._record_event("STOVE_TURNED_ON", {"source": "knob"})
         elif command == "TURN_OFF":
             _dbg("  -> stove.turn_off()")
             self._stove.turn_off()
             self._safety.set_stove(False, source=source)
             self._clear_timer()
             _dbg("  <- stove.is_on now:", self._stove.is_on)
+            if source == "knob":
+                self._record_event("STOVE_TURNED_OFF", {"source": "knob"})
         elif command == "SNOOZE":
             self._safety.snooze(payload.get("seconds", 0))
         else:

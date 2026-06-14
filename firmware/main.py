@@ -13,7 +13,7 @@ Run with:  python main.py
 import logging
 
 from config import load_config
-from src import camera_stream, presence
+from src import camera_stream, presence, stove_web
 from src.buzzer import Buzzer
 from src.loop import FirmwareLoop
 from src.mqtt_client import MqttClient
@@ -50,7 +50,22 @@ def main():
 
     # Actuators (lazy hardware init; simulated automatically off-Pi).
     buzzer = Buzzer()
-    stove = Stove()
+    # The stove actuator is either the SG90 servo (default) or a virtual web knob.
+    # When STOVE_WEB_ENABLED, we inject a WebKnobBackend so the stove is driven by
+    # an interactive browser page instead of a servo — the injected backend bypasses
+    # _make_backend() entirely, so no GPIO/servo is touched. on_manual is wired to
+    # the loop below (after it exists) so a browser turn travels the same path as an
+    # MQTT command. stove.close() stops the web server (Actuator.close -> backend.close).
+    web_knob = None
+    if config.stove_web_enabled:
+        web_knob = stove_web.WebKnobBackend(
+            host=config.stove_web_host,
+            port=config.stove_web_port,
+            token=config.stove_web_token,
+        )
+        stove = Stove(backend=web_knob)
+    else:
+        stove = Stove()
 
     # Local safety state machine (the firmware's own logic). Drives the buzzer
     # and stove directly and reports the actions it takes via on_event.
@@ -76,6 +91,16 @@ def main():
         on_assignment=loop.on_assignment,
     )
     loop.set_client(client)
+
+    # Wire the web knob to the loop now that it exists, then start serving. A user
+    # turning the knob in the browser calls on_manual(on) -> loop.on_command(...),
+    # exactly like a backend MQTT command (arms/disarms safety, publishes status,
+    # and logs a STOVE_TURNED_ON/OFF event via the "knob" source tag).
+    if web_knob is not None:
+        web_knob.on_manual = lambda on: loop.on_command(
+            {"command": "TURN_ON" if on else "TURN_OFF", "source": "knob"}
+        )
+        web_knob.start()
 
     # Presence vision is optional: on a dev machine without a camera/vision libs
     # we keep everything else running (MQTT + safety still work).
