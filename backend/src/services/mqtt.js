@@ -50,6 +50,11 @@ export function initMqtt(log = console) {
     ], (err) => {
       if (err) logger.error?.({ err }, 'MQTT subscribe failed')
     })
+    // Make the DB the source of truth for assignments: on every (re)connect,
+    // re-publish each paired device's retained assignment. A device paired in
+    // Supabase — even while this bridge was down, or seeded directly — then
+    // learns its household the moment it subscribes, with no re-pairing.
+    reconcileAssignments().catch((err) => logger.error?.({ err }, 'assignment reconcile failed'))
   })
 
   // ECONNREFUSED / offline: warn ONCE, then stay quiet while mqtt.js keeps
@@ -266,6 +271,30 @@ export async function publishToDevice(deviceId, payload, kind = 'commands') {
     `${TOPIC_BASE}/${device.household_id}/devices/${deviceId}/${kind}`,
     JSON.stringify({ ...payload, timestamp: new Date().toISOString() }),
   )
+}
+
+/**
+ * Re-publish the retained assignment for every paired device, straight from the
+ * Supabase `devices` table. Runs on each broker (re)connect so the database is
+ * the effective source of truth: a device whose row already has a household —
+ * paired while this bridge was offline, or seeded directly in SQL — still learns
+ * it on its next subscribe, with no re-pairing in the app. Errors are logged,
+ * never thrown, so a transient DB hiccup can't break the connect handler.
+ */
+async function reconcileAssignments() {
+  const { data, error } = await supabaseAdmin
+    .from('devices')
+    .select('id, household_id')
+    .not('household_id', 'is', null)
+  if (error) {
+    logger.error?.({ err: error }, 'assignment reconcile query failed')
+    return
+  }
+  if (!data?.length) return
+  for (const d of data) {
+    await publishAssignment(d.id, d.household_id)
+  }
+  logger.info?.(`Reconciled ${data.length} device assignment(s) from DB`)
 }
 
 /**
