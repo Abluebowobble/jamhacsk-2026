@@ -55,7 +55,7 @@ as **color + icon + text**, never color alone (WCAG 2.1 AA).
 | **Backend** | Fastify 5 (ESM, Node) + `@supabase/supabase-js` + `mqtt` + `web-push` | Vultr VM via Docker Compose | Implemented |
 | **Database / Auth** | Supabase (Postgres + Auth) | Supabase cloud | Schema implemented (`001_init.sql`) |
 | **Broker** | Eclipse Mosquitto 2.0 | Same Vultr VM (Docker) | Configured with per-device ACLs |
-| **Firmware** | Python 3 + paho-mqtt + OpenCV/picamera2 | Raspberry Pi 4 | MQTT + presence **done**; safety/buzzer/stove are **stubs** |
+| **Firmware** | Python 3 + paho-mqtt + OpenCV/picamera2 | Raspberry Pi 4 | Fully implemented: MQTT, presence, safety loop, buzzer, servo, camera stream |
 
 The repo is a monorepo with four cooperating parts: [frontend/](../frontend),
 [backend/](../backend), [firmware/](../firmware), and [mqtt/](../mqtt) (broker
@@ -283,8 +283,9 @@ public `/preview` route (`SummaryPreview`) flagged for removal after review.
 Python firmware for the local device. **Design intent:** safety logic must run
 locally (PRD §12, §22).
 
-**Done:**
-- **`mqtt_client.py`** — full Pi side of the contract. Authenticates as
+**All modules are complete:**
+
+- **`mqtt_client.py`** — full Pi side of the MQTT contract. Authenticates as
   `username = DEVICE_ID`; subscribes to `commands`/`settings`/`timers`; publishes
   `status`/`presence`/`events`. Sets a retained **Last Will** on `status`
   (`online:false`) so an unexpected drop marks the device offline automatically.
@@ -296,20 +297,37 @@ locally (PRD §12, §22).
   MobileNet-SSD ("person" class only, so pets are ignored); auto-falls back to
   OpenCV HOG if model files are absent. Capture via picamera2 on the Pi, OpenCV
   `VideoCapture` for laptop dev. Debounced (N agreeing frames) to avoid flicker /
-  event spam; fires an `on_change` callback on a stable flip. Degrades gracefully
-  (raises `PresenceUnavailable`) when no camera/vision libs exist, so MQTT keeps
-  running. Includes a broker-free self-test (`python -m src.presence [--image|--video]`).
-- **`main.py`** — wires it together: starts MQTT, runs the presence poll loop,
-  publishes presence on debounced change, and sends a periodic retained `status`
-  heartbeat (every 30s).
-
-**Stubs (the TODO list):**
+  event spam; fires an `on_change` callback on a stable flip. Exposes
+  `latest_jpeg(quality)` (thread-safe) so the MJPEG stream server re-uses the same
+  captured frames without opening the camera twice. Degrades gracefully (raises
+  `PresenceUnavailable`) when no camera/vision libs exist, so MQTT keeps running.
+  Includes a broker-free self-test (`python -m src.presence [--image|--video]`).
 - **`safety.py`** — the absence-timeout → warning-delay → auto-shutoff state machine
-  (PRD §12.1). Currently only stores pushed settings; `on_presence()` is the wired
-  seam where the timing logic belongs.
-- **`buzzer.py`** — buzzer GPIO on/off.
-- **`stove.py`** — relay stove power control.
-- Camera stream endpoint (PRD §13) is not implemented.
+  (PRD §12.1). Tick-driven (`tick(now)` called every loop iteration); event-driven
+  inputs via `on_presence()` and `set_stove()`. Drives the buzzer and stove relay
+  directly without any MQTT round-trip. Also handles `snooze()` (postpones
+  auto-shutoff by N seconds). Emits named events (`WARNING_BUZZER_STARTED`,
+  `WARNING_CANCELLED`, `AUTO_SHUTOFF_TRIGGERED`) via an `on_event` callback that
+  the loop forwards to MQTT.
+- **`actuator.py`** — shared base for on/off GPIO actuators: lazy init, idempotent
+  transitions, `SimulatedBackend` log-only fallback for dev machines without GPIO.
+- **`buzzer.py`** — warning buzzer via gpiozero (`Buzzer` for active, `TonalBuzzer`
+  for passive). Falls back to `SimulatedBackend` when GPIO is unavailable.
+  Self-test: `python -m src.buzzer`.
+- **`stove.py`** — stove knob driven by an SG90 servo via gpiozero `AngularServo`
+  (0° = off, `STOVE_ON_ANGLE` = on). `turn_off()` deliberately re-asserts 0° every
+  time (non-idempotent) because the servo's physical angle is unknown after power-up.
+  Falls back to `SimulatedBackend` off-Pi.
+- **`camera_stream.py`** — token-gated MJPEG stream server (PRD §13). Runs as a
+  background daemon thread; serves frames from `PresenceMonitor.latest_jpeg()` so
+  the camera is never opened twice. Access is gated by a short-lived HMAC token
+  the backend mints (shared `CAMERA_STREAM_SECRET`). Endpoints: `GET /stream?token=…`
+  (multipart MJPEG, 401 on bad/expired token) and `GET /healthz` (no auth).
+- **`loop.py`** — the main 3-phase tick orchestrator: (1) drain inbound MQTT
+  requests, (2) run safety logic + timer, (3) publish outbound sensor data and
+  event logs. Handles `assignment` messages (pair/unpair at runtime), cooking timer
+  elapse, and status heartbeats.
+- **`main.py`** — entry point: wires everything together, runs the firmware loop.
 
 Model files live in `firmware/models/` (gitignored binaries; see its README for the
 MobileNet-SSD download). Presence is tunable via env (confidence, ROI, min box size,
@@ -384,12 +402,17 @@ Things to be aware of when reading the PRD against the code:
    the implementation is **household-keyed** `hestia/households/{householdId}/devices/{deviceId}/…`
    (backend, firmware `messages.py`, and broker ACLs all agree on this) — done so the
    broker ACL can isolate families.
-3. **Frontend is in DEMO mode** (`DEMO = true`) — no real backend/login is exercised
-   until it's flipped off. A temporary `/preview` route exists for review.
-4. **Firmware safety loop is unimplemented:** `safety.py`, `buzzer.py`, `stove.py` are
-   stubs. Presence detection and the full MQTT round-trip work, but the actual
-   absence→warning→auto-shutoff timing and hardware control are not done yet.
-5. **Camera stream (PRD §13) is not implemented** anywhere.
+3. **Frontend demo mode is off** (`DEMO = false`). A temporary `/preview` route
+   (`SummaryPreview`) is still present and flagged for removal after review.
+4. **Firmware is fully implemented.** `safety.py`, `buzzer.py`, `stove.py`,
+   `camera_stream.py`, and `loop.py` are all complete — the absence→warning→
+   auto-shutoff state machine, buzzer GPIO, SG90 servo, and token-gated MJPEG
+   stream all work (with simulated fallbacks on non-Pi hardware).
+5. **`camera_stream_url` column is missing from the DB schema.** The backend's
+   device PATCH route accepts it and `camera.js` reads it, but `001_init.sql`
+   doesn't define the column. A migration adding
+   `alter table devices add column camera_stream_url text;` is needed before the
+   camera token endpoint can return a URL.
 6. **Stale README templates:** `backend/README.md` describes an old generic template
    (controllers, `upstream.js`, SSE `/api/events`, `/api/echo`) that **does not match**
    the current Fastify+Supabase implementation. `frontend/README.md` is the stock Vite
@@ -417,8 +440,9 @@ Things to be aware of when reading the PRD against the code:
 | Push notifications (Web Push + VAPID) | ✅ plumbing |
 | Event logging | ✅ |
 | Presence detection (camera, person vs. pet) | ✅ firmware |
-| Local safety state machine (absence→warning→shutoff) | ⛔ stub |
-| Buzzer + relay control | ⛔ stub |
-| Camera stream display | ⛔ not started |
-| Real (non-demo) frontend wiring | ◑ built, demo flag on |
-```
+| Local safety state machine (absence→warning→shutoff) | ✅ firmware |
+| Buzzer + servo control | ✅ firmware |
+| Camera stream (MJPEG, token-gated) | ✅ firmware + backend |
+| Camera stream display (frontend) | ✅ frontend |
+| Real (non-demo) frontend wiring | ✅ demo flag off |
+| `camera_stream_url` DB column | ⛔ missing from migration |
