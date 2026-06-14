@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { SessionContext, readActiveId, writeActiveId } from '../lib/sessionContext'
+import { RealtimeBridge } from './RealtimeBridge'
 
 // Loads the signed-in user's households once authed, tracks the active one,
 // and loads that household's devices. Re-fetches are exposed so the onboarding
@@ -134,5 +135,10 @@ export function SessionProvider({ children }) {
     ],
   )
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  return (
+    <SessionContext.Provider value={value}>
+      <RealtimeBridge />
+      {children}
+    </SessionContext.Provider>
+  )
 }

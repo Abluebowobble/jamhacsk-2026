@@ -339,6 +339,20 @@ export function useNotifications() {
   return { notifications: s.notifications, unread: s.notificationsUnread, reload: loadNotifications }
 }
 
+// ---- realtime sync (called by RealtimeBridge on remote changes) ------------
+//
+// Thin re-exports of the internal loaders so the realtime layer can refresh
+// exactly the slice a remote change touched, without routing through a React
+// hook. These update the same reactive cache the hooks read, so any mounted
+// view re-renders automatically.
+export const sync = {
+  reloadMembers: loadMembers,
+  reloadHouseholdDevices: loadHouseholdDevices,
+  refreshDevice,
+  reloadJoinRequests: loadJoinRequests,
+  reloadNotifications: loadNotifications,
+}
+
 // ---- actions (real, awaited mutations + targeted refetch) -----------------
 
 export const actions = {

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Home, Users, ChevronRight, ArrowLeft, Nfc, ArrowRight, LogOut, Clock } from 'lucide-react'
+import { Home, Users, ChevronRight, ArrowLeft, Nfc, ArrowRight, LogOut, Clock, User } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useSession } from '../lib/sessionContext'
@@ -35,8 +35,28 @@ export function OnboardingPage() {
   const [path, setPath] = useState(null)
   // Local mirror so saving the defaults advances the gate without a refetch.
   const [defaultsSet, setDefaultsSet] = useState(() => hasSafetyDefaults(user?.id))
+  // Whether the account still needs a display name (null = checking the profile).
+  const [nameNeeded, setNameNeeded] = useState(null)
 
-  if (householdsLoading) return <Splash label="Loading your account…" />
+  useEffect(() => {
+    let active = true
+    api
+      .getProfile()
+      .then((p) => active && setNameNeeded(!p?.full_name?.trim()))
+      // On a profile-load failure, don't trap the user behind the name gate.
+      .catch(() => active && setNameNeeded(false))
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (householdsLoading || nameNeeded === null) return <Splash label="Loading your account…" />
+
+  // Step 0 — first thing for a brand-new account: a required display name, so
+  // every member shows up to the household as a person, not a blank.
+  if (nameNeeded) {
+    return <NameStep onSaved={() => setNameNeeded(false)} onSignOut={signOut} />
+  }
 
   // Step 1 — no household yet: welcome + the create / join fork.
   if (households.length === 0) {
@@ -87,6 +107,65 @@ export function OnboardingPage() {
 
   // Already set up — hand back to the dashboard gate.
   return <Navigate to="/" replace />
+}
+
+// Required first step for a new account: pick a display name. Mandatory (the
+// Continue button stays disabled until something is entered) so no one lands in
+// a household as an unnamed blank. Editable later in Settings → Account.
+function NameStep({ onSaved, onSignOut }) {
+  const [name, setName] = useState('')
+  const [error, setError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const trimmed = name.trim()
+
+  async function onSubmit(e) {
+    e.preventDefault()
+    if (!trimmed) {
+      setError('Enter a display name to continue.')
+      return
+    }
+    setSubmitting(true)
+    setError(null)
+    try {
+      await api.updateProfile(trimmed)
+      onSaved()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Couldn’t save your name. Try again.')
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <CenteredScreen>
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-semibold text-ink">What should we call you?</h1>
+        <p className="mt-1.5 text-sm text-ink-body text-balance">
+          Your display name is how other people in your household see you. You can change it later
+          in settings.
+        </p>
+      </div>
+
+      <Card as="form" onSubmit={onSubmit} className="flex flex-col gap-4 p-6" noValidate>
+        <Field
+          label="Display name"
+          name="name"
+          placeholder="e.g. Alex Kim"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={error}
+          autoComplete="name"
+          autoFocus
+          maxLength={100}
+        />
+        <Button type="submit" loading={submitting} disabled={!trimmed} className="w-full">
+          <User className="size-4" aria-hidden="true" />
+          Continue
+        </Button>
+      </Card>
+
+      <SignOutLink onSignOut={onSignOut} />
+    </CenteredScreen>
+  )
 }
 
 // First screen after sign-in: the create / join fork. Two real choices, not a
